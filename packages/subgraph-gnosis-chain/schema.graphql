@@ -1,0 +1,26 @@
+type GNO @entity {
+  id: ID!
+  address: Bytes! # address
+  balance: BigInt!
+  block: BigInt
+  modified: BigInt
+  transaction: Bytes
+}
+
+type LGNO @entity {
+  id: ID!
+  address: Bytes! # address
+  balance: BigInt!
+}
+
+type MGNO @entity {
+  id: ID!
+  address: Bytes! # address
+  balance: BigInt!
+}
+
+type VotingPower @entity {
+  id: ID!
+  address: Bytes! # address
+  balance: BigInt!
+}

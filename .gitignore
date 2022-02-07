@@ -1,0 +1,11 @@
+**/node_modules
+**/build
+**/generated
+**/.DS_Store
+**/artifacts/
+**/env/
+**/.env
+**/.history
+**/coverage*
+**/deployments
+.devcontainer
