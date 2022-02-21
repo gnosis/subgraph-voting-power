@@ -17,6 +17,15 @@ type MGNO @entity {
   id: ID!
   address: Bytes! # address
   balance: BigInt!
+  block: BigInt
+  modified: BigInt
+  transaction: Bytes
+}
+
+type Deposit @entity {
+  id: ID!
+  address: Bytes! # address
+  balance: BigInt!
 }
 
 type VotingPower @entity {

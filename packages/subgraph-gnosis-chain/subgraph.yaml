@@ -3,6 +3,48 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
+    name: ds-gno
+    network: xdai
+    source:
+      address: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb'
+      abi: GNO
+      startBlock: 11629829
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - GNO
+        - VotingPower
+      abis:
+        - name: GNO
+          file: ./abis/gno.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/gno.ts
+  - kind: ethereum
+    name: ds-mgno
+    network: xdai
+    source:
+      address: '0x722fc4DAABFEaff81b97894fC623f91814a1BF68'
+      abi: MGNO
+      startBlock: 19468779
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - MGNO
+        - VotingPower
+      abis:
+        - name: MGNO
+          file: ./abis/SBCToken.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/mgno.ts
+  - kind: ethereum
     name: ds-token-lock
     network: xdai
     source:
@@ -26,44 +68,23 @@ dataSources:
           handler: handleWithdraw
       file: ./src/tokenLock.ts
   - kind: ethereum
-    name: ds-staking-lock
+    name: ds-deposit
     network: xdai
     source:
-      address: '0x647507A70Ff598F386CB96ae5046486389368C66'
-      abi: SBCWrapper
-      startBlock: 19468931
+      address: '0x0B98057eA310F4d31F2a452B414647007d1645d9'
+      abi: SBCDepositContract
+      startBlock: 19469077
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - MGNO
+        - Deposit
         - VotingPower
       abis:
-        - name: SBCWrapper
-          file: ./abis/sbcWrapper.json
+        - name: SBCDepositContract
+          file: ./abis/SBCDepositContract.json
       eventHandlers:
-        - event: Swap(indexed address,indexed address,uint256,uint256)
-          handler: handleSwap
-      file: ./src/sbcWrapper.ts
-  - kind: ethereum
-    name: ds-gno
-    network: xdai
-    source:
-      address: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb'
-      abi: GNO
-      startBlock: 11629829
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - GNO
-        - VotingPower
-      abis:
-        - name: GNO
-          file: ./abis/gno.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: ./src/gno.ts
+        - event: DepositEvent(bytes,bytes,bytes,bytes,bytes)
+          handler: handleDeposit
+      file: ./src/deposit.ts
