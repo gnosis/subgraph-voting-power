@@ -1,18 +1,21 @@
 import { Address, BigInt } from '@graphprotocol/graph-ts';
-import { Transfer } from '../generated/ds-gno/GNO';
 
-import { GNO } from '../generated/schema';
+import { Transfer } from '../generated/ds-lgno/LGNO';
+import { LGNO } from '../generated/schema';
 
-import { increase as increasePower } from './votingPower';
-import { decrease as decreasePower } from './votingPower';
+import {
+  increase as increasePower,
+  decrease as decreasePower,
+} from './votingPower';
 
 export function handleTransfer(event: Transfer): void {
-  const to = event.params.to;
-  const from = event.params.from;
-  // const value = event.params.value;
+  // note they are flipped ^^
+  const to = event.params.from;
+  const from = event.params.to;
 
   writeEntity(event, from, (prevBalance, value) => prevBalance.minus(value));
   decreasePower(from, event.params.value);
+
   writeEntity(event, to, (prevBalance, value) => prevBalance.plus(value));
   increasePower(to, event.params.value);
 }
@@ -24,9 +27,9 @@ function writeEntity(
 ): void {
   const id = address.toHex();
 
-  let entry = GNO.load(id);
+  let entry = LGNO.load(id);
   if (!entry) {
-    entry = new GNO(id);
+    entry = new LGNO(id);
     entry.address = address;
     entry.balance = BigInt.fromI32(0);
   }

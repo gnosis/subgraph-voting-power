@@ -11,6 +11,9 @@ type LGNO @entity {
   id: ID!
   address: Bytes! # address
   balance: BigInt!
+  block: BigInt
+  modified: BigInt
+  transaction: Bytes
 }
 
 type MGNO @entity {

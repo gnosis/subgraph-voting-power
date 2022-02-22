@@ -45,11 +45,11 @@ dataSources:
           handler: handleTransfer
       file: ./src/mgno.ts
   - kind: ethereum
-    name: ds-token-lock
+    name: ds-lgno
     network: xdai
     source:
       address: '0xd4Ca39f78Bf14BfaB75226AC833b1858dB16f9a1'
-      abi: tokenLock
+      abi: LGNO
       startBlock: 20388099
     mapping:
       kind: ethereum/events
@@ -59,14 +59,12 @@ dataSources:
         - LGNO
         - VotingPower
       abis:
-        - name: tokenLock
-          file: ./abis/tokenLock.json
-      callHandlers:
-        - function: deposit(uint256)
-          handler: handleDeposit
-        - function: withdraw(uint256)
-          handler: handleWithdraw
-      file: ./src/tokenLock.ts
+        - name: LGNO
+          file: ./abis/lgno.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/lgno.ts
   - kind: ethereum
     name: ds-deposit
     network: xdai

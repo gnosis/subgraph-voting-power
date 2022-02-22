@@ -13,15 +13,11 @@ export function handleTransfer(event: Transfer): void {
   const from = event.params.from;
   const value = event.params.value;
 
-  if (!isSpecialAddress(from)) {
-    writeEntity(event, from, (prevBalance, value) => prevBalance.minus(value));
-    decreasePower(from, value.div(BigInt.fromI32(32)));
-  }
+  writeEntity(event, from, (prevBalance, value) => prevBalance.minus(value));
+  decreasePower(from, value.div(BigInt.fromI32(32)));
 
-  if (!isSpecialAddress(to)) {
-    writeEntity(event, to, (prevBalance, value) => prevBalance.plus(value));
-    increasePower(to, value.div(BigInt.fromI32(32)));
-  }
+  writeEntity(event, to, (prevBalance, value) => prevBalance.plus(value));
+  increasePower(to, value.div(BigInt.fromI32(32)));
 }
 
 function writeEntity(
@@ -29,7 +25,7 @@ function writeEntity(
   address: Address,
   updateBalance: (prevBalance: BigInt, value: BigInt) => BigInt
 ): void {
-  const id = address.toHexString();
+  const id = address.toHex();
 
   let entry = MGNO.load(id);
   if (!entry) {
@@ -44,19 +40,4 @@ function writeEntity(
   entry.transaction = event.transaction.hash;
 
   entry.save();
-}
-
-const ZERO = Address.fromHexString(
-  '0x0000000000000000000000000000000000000000'
-);
-const WRAPPER = Address.fromHexString(
-  '0x647507A70Ff598F386CB96ae5046486389368C66'
-);
-
-const DEPOSIT = Address.fromHexString(
-  '0x0B98057eA310F4d31F2a452B414647007d1645d9'
-);
-
-function isSpecialAddress(a: Address): bool {
-  return a.equals(ZERO) || a.equals(WRAPPER) || a.equals(DEPOSIT);
 }
