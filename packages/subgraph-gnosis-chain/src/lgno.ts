@@ -35,9 +35,8 @@ function writeEntity(
   }
 
   entry.balance = updateBalance(entry.balance, event.params.value);
-  entry.block = event.block.number;
-  entry.modified = event.block.timestamp;
-  entry.transaction = event.transaction.hash;
-
+  // entry.block = event.block.number;
+  // entry.modified = event.block.timestamp;
+  // entry.transaction = event.transaction.hash;
   entry.save();
 }

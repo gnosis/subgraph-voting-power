@@ -2,27 +2,27 @@ type GNO @entity {
   id: ID!
   address: Bytes! # address
   balance: BigInt!
-  block: BigInt
-  modified: BigInt
-  transaction: Bytes
+  # block: BigInt
+  # modified: BigInt
+  # transaction: Bytes
 }
 
 type LGNO @entity {
   id: ID!
   address: Bytes! # address
   balance: BigInt!
-  block: BigInt
-  modified: BigInt
-  transaction: Bytes
+  # block: BigInt
+  # modified: BigInt
+  # transaction: Bytes
 }
 
 type MGNO @entity {
   id: ID!
   address: Bytes! # address
   balance: BigInt!
-  block: BigInt
-  modified: BigInt
-  transaction: Bytes
+  # block: BigInt
+  # modified: BigInt
+  # transaction: Bytes
 }
 
 type Deposit @entity {
@@ -35,4 +35,11 @@ type VotingPower @entity {
   id: ID!
   address: Bytes! # address
   balance: BigInt!
+}
+
+type Aggregate @entity {
+  id: ID!
+  eventCount: Int!
+  addressCount: Int!
+  sum: BigInt!
 }

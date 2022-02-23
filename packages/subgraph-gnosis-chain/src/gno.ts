@@ -9,7 +9,6 @@ import { decrease as decreasePower } from './votingPower';
 export function handleTransfer(event: Transfer): void {
   const to = event.params.to;
   const from = event.params.from;
-  // const value = event.params.value;
 
   writeEntity(event, from, (prevBalance, value) => prevBalance.minus(value));
   decreasePower(from, event.params.value);
@@ -32,9 +31,9 @@ function writeEntity(
   }
 
   entry.balance = updateBalance(entry.balance, event.params.value);
-  entry.block = event.block.number;
-  entry.modified = event.block.timestamp;
-  entry.transaction = event.transaction.hash;
+  // entry.block = event.block.number;
+  // entry.modified = event.block.timestamp;
+  // entry.transaction = event.transaction.hash;
 
   entry.save();
 }
