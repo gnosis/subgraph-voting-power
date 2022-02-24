@@ -1,45 +1,26 @@
-type GNO @entity {
-  id: ID!
-  address: Bytes! # address
-  balance: BigInt!
-  # block: BigInt
-  # modified: BigInt
-  # transaction: Bytes
-}
-
-type LGNO @entity {
-  id: ID!
-  address: Bytes! # address
-  balance: BigInt!
-  # block: BigInt
-  # modified: BigInt
-  # transaction: Bytes
-}
-
-type MGNO @entity {
-  id: ID!
-  address: Bytes! # address
-  balance: BigInt!
-  # block: BigInt
-  # modified: BigInt
-  # transaction: Bytes
-}
-
-type Deposit @entity {
-  id: ID!
-  address: Bytes! # address
-  balance: BigInt!
-}
-
-type VotingPower @entity {
-  id: ID!
-  address: Bytes! # address
-  balance: BigInt!
-}
-
 type Aggregate @entity {
   id: ID!
   eventCount: Int!
   addressCount: Int!
   sum: BigInt!
+}
+
+type Balance @entity {
+  id: ID! # address
+  address: Bytes!
+  gno: BigInt!
+  mgno: BigInt!
+  lgno: BigInt!
+  deposit: BigInt!
+  pools: [LPTokenBalance!]
+}
+
+type LPTokenBalance @entity {
+  id: ID! # address - poolid
+  balance: BigInt!
+}
+
+type LPToken @entity {
+  id: ID!
+  ratio: Int!
 }
