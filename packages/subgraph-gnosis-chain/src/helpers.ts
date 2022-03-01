@@ -4,6 +4,9 @@ import { AMMPair, AMMPosition, User } from '../generated/schema';
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 export const FACTORY_ADDRESS = '0xa818b4f111ccac7aa31d0bcc0806d64f2e0737d7';
+export const GNO_ADDRESS = Address.fromString(
+  '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb'
+);
 
 export let ZERO_BI = BigInt.fromI32(0);
 export let ONE_BI = BigInt.fromI32(1);

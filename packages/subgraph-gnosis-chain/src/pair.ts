@@ -11,6 +11,7 @@ import {
 import { ERC20 } from '../generated/templates/Pair/ERC20';
 import {
   ADDRESS_ZERO,
+  GNO_ADDRESS,
   loadOrCreateAMMPair,
   loadOrCreateAMMPosition,
   loadOrCreateUser,
@@ -84,7 +85,7 @@ export function handleTransfer(event: Transfer): void {
 }
 
 export function handleSync(event: Sync): void {
-  const contract = ERC20.bind(event.address);
+  const contract = ERC20.bind(GNO_ADDRESS);
   const pair = loadOrCreateAMMPair(event.address);
   pair.syncs += 1;
   pair.gnoReserves = contract.balanceOf(event.address);
