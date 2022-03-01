@@ -14,8 +14,7 @@ dataSources:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - GNO
-        - VotingPower
+        - User
       abis:
         - name: GNO
           file: ./abis/gno.json
@@ -35,8 +34,7 @@ dataSources:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - MGNO
-        - VotingPower
+        - User
       abis:
         - name: MGNO
           file: ./abis/SBCToken.json
@@ -56,8 +54,7 @@ dataSources:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - LGNO
-        - VotingPower
+        - User
       abis:
         - name: LGNO
           file: ./abis/lgno.json
@@ -77,8 +74,7 @@ dataSources:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - Deposit
-        - VotingPower
+        - User
       abis:
         - name: SBCDepositContract
           file: ./abis/SBCDepositContract.json
@@ -86,3 +82,54 @@ dataSources:
         - event: DepositEvent(bytes,bytes,bytes,bytes,bytes)
           handler: handleDeposit
       file: ./src/deposit.ts
+  - kind: ethereum/contract
+    name: Factory
+    network: xdai
+    source:
+      address: '0xA818b4F111Ccac7AA31D0BCc0806d64F2E0737D7'
+      abi: Factory
+      startBlock: 11813490
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/factory.ts
+      entities:
+        - User
+      abis:
+        - name: Factory
+          file: ./abis/factory.json
+      eventHandlers:
+        - event: PairCreated(indexed address,indexed address,address,uint256)
+          handler: handleNewPair
+templates:
+  - kind: ethereum/contract
+    name: Pair
+    network: xdai
+    source:
+      abi: Pair
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/pair.ts
+      entities:
+        - AMMPair
+      abis:
+        - name: Pair
+          file: ./abis/pair.json
+        - name: Factory
+          file: ./abis/factory.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Mint(indexed address,uint256,uint256)
+          handler: handleMint
+        - event: Burn(indexed address,uint256,uint256,indexed address)
+          handler: handleBurn
+        - event: Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleSwap
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Sync(uint112,uint112)
+          handler: handleSync

@@ -1,17 +1,17 @@
 import { Transfer } from '../generated/ds-mgno/MGNO';
-import { loadOrCreate } from './balance';
+import { loadOrCreateUser } from './helpers';
 
 export function handleTransfer(event: Transfer): void {
   const to = event.params.to;
   const from = event.params.from;
   const value = event.params.value;
 
-  const balanceFrom = loadOrCreate(from);
-  const balanceTo = loadOrCreate(to);
+  const userFrom = loadOrCreateUser(from);
+  const userTo = loadOrCreateUser(to);
 
-  balanceFrom.mgno = balanceFrom.mgno.minus(event.params.value);
-  balanceTo.mgno = balanceTo.mgno.plus(event.params.value);
+  userFrom.mgno = userFrom.mgno.minus(value);
+  userTo.mgno = userTo.mgno.plus(value);
 
-  balanceFrom.save();
-  balanceTo.save();
+  userFrom.save();
+  userTo.save();
 }

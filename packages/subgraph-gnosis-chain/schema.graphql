@@ -1,26 +1,27 @@
-type Aggregate @entity {
-  id: ID!
-  eventCount: Int!
-  addressCount: Int!
-  sum: BigInt!
-}
-
-type Balance @entity {
+type User @entity {
   id: ID! # address
   address: Bytes!
   gno: BigInt!
   mgno: BigInt!
   lgno: BigInt!
   deposit: BigInt!
-  pools: [LPTokenBalance!]
+  lps: [AMMPosition!] @derivedFrom(field: "user")
 }
 
-type LPTokenBalance @entity {
-  id: ID! # address - poolid
-  balance: BigInt!
+type AMMPair @entity {
+  id: ID! # address
+  address: Bytes!
+  totalSupply: BigInt!
+  gnoReserves: BigInt!
+  mints: Int!
+  burns: Int!
+  swaps: Int!
+  syncs: Int!
 }
 
-type LPToken @entity {
+type AMMPosition @entity {
   id: ID!
-  ratio: Int!
+  user: User!
+  pair: AMMPair!
+  balance: BigInt!
 }

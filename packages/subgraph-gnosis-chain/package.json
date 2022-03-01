@@ -3,6 +3,7 @@
   "license": "UNLICENSED",
   "author": "Cristóvão Honorato",
   "scripts": {
+    "doall": "rm -rf generated && rm -rf build && graph codegen && graph build",
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ cristovaoth/gno-voting-power-gc",

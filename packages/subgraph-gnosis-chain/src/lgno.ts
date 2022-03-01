@@ -1,17 +1,17 @@
 import { Transfer } from '../generated/ds-lgno/LGNO';
-import { loadOrCreate } from './balance';
+import { loadOrCreateUser } from './helpers';
 
 export function handleTransfer(event: Transfer): void {
   // note they are flipped ^^
   const to = event.params.from;
   const from = event.params.to;
 
-  const balanceFrom = loadOrCreate(from);
-  const balanceTo = loadOrCreate(to);
+  const userFrom = loadOrCreateUser(from);
+  const userTo = loadOrCreateUser(to);
 
-  balanceFrom.lgno = balanceFrom.lgno.minus(event.params.value);
-  balanceTo.lgno = balanceTo.lgno.plus(event.params.value);
+  userFrom.lgno = userFrom.lgno.minus(event.params.value);
+  userTo.lgno = userTo.lgno.plus(event.params.value);
 
-  balanceFrom.save();
-  balanceTo.save();
+  userFrom.save();
+  userTo.save();
 }
