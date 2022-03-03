@@ -5,13 +5,14 @@ type User @entity {
   mgno: BigInt!
   lgno: BigInt!
   deposit: BigInt!
-  lps: [AMMPosition!] @derivedFrom(field: "user")
+  lpIn: [AMMPosition!]! @derivedFrom(field: "user")
 }
 
 type AMMPair @entity {
   id: ID! # address
   totalSupply: BigInt!
   gnoReserves: BigInt!
+  lps: [Bytes!]!
   mints: Int!
   burns: Int!
   swaps: Int!

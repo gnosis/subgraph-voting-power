@@ -1,4 +1,4 @@
-import { BigInt, log } from '@graphprotocol/graph-ts';
+import { BigInt, log, store } from "@graphprotocol/graph-ts";
 import {
   Pair as PairContract,
   Mint,
@@ -6,16 +6,17 @@ import {
   Swap,
   Transfer,
   Sync,
-} from '../generated/templates/Pair/Pair';
+} from "../generated/templates/Pair/Pair";
 
-import { ERC20 } from '../generated/templates/Pair/ERC20';
+import { ERC20 } from "../generated/templates/Pair/ERC20";
 import {
   ADDRESS_ZERO,
   GNO_ADDRESS,
   loadOrCreateAMMPair,
   loadOrCreateAMMPosition,
   loadOrCreateUser,
-} from './helpers';
+} from "./helpers";
+import { AMMPosition } from "../generated/schema";
 
 export function handleTransfer(event: Transfer): void {
   const pair = loadOrCreateAMMPair(event.address);
@@ -32,6 +33,9 @@ export function handleTransfer(event: Transfer): void {
   const from = event.params.from;
   const to = event.params.to;
 
+  const userTo = loadOrCreateUser(to);
+  const userFrom = loadOrCreateUser(from);
+
   //const pairContract = PairContract.bind(event.address);
 
   // liquidity token amount being transfered
@@ -41,6 +45,17 @@ export function handleTransfer(event: Transfer): void {
   if (from.toHexString() == ADDRESS_ZERO) {
     // update total supply
     pair.totalSupply = pair.totalSupply.plus(value);
+    // add lp
+    if (!pair.lps.includes(to) && value > BigInt.fromI32(0)) {
+      pair.lps.push(to);
+    }
+    // update vote weight
+    const position = new AMMPosition(userTo.lpIn[userTo.lpIn.indexOf(pair.id)]);
+    userTo.voteWeight = pair.totalSupply
+      .times(position.balance)
+      .div(pair.totalSupply);
+
+    userTo.save();
     pair.save();
   }
 
@@ -50,6 +65,27 @@ export function handleTransfer(event: Transfer): void {
     event.params.from.toHexString() == pair.id
   ) {
     pair.totalSupply = pair.totalSupply.minus(value);
+    const position = new AMMPosition(
+      userFrom.lpIn[userFrom.lpIn.indexOf(pair.id)]
+    );
+    // remove user from lps if balance is 0
+    if (position.balance == BigInt.fromI32(0)) {
+      const index = pair.lps.indexOf(from);
+      pair.lps.splice(index, 1);
+    }
+
+    // update vote weight
+    userFrom.voteWeight = pair.totalSupply
+      .times(position.balance)
+      .div(pair.totalSupply);
+
+    // remove user if voteWeight is 0
+    if (userFrom.voteWeight == BigInt.fromI32(0)) {
+      store.remove("User", userFrom.id);
+    } else {
+      userFrom.save();
+    }
+
     pair.save();
   }
 
