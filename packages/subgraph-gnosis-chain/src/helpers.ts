@@ -1,17 +1,17 @@
 /* eslint-disable prefer-const */
-import { log, BigInt, BigDecimal, Address } from '@graphprotocol/graph-ts';
-import { AMMPair, AMMPosition, User } from '../generated/schema';
+import { log, BigInt, BigDecimal, Address } from "@graphprotocol/graph-ts";
+import { AMMPair, AMMPosition, User } from "../generated/schema";
 
-export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
-export const FACTORY_ADDRESS = '0xa818b4f111ccac7aa31d0bcc0806d64f2e0737d7';
+export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
+export const FACTORY_ADDRESS = "0xa818b4f111ccac7aa31d0bcc0806d64f2e0737d7";
 export const GNO_ADDRESS = Address.fromString(
-  '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb'
+  "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
 );
 
 export let ZERO_BI = BigInt.fromI32(0);
 export let ONE_BI = BigInt.fromI32(1);
-export let ZERO_BD = BigDecimal.fromString('0');
-export let ONE_BD = BigDecimal.fromString('1');
+export let ZERO_BD = BigDecimal.fromString("0");
+export let ONE_BD = BigDecimal.fromString("1");
 export let BI_18 = BigInt.fromI32(18);
 
 // export let factoryContract = FactoryContract.bind(
@@ -19,15 +19,15 @@ export let BI_18 = BigInt.fromI32(18);
 // );
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
-  let bd = BigDecimal.fromString('1');
+  let bd = BigDecimal.fromString("1");
   for (let i = ZERO_BI; i.lt(decimals as BigInt); i = i.plus(ONE_BI)) {
-    bd = bd.times(BigDecimal.fromString('10'));
+    bd = bd.times(BigDecimal.fromString("10"));
   }
   return bd;
 }
 
 export function bigDecimalExp18(): BigDecimal {
-  return BigDecimal.fromString('1000000000000000000');
+  return BigDecimal.fromString("1000000000000000000");
 }
 
 export function convertTokenToDecimal(
@@ -52,7 +52,7 @@ export function equalToZero(value: BigDecimal): boolean {
 export function isNullEthValue(value: string): boolean {
   return (
     value ==
-    '0x0000000000000000000000000000000000000000000000000000000000000001'
+    "0x0000000000000000000000000000000000000000000000000000000000000001"
   );
 }
 
@@ -61,7 +61,9 @@ export function loadOrCreateUser(address: Address): User {
   let entry = User.load(id);
   if (!entry) {
     entry = new User(id);
-    entry.address = address;
+    // TODO: address field can probably be removed
+    // entry.address = address;
+    entry.voteWeight = BigInt.fromI32(0);
     entry.gno = BigInt.fromI32(0);
     entry.mgno = BigInt.fromI32(0);
     entry.lgno = BigInt.fromI32(0);
@@ -76,7 +78,7 @@ export function loadOrCreateAMMPosition(
 ): AMMPosition {
   const id = pair
     .toHexString()
-    .concat('-')
+    .concat("-")
     .concat(user.toHex());
   let entry = AMMPosition.load(id);
   if (entry === null) {
@@ -95,7 +97,8 @@ export function loadOrCreateAMMPair(address: Address): AMMPair {
   let entry = AMMPair.load(id);
   if (!entry) {
     entry = new AMMPair(id);
-    entry.address = address;
+    // TODO address field can probably be removed.
+    // entry.address = address;
     entry.burns = 0;
     entry.mints = 0;
     entry.swaps = 0;

@@ -1,6 +1,6 @@
 type User @entity {
   id: ID! # address
-  address: Bytes!
+  voteWeight: BigInt!
   gno: BigInt!
   mgno: BigInt!
   lgno: BigInt!
@@ -10,7 +10,6 @@ type User @entity {
 
 type AMMPair @entity {
   id: ID! # address
-  address: Bytes!
   totalSupply: BigInt!
   gnoReserves: BigInt!
   mints: Int!
