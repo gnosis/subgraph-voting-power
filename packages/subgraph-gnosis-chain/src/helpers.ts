@@ -1,12 +1,20 @@
 /* eslint-disable prefer-const */
-import { log, BigInt, BigDecimal, Address } from "@graphprotocol/graph-ts";
+import {
+  log,
+  BigInt,
+  BigDecimal,
+  Address,
+  store,
+} from "@graphprotocol/graph-ts";
 import { AMMPair, AMMPosition, User } from "../generated/schema";
+import { ERC20 } from "../generated/templates/Pair/ERC20";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 export const FACTORY_ADDRESS = "0xa818b4f111ccac7aa31d0bcc0806d64f2e0737d7";
 export const GNO_ADDRESS = Address.fromString(
   "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
 );
+export const gno = ERC20.bind(GNO_ADDRESS);
 
 export let ZERO_BI = BigInt.fromI32(0);
 export let ONE_BI = BigInt.fromI32(1);
@@ -72,6 +80,17 @@ export function loadOrCreateUser(address: Address): User {
   return entry;
 }
 
+export function removeOrSaveUser(id: string): void {
+  let user = User.load(id);
+  if (user) {
+    if (user && user.voteWeight == BigInt.fromI32(0)) {
+      store.remove("User", user.id);
+    } else {
+      user.save();
+    }
+  }
+}
+
 export function loadOrCreateAMMPosition(
   pair: Address,
   user: Address
@@ -97,14 +116,15 @@ export function loadOrCreateAMMPair(address: Address): AMMPair {
   let entry = AMMPair.load(id);
   if (!entry) {
     entry = new AMMPair(id);
-    // TODO address field can probably be removed.
-    // entry.address = address;
-    entry.burns = 0;
-    entry.mints = 0;
-    entry.swaps = 0;
-    entry.syncs = 0;
+    // entry.lps = [];
   }
   return entry;
+}
+
+export function getGnoInPosition(value: BigInt, pair: AMMPair): BigInt {
+  return value
+    .times(gno.balanceOf(Address.fromString(pair.id)))
+    .div(gno.totalSupply());
 }
 
 // export function createUser(address: Address): void {

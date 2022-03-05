@@ -1,4 +1,4 @@
-import { BigInt, log, store } from "@graphprotocol/graph-ts";
+import { BigInt, log, store, Address } from "@graphprotocol/graph-ts";
 import {
   Pair as PairContract,
   Mint,
@@ -15,6 +15,8 @@ import {
   loadOrCreateAMMPair,
   loadOrCreateAMMPosition,
   loadOrCreateUser,
+  gno,
+  getGnoInPosition,
 } from "./helpers";
 import { AMMPosition } from "../generated/schema";
 
@@ -38,24 +40,25 @@ export function handleTransfer(event: Transfer): void {
 
   //const pairContract = PairContract.bind(event.address);
 
-  // liquidity token amount being transfered
+  // liquidity token amount being transferred
   let value = event.params.value;
 
   // mint
   if (from.toHexString() == ADDRESS_ZERO) {
     // update total supply
     pair.totalSupply = pair.totalSupply.plus(value);
-    // add lp
+    // add lp & update vote weight
     if (!pair.lps.includes(to) && value > BigInt.fromI32(0)) {
       pair.lps.push(to);
+      userTo.lpIn.push(pair.id);
+      const position = new AMMPosition(
+        userTo.lpIn[userTo.lpIn.indexOf(pair.id)]
+      );
+      userTo.voteWeight = userTo.voteWeight.plus(
+        getGnoInPosition(position.balance, pair)
+      );
+      userTo.save();
     }
-    // update vote weight
-    const position = new AMMPosition(userTo.lpIn[userTo.lpIn.indexOf(pair.id)]);
-    userTo.voteWeight = pair.totalSupply
-      .times(position.balance)
-      .div(pair.totalSupply);
-
-    userTo.save();
     pair.save();
   }
 
@@ -65,20 +68,20 @@ export function handleTransfer(event: Transfer): void {
     event.params.from.toHexString() == pair.id
   ) {
     pair.totalSupply = pair.totalSupply.minus(value);
-    const position = new AMMPosition(
-      userFrom.lpIn[userFrom.lpIn.indexOf(pair.id)]
-    );
-    // remove user from lps if balance is 0
-    if (position.balance == BigInt.fromI32(0)) {
-      const index = pair.lps.indexOf(from);
-      pair.lps.splice(index, 1);
+    if (userFrom.lpIn.indexOf(pair.id)) {
+      const lpInIndex = userFrom.lpIn.indexOf(pair.id);
+      const position = new AMMPosition(userFrom.lpIn[lpInIndex]);
+      // remove user from lps if balance is 0
+      if (position.balance == BigInt.fromI32(0)) {
+        const lpsIndex = pair.lps.indexOf(from);
+        pair.lps.splice(lpsIndex, 1);
+      }
     }
 
     // update vote weight
-    userFrom.voteWeight = pair.totalSupply
-      .times(position.balance)
-      .div(pair.totalSupply);
-
+    userFrom.voteWeight = userFrom.voteWeight.minus(
+      getGnoInPosition(value, pair)
+    );
     // remove user if voteWeight is 0
     if (userFrom.voteWeight == BigInt.fromI32(0)) {
       store.remove("User", userFrom.id);
@@ -89,6 +92,7 @@ export function handleTransfer(event: Transfer): void {
     pair.save();
   }
 
+  // transfer from
   if (from.toHexString() != ADDRESS_ZERO && from.toHexString() != pair.id) {
     loadOrCreateUser(from);
 
@@ -103,6 +107,7 @@ export function handleTransfer(event: Transfer): void {
     entry.save();
   }
 
+  // transfer to
   if (
     event.params.to.toHexString() != ADDRESS_ZERO &&
     to.toHexString() != pair.id
@@ -121,27 +126,29 @@ export function handleTransfer(event: Transfer): void {
 }
 
 export function handleSync(event: Sync): void {
-  const contract = ERC20.bind(GNO_ADDRESS);
   const pair = loadOrCreateAMMPair(event.address);
-  pair.syncs += 1;
-  pair.gnoReserves = contract.balanceOf(event.address);
+  pair.gnoReserves = gno.balanceOf(event.address);
+  pair.ratio = gno
+    .balanceOf(event.address)
+    .div(ERC20.bind(event.address).balanceOf(event.address));
+  // pair.lps.forEach(lp => );
   pair.save();
 }
 
-export function handleMint(event: Mint): void {
-  const pair = loadOrCreateAMMPair(event.address);
-  pair.mints += 1;
-  pair.save();
-}
+// export function handleMint(event: Mint): void {
+//   const pair = loadOrCreateAMMPair(event.address);
+//   pair.mints += 1;
+//   pair.save();
+// }
 
-export function handleBurn(event: Burn): void {
-  const pair = loadOrCreateAMMPair(event.address);
-  pair.burns += 1;
-  pair.save();
-}
+// export function handleBurn(event: Burn): void {
+//   const pair = loadOrCreateAMMPair(event.address);
+//   pair.burns += 1;
+//   pair.save();
+// }
 
-export function handleSwap(event: Swap): void {
-  const pair = loadOrCreateAMMPair(event.address);
-  pair.swaps += 1;
-  pair.save();
-}
+// export function handleSwap(event: Swap): void {
+//   const pair = loadOrCreateAMMPair(event.address);
+//   pair.swaps += 1;
+//   pair.save();
+// }

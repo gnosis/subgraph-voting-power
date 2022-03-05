@@ -1,6 +1,6 @@
 import { BigInt, store } from "@graphprotocol/graph-ts";
 import { Transfer } from "../generated/ds-lgno/LGNO";
-import { loadOrCreateUser, ADDRESS_ZERO } from "./helpers";
+import { loadOrCreateUser, removeOrSaveUser, ADDRESS_ZERO } from "./helpers";
 
 export function handleTransfer(event: Transfer): void {
   // note to and from are flipped because of an error in the contract implementation
@@ -10,11 +10,12 @@ export function handleTransfer(event: Transfer): void {
     const userFrom = loadOrCreateUser(from);
     userFrom.lgno = userFrom.lgno.minus(event.params.value);
     userFrom.voteWeight = userFrom.voteWeight.minus(event.params.value);
-    if (userFrom.voteWeight == BigInt.fromI32(0)) {
-      store.remove("User", userFrom.id);
-    } else {
-      userFrom.save();
-    }
+    removeOrSaveUser(userFrom.id);
+    // if (userFrom.voteWeight == BigInt.fromI32(0)) {
+    //   store.remove("User", userFrom.id);
+    // } else {
+    //   userFrom.save();
+    // }
   }
 
   const to = event.params.from;
