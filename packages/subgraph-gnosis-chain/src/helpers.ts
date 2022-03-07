@@ -116,7 +116,11 @@ export function loadOrCreateAMMPair(address: Address): AMMPair {
   let entry = AMMPair.load(id);
   if (!entry) {
     entry = new AMMPair(id);
-    // entry.lps = [];
+    entry.totalSupply = ERC20.bind(Address.fromString(id)).totalSupply();
+    entry.gnoReserves = gno.balanceOf(Address.fromString(id));
+    entry.previousRatio = BigInt.fromI32(0);
+    entry.ratio = entry.gnoReserves.div(entry.totalSupply);
+    entry.lps = [];
   }
   return entry;
 }

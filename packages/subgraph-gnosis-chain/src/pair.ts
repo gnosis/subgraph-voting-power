@@ -18,7 +18,7 @@ import {
   gno,
   getGnoInPosition,
 } from "./helpers";
-import { AMMPosition } from "../generated/schema";
+import { AMMPosition, User } from "../generated/schema";
 
 export function handleTransfer(event: Transfer): void {
   const pair = loadOrCreateAMMPair(event.address);
@@ -131,7 +131,23 @@ export function handleSync(event: Sync): void {
   pair.ratio = gno
     .balanceOf(event.address)
     .div(ERC20.bind(event.address).balanceOf(event.address));
-  // pair.lps.forEach(lp => );
+  for (let index = 0; index < pair.lps.length; index++) {
+    const user = new User(pair.lps[index].toString());
+    const position = new AMMPosition(pair.id.concat("-").concat(user.id));
+
+    // subtract vote weight from previous ratio
+    user.voteWeight = position.balance.minus(
+      pair.previousRatio.times(position.balance)
+    );
+    // add vote weight from current ratio
+    user.voteWeight = position.balance.plus(pair.ratio.times(position.balance));
+
+    // save changes
+    user.save();
+  }
+
+  // set set previous ratio to current ratio
+  pair.previousRatio = pair.ratio;
   pair.save();
 }
 

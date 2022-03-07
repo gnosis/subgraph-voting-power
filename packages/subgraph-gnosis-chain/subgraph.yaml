@@ -6,7 +6,7 @@ dataSources:
     name: ds-gno
     network: xdai
     source:
-      address: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb'
+      address: "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
       abi: GNO
       startBlock: 11629829
     mapping:
@@ -26,7 +26,7 @@ dataSources:
     name: ds-mgno
     network: xdai
     source:
-      address: '0x722fc4DAABFEaff81b97894fC623f91814a1BF68'
+      address: "0x722fc4DAABFEaff81b97894fC623f91814a1BF68"
       abi: MGNO
       startBlock: 19468779
     mapping:
@@ -46,7 +46,7 @@ dataSources:
     name: ds-lgno
     network: xdai
     source:
-      address: '0xd4Ca39f78Bf14BfaB75226AC833b1858dB16f9a1'
+      address: "0xd4Ca39f78Bf14BfaB75226AC833b1858dB16f9a1"
       abi: LGNO
       startBlock: 20388099
     mapping:
@@ -66,7 +66,7 @@ dataSources:
     name: ds-deposit
     network: xdai
     source:
-      address: '0x0B98057eA310F4d31F2a452B414647007d1645d9'
+      address: "0x0B98057eA310F4d31F2a452B414647007d1645d9"
       abi: SBCDepositContract
       startBlock: 19469077
     mapping:
@@ -86,7 +86,7 @@ dataSources:
     name: Factory
     network: xdai
     source:
-      address: '0xA818b4F111Ccac7AA31D0BCc0806d64F2E0737D7'
+      address: "0xA818b4F111Ccac7AA31D0BCc0806d64F2E0737D7"
       abi: Factory
       startBlock: 11813490
     mapping:
@@ -123,12 +123,6 @@ templates:
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
-        - event: Mint(indexed address,uint256,uint256)
-          handler: handleMint
-        - event: Burn(indexed address,uint256,uint256,indexed address)
-          handler: handleBurn
-        - event: Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
-          handler: handleSwap
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
         - event: Sync(uint112,uint112)
