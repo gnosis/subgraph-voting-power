@@ -24,3 +24,5 @@ export function handleTransfer(event: Transfer): void {
     userTo.save();
   }
 }
+
+export { runTests } from "../tests/gno.test.ts";
