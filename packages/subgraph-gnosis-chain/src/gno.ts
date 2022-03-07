@@ -25,4 +25,4 @@ export function handleTransfer(event: Transfer): void {
   }
 }
 
-export { runTests } from "../tests/gno.test.ts";
+export { runTests } from "../tests/gno.test";
