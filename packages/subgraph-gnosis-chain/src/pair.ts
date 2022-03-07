@@ -133,12 +133,20 @@ export function handleTransfer(event: Transfer): void {
 export function handleSync(event: Sync): void {
   const pair = loadOrCreateAMMPair(event.address);
   pair.gnoReserves = gno.balanceOf(event.address);
-  pair.ratio = gno
-    .balanceOf(event.address)
-    .div(ERC20.bind(event.address).balanceOf(event.address));
+  // gno.balanceOf(pair) / pair.totalSupply()
+  pair.ratio = pair.gnoReserves.div(ERC20.bind(event.address).totalSupply());
   for (let index = 0; index < pair.lps.length; index++) {
     const user = new User(pair.lps[index].toString());
-    const position = new AMMPosition(pair.id.concat("-").concat(user.id));
+    log.error("User: {}\nPair: {}", [user.id, pair.id]);
+
+    const position = new AMMPosition(
+      user.positions[
+        user.positions.indexOf(pair.id.concat("-").concat(user.id))
+      ]
+    );
+
+    // const position = new AMMPosition(pair.id.concat("-").concat(user.id));
+    log.error("Position: {}", [position.id]);
 
     // subtract vote weight from previous ratio
     user.voteWeight = position.balance.minus(

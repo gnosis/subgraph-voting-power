@@ -69,8 +69,6 @@ export function loadOrCreateUser(address: Address): User {
   let entry = User.load(id);
   if (!entry) {
     entry = new User(id);
-    // TODO: address field can probably be removed
-    // entry.address = address;
     entry.voteWeight = BigInt.fromI32(0);
     entry.gno = BigInt.fromI32(0);
     entry.mgno = BigInt.fromI32(0);
@@ -126,9 +124,12 @@ export function loadOrCreateAMMPair(address: Address): AMMPair {
 }
 
 export function getGnoInPosition(value: BigInt, pair: AMMPair): BigInt {
+  // pair.balanceOf(user) / pair.totalSupply() * gno.balanceOf(pair)
+  // or
+  // value * ratio * gno.balanceOf(pair)
   return value
-    .times(gno.balanceOf(Address.fromString(pair.id)))
-    .div(gno.totalSupply());
+    .times(pair.ratio)
+    .div(gno.balanceOf(Address.fromString(pair.id)));
 }
 
 // export function createUser(address: Address): void {
