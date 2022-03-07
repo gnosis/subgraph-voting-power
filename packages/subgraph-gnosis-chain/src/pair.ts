@@ -1,4 +1,4 @@
-import { BigInt, log, store, Address } from "@graphprotocol/graph-ts";
+import { BigInt, log, store, Address, Bytes } from "@graphprotocol/graph-ts";
 import {
   Pair as PairContract,
   Mint,
@@ -48,15 +48,18 @@ export function handleTransfer(event: Transfer): void {
     // update total supply
     pair.totalSupply = pair.totalSupply.plus(value);
     // add lp & update vote weight
-    if (!pair.lps.includes(to) && value > BigInt.fromI32(0)) {
-      pair.lps.push(to);
-      userTo.lpIn.push(pair.id);
-      const position = new AMMPosition(
-        userTo.lpIn[userTo.lpIn.indexOf(pair.id)]
+    if (!pair.lps.includes(userTo.id) && value > BigInt.fromI32(0)) {
+      pair.lps.push(userTo.id);
+      log.error("pair.lps.push({})", [userTo.id]);
+      const position = loadOrCreateAMMPosition(
+        Address.fromString(pair.id),
+        Address.fromString(userTo.id)
       );
+      log.error("successfully created AMM position", []);
       userTo.voteWeight = userTo.voteWeight.plus(
         getGnoInPosition(position.balance, pair)
       );
+      log.error("successfully updated vote weight", []);
       userTo.save();
     }
     pair.save();
@@ -68,12 +71,14 @@ export function handleTransfer(event: Transfer): void {
     event.params.from.toHexString() == pair.id
   ) {
     pair.totalSupply = pair.totalSupply.minus(value);
-    if (userFrom.lpIn.indexOf(pair.id)) {
-      const lpInIndex = userFrom.lpIn.indexOf(pair.id);
-      const position = new AMMPosition(userFrom.lpIn[lpInIndex]);
+    const positionIndex = userFrom.positions.indexOf(
+      pair.id.concat("-").concat(userFrom.id)
+    );
+    if (positionIndex) {
+      const position = new AMMPosition(userFrom.positions[positionIndex]);
       // remove user from lps if balance is 0
       if (position.balance == BigInt.fromI32(0)) {
-        const lpsIndex = pair.lps.indexOf(from);
+        const lpsIndex = pair.lps.indexOf(from.toHexString());
         pair.lps.splice(lpsIndex, 1);
       }
     }
