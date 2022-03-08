@@ -1,4 +1,10 @@
-import { Address, Bytes, BigInt, store, ethereum } from "@graphprotocol/graph-ts";
+import {
+  Address,
+  Bytes,
+  BigInt,
+  store,
+  ethereum,
+} from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 import { Transfer } from "../generated/ds-gno/GNO";
 import { loadOrCreateUser, ADDRESS_ZERO } from "./helpers";
@@ -26,14 +32,14 @@ export function handleTransfer(event: Transfer): void {
   }
 }
 
-export function createTranserEvent(
+export function createTransferEvent(
   id: i32,
   from: Address,
   to: Address,
   value: BigInt,
   data: string
 ): Transfer {
-  let mockEvent = newMockEvent()
+  let mockEvent = newMockEvent();
   let newTransferEvent = new Transfer(
     mockEvent.address,
     mockEvent.logIndex,
@@ -42,29 +48,33 @@ export function createTranserEvent(
     mockEvent.block,
     mockEvent.transaction,
     mockEvent.parameters
-  )
-  newTransferEvent.parameters = new Array()
-  let idParam = new ethereum.EventParam('id', ethereum.Value.fromI32(id))
+  );
+  newTransferEvent.parameters = new Array();
+  let idParam = new ethereum.EventParam("id", ethereum.Value.fromI32(id));
   let addressFromParam = new ethereum.EventParam(
-    'fromAddress',
+    "fromAddress",
     ethereum.Value.fromAddress(from)
-  )
+  );
   let addressToParam = new ethereum.EventParam(
-    'toAddress',
+    "toAddress",
     ethereum.Value.fromAddress(to)
-  )
-  let valueParam = new ethereum.EventParam('value', ethereum.Value.fromUnsignedBigInt(value))
-  let dataParam = new ethereum.EventParam('data', ethereum.Value.fromString(data))
-  // let displayNameParam = new ethereum.EventParam('displayName', ethereum.Value.fromString(displayName))
-  // let imageUrlParam = new ethereum.EventParam('imageUrl', ethereum.Value.fromString(imageUrl))
+  );
+  let valueParam = new ethereum.EventParam(
+    "value",
+    ethereum.Value.fromUnsignedBigInt(value)
+  );
+  let dataParam = new ethereum.EventParam(
+    "data",
+    ethereum.Value.fromString(data)
+  );
 
-  newTransferEvent.parameters.push(idParam)
-  newTransferEvent.parameters.push(addressFromParam)
-  newTransferEvent.parameters.push(addressToParam)
-  newTransferEvent.parameters.push(valueParam)
-  newTransferEvent.parameters.push(dataParam)
+  newTransferEvent.parameters.push(idParam);
+  newTransferEvent.parameters.push(addressFromParam);
+  newTransferEvent.parameters.push(addressToParam);
+  newTransferEvent.parameters.push(valueParam);
+  newTransferEvent.parameters.push(dataParam);
 
-  return newTransferEvent
+  return newTransferEvent;
 }
 
 export { runTests } from "../tests/gno.test";
