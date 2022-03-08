@@ -17,6 +17,8 @@ import {
   loadOrCreateUser,
   gno,
   getGnoInPosition,
+  removeOrSaveUser,
+  updateVoteWeight,
 } from "./helpers";
 import { AMMPosition, User } from "../generated/schema";
 
@@ -60,7 +62,7 @@ export function handleTransfer(event: Transfer): void {
         getGnoInPosition(position.balance, pair)
       );
       log.error("successfully updated vote weight", []);
-      userTo.save();
+      removeOrSaveUser(userTo.id);
     }
     pair.save();
   }
@@ -71,45 +73,28 @@ export function handleTransfer(event: Transfer): void {
     event.params.from.toHexString() == pair.id
   ) {
     pair.totalSupply = pair.totalSupply.minus(value);
-    const positionIndex = userFrom.positions.indexOf(
-      pair.id.concat("-").concat(userFrom.id)
-    );
-    if (positionIndex) {
-      const position = new AMMPosition(userFrom.positions[positionIndex]);
-      // remove user from lps if balance is 0
-      if (position.balance == BigInt.fromI32(0)) {
-        const lpsIndex = pair.lps.indexOf(from.toHexString());
-        pair.lps.splice(lpsIndex, 1);
-      }
-    }
-
-    // update vote weight
-    userFrom.voteWeight = userFrom.voteWeight.minus(
-      getGnoInPosition(value, pair)
-    );
-    // remove user if voteWeight is 0
-    if (userFrom.voteWeight == BigInt.fromI32(0)) {
-      store.remove("User", userFrom.id);
-    } else {
-      userFrom.save();
-    }
+    pair.gnoReserves = gno.balanceOf(Address.fromString(pair.id));
 
     pair.save();
   }
 
   // transfer from
   if (from.toHexString() != ADDRESS_ZERO && from.toHexString() != pair.id) {
-    loadOrCreateUser(from);
-
-    const entry = loadOrCreateAMMPosition(event.address, from);
-    entry.balance = entry.balance.minus(value);
+    const position = loadOrCreateAMMPosition(event.address, from);
+    position.balance = position.balance.minus(value);
+    if (position.balance == BigInt.fromI32(0)) {
+      const lpsIndex = pair.lps.indexOf(userFrom.id);
+      store.remove("AMMPosition", position.id);
+      pair.lps.splice(lpsIndex, 1);
+    } else {
+      position.save;
+    }
+    updateVoteWeight(userFrom, position);
 
     // alternative
     // entry.liquidityTokenBalance = pairContract.balanceOf(
     //   from
     // );
-
-    entry.save();
   }
 
   // transfer to
@@ -117,16 +102,15 @@ export function handleTransfer(event: Transfer): void {
     event.params.to.toHexString() != ADDRESS_ZERO &&
     to.toHexString() != pair.id
   ) {
-    loadOrCreateUser(to);
-    const entry = loadOrCreateAMMPosition(event.address, to);
-    entry.balance = entry.balance.plus(value);
-
+    const position = loadOrCreateAMMPosition(event.address, to);
+    position.balance = position.balance.plus(value);
+    updateVoteWeight(userTo, position);
     // alternative
     // entry.liquidityTokenBalance = convertTokenToDecimal(
     //   pairContract.balanceOf(to),
     //   BI_18
     // );
-    entry.save();
+    position.save();
   }
 }
 
@@ -148,15 +132,7 @@ export function handleSync(event: Sync): void {
     // const position = new AMMPosition(pair.id.concat("-").concat(user.id));
     log.error("Position: {}", [position.id]);
 
-    // subtract vote weight from previous ratio
-    user.voteWeight = position.balance.minus(
-      pair.previousRatio.times(position.balance)
-    );
-    // add vote weight from current ratio
-    user.voteWeight = position.balance.plus(pair.ratio.times(position.balance));
-
-    // save changes
-    user.save();
+    updateVoteWeight(user, position);
   }
 
   // set set previous ratio to current ratio

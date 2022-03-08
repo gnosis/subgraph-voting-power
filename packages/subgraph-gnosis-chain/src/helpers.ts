@@ -79,7 +79,7 @@ export function loadOrCreateUser(address: Address): User {
 }
 
 export function removeOrSaveUser(id: string): void {
-  let user = User.load(id);
+  const user = User.load(id);
   if (user) {
     if (user && user.voteWeight == BigInt.fromI32(0)) {
       store.remove("User", user.id);
@@ -130,6 +130,18 @@ export function getGnoInPosition(value: BigInt, pair: AMMPair): BigInt {
   return value
     .times(pair.ratio)
     .div(gno.balanceOf(Address.fromString(pair.id)));
+}
+
+export function updateVoteWeight(user: User, position: AMMPosition): void {
+  const pair = loadOrCreateAMMPair(Address.fromString(position.pair));
+  // subtract vote weight from previous ratio
+  user.voteWeight = position.balance.minus(
+    pair.previousRatio.times(position.balance)
+  );
+  // add vote weight from current ratio
+  user.voteWeight = position.balance.plus(pair.ratio.times(position.balance));
+
+  removeOrSaveUser(user.id);
 }
 
 // export function createUser(address: Address): void {
