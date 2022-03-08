@@ -58,6 +58,9 @@ export function handleTransfer(event: Transfer): void {
         Address.fromString(userTo.id)
       );
       log.error("successfully created AMM position", []);
+      position.balance = position.balance.plus(value);
+      position.save;
+
       userTo.voteWeight = userTo.voteWeight.plus(
         getGnoInPosition(position.balance, pair)
       );
@@ -84,11 +87,13 @@ export function handleTransfer(event: Transfer): void {
     position.balance = position.balance.minus(value);
     if (position.balance == BigInt.fromI32(0)) {
       const lpsIndex = pair.lps.indexOf(userFrom.id);
-      store.remove("AMMPosition", position.id);
       pair.lps.splice(lpsIndex, 1);
+
+      store.remove("AMMPosition", position.id);
     } else {
       position.save;
     }
+    // TODO account for deleted position
     updateVoteWeight(userFrom, position);
 
     // alternative
@@ -120,13 +125,14 @@ export function handleSync(event: Sync): void {
   // gno.balanceOf(pair) / pair.totalSupply()
   pair.ratio = pair.gnoReserves.div(ERC20.bind(event.address).totalSupply());
   for (let index = 0; index < pair.lps.length; index++) {
-    const user = new User(pair.lps[index].toString());
+    const user = loadOrCreateUser(
+      Address.fromString(pair.lps[index].toString())
+    );
     log.error("User: {}\nPair: {}", [user.id, pair.id]);
 
-    const position = new AMMPosition(
-      user.positions[
-        user.positions.indexOf(pair.id.concat("-").concat(user.id))
-      ]
+    const position = loadOrCreateAMMPosition(
+      event.address,
+      Address.fromString(user.id)
     );
 
     // const position = new AMMPosition(pair.id.concat("-").concat(user.id));
