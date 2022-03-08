@@ -69,8 +69,6 @@ export function loadOrCreateUser(address: Address): User {
   let entry = User.load(id);
   if (!entry) {
     entry = new User(id);
-    // TODO: address field can probably be removed
-    // entry.address = address;
     entry.voteWeight = BigInt.fromI32(0);
     entry.gno = BigInt.fromI32(0);
     entry.mgno = BigInt.fromI32(0);
@@ -81,7 +79,7 @@ export function loadOrCreateUser(address: Address): User {
 }
 
 export function removeOrSaveUser(id: string): void {
-  let user = User.load(id);
+  const user = User.load(id);
   if (user) {
     if (user && user.voteWeight == BigInt.fromI32(0)) {
       store.remove("User", user.id);
@@ -126,9 +124,24 @@ export function loadOrCreateAMMPair(address: Address): AMMPair {
 }
 
 export function getGnoInPosition(value: BigInt, pair: AMMPair): BigInt {
+  // pair.balanceOf(user) / pair.totalSupply() * gno.balanceOf(pair)
+  // or
+  // value * ratio * gno.balanceOf(pair)
   return value
-    .times(gno.balanceOf(Address.fromString(pair.id)))
-    .div(gno.totalSupply());
+    .times(pair.ratio)
+    .div(gno.balanceOf(Address.fromString(pair.id)));
+}
+
+export function updateVoteWeight(user: User, position: AMMPosition): void {
+  const pair = loadOrCreateAMMPair(Address.fromString(position.pair));
+  // subtract vote weight from previous ratio
+  user.voteWeight = position.balance.minus(
+    pair.previousRatio.times(position.balance)
+  );
+  // add vote weight from current ratio
+  user.voteWeight = position.balance.plus(pair.ratio.times(position.balance));
+
+  removeOrSaveUser(user.id);
 }
 
 // export function createUser(address: Address): void {

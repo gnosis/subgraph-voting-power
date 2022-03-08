@@ -5,7 +5,7 @@ type User @entity {
   mgno: BigInt!
   lgno: BigInt!
   deposit: BigInt!
-  lpIn: [AMMPosition!]! @derivedFrom(field: "user")
+  positions: [AMMPosition!]! @derivedFrom(field: "user")
 }
 
 type AMMPair @entity {
@@ -14,7 +14,7 @@ type AMMPair @entity {
   gnoReserves: BigInt!
   previousRatio: BigInt!
   ratio: BigInt!
-  lps: [Bytes!]!
+  lps: [User!]!
 }
 
 type AMMPosition @entity {
