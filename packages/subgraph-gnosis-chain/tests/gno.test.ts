@@ -3,6 +3,7 @@ import {
   clearStore,
   test,
   assert,
+  logStore
 } from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { User } from "../generated/schema";
@@ -16,8 +17,8 @@ test("Should pass", () => {
 
 test("Can trigger custom events", () => {
   // Initialise
-  let user = new User("0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7");
-  user.save();
+  //let user = new User("0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7");
+  //user.save();
 
   const to = "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7";
   const from = "0x0000000000000000000000000000000000000000";
@@ -28,7 +29,7 @@ test("Can trigger custom events", () => {
   let transferEvent = createTransferEvent(from, to, value, data);
 
   handleTransfer(transferEvent);
-
-  assert.fieldEquals("User", to, "voteWeight", value);
+  logStore();
+  assert.fieldEquals("User", to.toLowerCase(), "voteWeight", value);
   clearStore();
 });
