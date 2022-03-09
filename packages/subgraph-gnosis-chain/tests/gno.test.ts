@@ -1,35 +1,34 @@
-import { clearStore, test, assert } from "matchstick-as/assembly/index";
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+import {
+  createMockedFunction,
+  clearStore,
+  test,
+  assert,
+} from "matchstick-as/assembly/index";
+import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { User } from "../generated/schema";
-import { createTransferEvent, handleTransfer } from "../src/gno";
+import { handleTransfer } from "../src/gno";
+import { GNO } from "../generated/ds-gno/GNO";
+import { createTransferEvent } from "./utils";
 
-export function runTests(): void {
-  test("Can call mappings with custom events", () => {
-    // Initialise
-    let user = new User("someone");
-    user.save();
+test("Should pass", () => {
+  assert.booleanEquals(true, true);
+});
 
-    // Call mappings
-    let value = BigInt.fromI32(1337);
-    let toAddress = Address.fromString(
-      "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
-    );
-    let fromAddress = Address.fromString(
-      "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
-    );
-    let data = "0x01";
-    let newTransferEvent = createTransferEvent(
-      12345,
-      fromAddress,
-      toAddress,
-      value,
-      data
-    );
+test("Can trigger custom events", () => {
+  // Initialise
+  let user = new User("0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7");
+  user.save();
 
-    handleTransfer(newTransferEvent);
+  const to = "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7";
+  const from = "0x0000000000000000000000000000000000000000";
+  const value = "1337";
+  const data = "0x00";
 
-    assert.fieldEquals("User", "someone", "id", "test");
+  // Call mappings
+  let transferEvent = createTransferEvent(from, to, value, data);
 
-    clearStore();
-  });
-}
+  handleTransfer(transferEvent);
+
+  assert.fieldEquals("User", to, "voteWeight", value);
+  clearStore();
+});
