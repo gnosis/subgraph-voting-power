@@ -87,6 +87,7 @@ export function loadOrCreateUser(address: Address): User {
     entry.mgno = BigInt.fromI32(0);
     entry.lgno = BigInt.fromI32(0);
     entry.deposit = BigInt.fromI32(0);
+    entry.save();
   }
   return entry;
 }
