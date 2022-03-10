@@ -8,13 +8,22 @@ import {
 } from "@graphprotocol/graph-ts";
 import { AMMPair, AMMPosition, User } from "../generated/schema";
 import { ERC20 } from "../generated/templates/Pair/ERC20";
+import { Pair } from "../generated/templates/Pair/Pair";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
+export const user1 = "0x0000000000000000000000000000000000000001";
+export const user2 = "0x0000000000000000000000000000000000000002";
+export const mockPair = "0x0000000000000000000000000000000000000003";
 export const FACTORY_ADDRESS = "0xa818b4f111ccac7aa31d0bcc0806d64f2e0737d7".toLowerCase();
 export const DEPOSIT_ADDRESS = "0x0B98057eA310F4d31F2a452B414647007d1645d9".toLowerCase();
 export const GNO_ADDRESS = Address.fromString(
   "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb".toLowerCase()
 );
+export const value = BigInt.fromI32(1337);
+export const value2x = BigInt.fromI32(2674);
+export const data = "0x00";
+
+Pair.bind(Address.fromString(mockPair));
 export const gno = ERC20.bind(GNO_ADDRESS);
 
 export const mgnoPerGno = BigInt.fromString("32");

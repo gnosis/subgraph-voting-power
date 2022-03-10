@@ -13,13 +13,7 @@ import { ADDRESS_ZERO } from "../src/helpers";
 import { Transfer } from "../generated/templates/Pair/ERC20";
 import { Sync } from "../generated/templates/Pair/Pair";
 import { PairCreated } from "../generated/Factory/Factory";
-
-export const user1 = "0x0000000000000000000000000000000000000001";
-export const user2 = "0x0000000000000000000000000000000000000002";
-export const mockPair = "0x0000000000000000000000000000000000000003";
-export const value = BigInt.fromI32(1337);
-export const value2x = BigInt.fromI32(2674);
-export const data = "0x00";
+import { Pair } from "../generated/templates/Pair/Pair";
 
 export function createTransferEvent(
   from: string,

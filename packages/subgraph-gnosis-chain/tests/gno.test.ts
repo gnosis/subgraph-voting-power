@@ -10,8 +10,14 @@ import { User } from "../generated/schema";
 import { handleTransfer } from "../src/gno";
 import { Transfer } from "../generated/ds-gno/GNO";
 import { log, newMockEvent } from "matchstick-as";
-import { ADDRESS_ZERO } from "../src/helpers";
-import { user1, user2, value, value2x, data } from "./helpers";
+import {
+  ADDRESS_ZERO,
+  user1,
+  user2,
+  value,
+  value2x,
+  data,
+} from "../src/helpers";
 
 export function createTransferEvent(
   from: string,

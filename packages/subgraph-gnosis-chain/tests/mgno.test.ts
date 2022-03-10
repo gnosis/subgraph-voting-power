@@ -15,8 +15,10 @@ import {
   ONE_GNO,
   mgnoPerGno,
   DEPOSIT_ADDRESS,
+  user1,
+  user2,
+  data,
 } from "../src/helpers";
-import { user1, user2, data } from "./helpers";
 
 let value = ONE_GNO.times(mgnoPerGno);
 let value2x = value.times(BigInt.fromI32(2));
