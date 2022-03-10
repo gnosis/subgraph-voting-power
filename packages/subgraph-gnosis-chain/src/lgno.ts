@@ -11,11 +11,6 @@ export function handleTransfer(event: Transfer): void {
     userFrom.lgno = userFrom.lgno.minus(event.params.value);
     userFrom.voteWeight = userFrom.voteWeight.minus(event.params.value);
     removeOrSaveUser(userFrom.id);
-    // if (userFrom.voteWeight == BigInt.fromI32(0)) {
-    //   store.remove("User", userFrom.id);
-    // } else {
-    //   userFrom.save();
-    // }
   }
 
   const to = event.params.from;
