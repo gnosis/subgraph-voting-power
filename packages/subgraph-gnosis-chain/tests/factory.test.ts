@@ -8,7 +8,7 @@ import {
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { AMMPair, User } from "../generated/schema";
 import { log, newMockEvent } from "matchstick-as";
-import { ADDRESS_ZERO, GNO_ADDRESS } from "../src/helpers";
+import { ADDRESS_ZERO, GNO_ADDRESS, gno } from "../src/helpers";
 import { PairCreated } from "../generated/Factory/Factory";
 import { handleNewPair } from "../src/factory";
 import {
@@ -20,7 +20,7 @@ import {
   data,
   createPairCreatedEvent,
 } from "./helpers";
-import { Pair } from "../generated/templates";
+import { Pair } from "../generated/templates/Pair/Pair";
 
 createMockedFunction(
   Address.fromString(mockPair),
@@ -30,15 +30,22 @@ createMockedFunction(
   .withArgs([])
   .returns([ethereum.Value.fromI32(100)]);
 
-let pair = Pair.bind(Address.fromString(mockPair));
-let totalSupply = pair.totalSupply();
+Pair.bind(Address.fromString(mockPair));
+
+createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
+  .withArgs([ethereum.Value.fromString(mockPair)])
+  .returns([ethereum.Value.fromI32(200)]);
 
 test("Factory spawns pair", () => {
   clearStore();
-  let gno = GNO_ADDRESS;
   let otherToken = user1;
-  let pairCreatedEvent = createPairCreatedEvent(gno, otherToken, pair, value);
+  let pairCreatedEvent = createPairCreatedEvent(
+    GNO_ADDRESS,
+    otherToken,
+    mockPair,
+    value
+  );
   handleNewPair(pairCreatedEvent);
   logStore();
-  assert.fieldEquals("AMMPair", pair, "id", pair);
+  assert.fieldEquals("AMMPair", mockPair, "id", mockPair);
 });
