@@ -15,7 +15,11 @@ export function handleTransfer(event: Transfer): void {
   if (from.toHexString() != ADDRESS_ZERO) {
     const userFrom = loadOrCreateUser(from);
     userFrom.mgno = userFrom.mgno.minus(value);
-    userFrom.voteWeight = userFrom.voteWeight.minus(value.div(mgnoPerGno));
+    if (to.toHexString() == DEPOSIT_ADDRESS) {
+      userFrom.deposit = userFrom.deposit.plus(value.div(mgnoPerGno));
+    } else {
+      userFrom.voteWeight = userFrom.voteWeight.minus(value.div(mgnoPerGno));
+    }
     if (userFrom.voteWeight == BigInt.fromI32(0)) {
       store.remove("User", userFrom.id);
     } else {

@@ -10,8 +10,8 @@ import { AMMPair, AMMPosition, User } from "../generated/schema";
 import { ERC20 } from "../generated/templates/Pair/ERC20";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
-export const FACTORY_ADDRESS = "0xa818b4f111ccac7aa31d0bcc0806d64f2e0737d7";
-export const DEPOSIT_ADDRESS = "0x0B98057eA310F4d31F2a452B414647007d1645d9";
+export const FACTORY_ADDRESS = "0xa818b4f111ccac7aa31d0bcc0806d64f2e0737d7".toLowerCase();
+export const DEPOSIT_ADDRESS = "0x0B98057eA310F4d31F2a452B414647007d1645d9".toLowerCase();
 export const GNO_ADDRESS = Address.fromString(
   "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
 );
