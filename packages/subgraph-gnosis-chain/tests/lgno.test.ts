@@ -11,12 +11,7 @@ import { handleTransfer } from "../src/lgno";
 import { Transfer } from "../generated/ds-lgno/LGNO";
 import { log, newMockEvent } from "matchstick-as";
 import { ADDRESS_ZERO } from "../src/helpers";
-
-const user1 = "0x0000000000000000000000000000000000000001";
-const user2 = "0x0000000000000000000000000000000000000002";
-const value = BigInt.fromI32(1337);
-const value2x = BigInt.fromI32(2674);
-const data = "0x00";
+import { user1, user2, value, value2x, data } from "./helpers";
 
 export function createTransferEvent(
   from: string,
