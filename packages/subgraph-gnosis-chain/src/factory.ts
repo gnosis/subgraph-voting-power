@@ -10,8 +10,8 @@ export function handleNewPair(event: PairCreated): void {
     event.params.token1.equals(GNO_ADDRESS);
 
   if (isGnoTradingPair) {
-    log.info("Found HoneySwap GNO POOL {}", [event.params.pair.toHex()]);
     loadOrCreateAMMPair(event.params.pair);
+    log.info("Found GNO in POOL: {}", [event.params.pair.toHex()]);
     // Pair.create(event.params.pair);
   }
 }

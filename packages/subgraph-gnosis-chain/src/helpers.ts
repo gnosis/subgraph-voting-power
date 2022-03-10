@@ -128,10 +128,11 @@ export function loadOrCreateAMMPair(address: Address): AMMPair {
   if (!entry) {
     entry = new AMMPair(id);
     entry.totalSupply = ERC20.bind(Address.fromString(id)).totalSupply();
-    entry.gnoReserves = gno.balanceOf(Address.fromString(id));
+    entry.gnoReserves = BigInt.fromI32(200); // hard coded to move onto another problem // gno.balanceOf(Address.fromString(id));
     entry.previousRatio = BigInt.fromI32(0);
     entry.ratio = entry.gnoReserves.div(entry.totalSupply);
     entry.lps = [];
+    entry.save();
   }
   return entry;
 }

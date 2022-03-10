@@ -32,10 +32,10 @@ createMockedFunction(
   .withArgs([])
   .returns([ethereum.Value.fromI32(100)]);
 
-// // mock gno.balanceOf(pair.address)
-// createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
-//   .withArgs([ethereum.Value.fromString(mockPair)])
-//   .returns([ethereum.Value.fromI32(200)]);
+// mock gno.balanceOf(pair.address)
+createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
+  .withArgs([ethereum.Value.fromString(mockPair)])
+  .returns([ethereum.Value.fromI32(200)]);
 
 test("Factory spawns pair", () => {
   clearStore();
@@ -47,6 +47,5 @@ test("Factory spawns pair", () => {
     value
   );
   handleNewPair(pairCreatedEvent);
-  logStore();
   assert.fieldEquals("AMMPair", mockPair, "id", mockPair);
 });
