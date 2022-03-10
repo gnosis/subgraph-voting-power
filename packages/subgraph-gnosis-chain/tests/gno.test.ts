@@ -154,12 +154,12 @@ test("Transfer resulting in 0 vote weight removes user from store.", () => {
 });
 
 test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", () => {
-  // mint 2674 to user1
+  // mint 1337 from ADDRESS_ZERO to user1, ADDRESS_ZERO should not be in store
   let mintEvent = createTransferEvent(ADDRESS_ZERO, user1, value, data);
   handleTransfer(mintEvent);
   assert.notInStore("User", ADDRESS_ZERO);
 
-  // send 1337 from user1 to user2, user one should have 0 left and be removed from store
+  // send 1337 from user1 to ADDRESS_ZERO, ADDRESS_ZERO should not be in store
   let transferEvent = createTransferEvent(user1, ADDRESS_ZERO, value, data);
   handleTransfer(transferEvent);
   assert.notInStore("User", ADDRESS_ZERO);
