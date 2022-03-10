@@ -1,8 +1,8 @@
 /* eslint-disable prefer-const */
-import { Address, log } from '@graphprotocol/graph-ts';
-import { PairCreated } from '../generated/Factory/Factory';
-import { Pair } from '../generated/templates';
-import { GNO_ADDRESS } from './helpers';
+import { Address, log } from "@graphprotocol/graph-ts";
+import { PairCreated } from "../generated/Factory/Factory";
+import { Pair } from "../generated/templates";
+import { GNO_ADDRESS, loadOrCreateAMMPair } from "./helpers";
 
 export function handleNewPair(event: PairCreated): void {
   const isGnoTradingPair =
@@ -10,7 +10,8 @@ export function handleNewPair(event: PairCreated): void {
     event.params.token1.equals(GNO_ADDRESS);
 
   if (isGnoTradingPair) {
-    log.info('Found HoneySwap GNO POOL {}', [event.params.pair.toHex()]);
-    Pair.create(event.params.pair);
+    log.info("Found HoneySwap GNO POOL {}", [event.params.pair.toHex()]);
+    loadOrCreateAMMPair(event.params.pair);
+    // Pair.create(event.params.pair);
   }
 }

@@ -16,6 +16,7 @@ import { PairCreated } from "../generated/Factory/Factory";
 
 export const user1 = "0x0000000000000000000000000000000000000001";
 export const user2 = "0x0000000000000000000000000000000000000002";
+export const mockPair = "0x0000000000000000000000000000000000000003";
 export const value = BigInt.fromI32(1337);
 export const value2x = BigInt.fromI32(2674);
 export const data = "0x00";
@@ -88,7 +89,7 @@ export function createSyncEvent(reserve0: BigInt, reserve1: BigInt): Sync {
 }
 
 export function createPairCreatedEvent(
-  token0: string,
+  token0: Address,
   token1: string,
   pair: string,
   value: BigInt
@@ -98,10 +99,7 @@ export function createPairCreatedEvent(
   mockEvent.parameters = new Array();
 
   mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "token0",
-      ethereum.Value.fromAddress(Address.fromString(token0))
-    )
+    new ethereum.EventParam("token0", ethereum.Value.fromAddress(token0))
   );
 
   mockEvent.parameters.push(
