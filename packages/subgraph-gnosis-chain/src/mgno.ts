@@ -23,7 +23,7 @@ export function handleTransfer(event: Transfer): void {
     }
   }
 
-  if (to.toHexString() != ADDRESS_ZERO || DEPOSIT_ADDRESS) {
+  if (to.toHexString() != ADDRESS_ZERO && to.toHexString() != DEPOSIT_ADDRESS) {
     const userTo = loadOrCreateUser(to);
     userTo.mgno = userTo.mgno.plus(value);
     userTo.voteWeight = userTo.voteWeight.plus(value.div(mgnoPerGno));

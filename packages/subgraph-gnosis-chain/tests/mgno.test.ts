@@ -10,8 +10,16 @@ import { User } from "../generated/schema";
 import { handleTransfer } from "../src/mgno";
 import { Transfer } from "../generated/ds-mgno/MGNO";
 import { log, newMockEvent } from "matchstick-as";
-import { ADDRESS_ZERO } from "../src/helpers";
-import { user1, user2, value, value2x, data } from "./helpers";
+import {
+  ADDRESS_ZERO,
+  ONE_GNO,
+  mgnoPerGno,
+  DEPOSIT_ADDRESS,
+} from "../src/helpers";
+import { user1, user2, data } from "./helpers";
+
+let value = ONE_GNO.times(mgnoPerGno);
+let value2x = value.times(BigInt.fromI32(2));
 
 export function createTransferEvent(
   from: string,
@@ -56,6 +64,7 @@ export function createTransferEvent(
 }
 
 test("Transfer correctly increases mGNO balance of recipient", () => {
+  clearStore();
   let transferEvent = createTransferEvent(ADDRESS_ZERO, user1, value, data);
 
   // mint 1337 to user 1
@@ -65,10 +74,10 @@ test("Transfer correctly increases mGNO balance of recipient", () => {
   // mint another 1337 to user 1, should have a total of 2674
   handleTransfer(transferEvent);
   assert.fieldEquals("User", user1.toLowerCase(), "mgno", value2x.toString());
-  clearStore();
 });
 
 test("Transfer correctly decreases mGNO balance of sender", () => {
+  clearStore();
   // mint 2674 to user1
   let mintEvent = createTransferEvent(ADDRESS_ZERO, user1, value2x, data);
   handleTransfer(mintEvent);
@@ -78,11 +87,10 @@ test("Transfer correctly decreases mGNO balance of sender", () => {
   let transferEvent = createTransferEvent(user1, user2, value, data);
   handleTransfer(transferEvent);
   assert.fieldEquals("User", user1.toLowerCase(), "mgno", value.toString());
-
-  clearStore();
 });
 
 test("Transfer correctly increases vote weight of recipient", () => {
+  clearStore();
   let transferEvent = createTransferEvent(ADDRESS_ZERO, user1, value, data);
 
   // mint 1337 to user 1
@@ -91,7 +99,7 @@ test("Transfer correctly increases vote weight of recipient", () => {
     "User",
     user1.toLowerCase(),
     "voteWeight",
-    value.toString()
+    value.div(mgnoPerGno).toString()
   );
 
   // mint another 1337 to user 1, should have a total of 2674
@@ -100,12 +108,12 @@ test("Transfer correctly increases vote weight of recipient", () => {
     "User",
     user1.toLowerCase(),
     "voteWeight",
-    value2x.toString()
+    value2x.div(mgnoPerGno).toString()
   );
-  clearStore();
 });
 
 test("Transfer correctly decreases vote weight of sender", () => {
+  clearStore();
   // mint 2674 to user1
   let mintEvent = createTransferEvent(ADDRESS_ZERO, user1, value2x, data);
   handleTransfer(mintEvent);
@@ -113,7 +121,7 @@ test("Transfer correctly decreases vote weight of sender", () => {
     "User",
     user1.toLowerCase(),
     "voteWeight",
-    value2x.toString()
+    value2x.div(mgnoPerGno).toString()
   );
 
   // send 1337 from user1 to user2, user one should have 1337 left
@@ -123,7 +131,7 @@ test("Transfer correctly decreases vote weight of sender", () => {
     "User",
     user1.toLowerCase(),
     "voteWeight",
-    value.toString()
+    value.div(mgnoPerGno).toString()
   );
 
   clearStore();
@@ -137,7 +145,7 @@ test("Transfer resulting in 0 vote weight removes user from store.", () => {
     "User",
     user1.toLowerCase(),
     "voteWeight",
-    value.toString()
+    value.div(mgnoPerGno).toString()
   );
 
   // send 1337 from user1 to user2, user one should have 0 left and be removed from store
@@ -158,6 +166,20 @@ test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", 
   let transferEvent = createTransferEvent(user1, ADDRESS_ZERO, value, data);
   handleTransfer(transferEvent);
   assert.notInStore("User", ADDRESS_ZERO);
+
+  clearStore();
+});
+
+test("Transfer involving DEPOSIT_ADDRESS does not create a DEPOSIT_ADDRESS entity.", () => {
+  // mint 1337 from ADDRESS_ZERO to user1, ADDRESS_ZERO should not be in store
+  let mintEvent = createTransferEvent(DEPOSIT_ADDRESS, user1, value, data);
+  handleTransfer(mintEvent);
+  assert.notInStore("User", DEPOSIT_ADDRESS);
+
+  // send 1337 from user1 to ADDRESS_ZERO, ADDRESS_ZERO should not be in store
+  let transferEvent = createTransferEvent(user1, DEPOSIT_ADDRESS, value, data);
+  handleTransfer(transferEvent);
+  assert.notInStore("User", DEPOSIT_ADDRESS);
 
   clearStore();
 });
