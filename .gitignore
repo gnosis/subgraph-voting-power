@@ -9,4 +9,3 @@
 **/coverage*
 **/deployments
 .devcontainer
-packages/subgraph-gnosis-chain/tests/.bin/
