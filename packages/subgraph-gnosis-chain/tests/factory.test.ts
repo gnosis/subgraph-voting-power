@@ -3,7 +3,7 @@ import {
   clearStore,
   test,
   assert,
-  logStore,
+  logStore
 } from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { AMMPair, User } from "../generated/schema";
@@ -17,7 +17,7 @@ import {
   value,
   mockPair,
   value2x,
-  data,
+  data
 } from "../src/helpers";
 import { PairCreated } from "../generated/Factory/Factory";
 import { handleNewPair } from "../src/factory";
@@ -33,8 +33,14 @@ createMockedFunction(
   .returns([ethereum.Value.fromI32(100)]);
 
 // mock gno.balanceOf(pair.address)
-createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
-  .withArgs([ethereum.Value.fromString(mockPair)])
+createMockedFunction(
+  Address.fromString(
+    "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb".toLowerCase()
+  ),
+  "balanceOf",
+  "balanceOf(address):(uint256)"
+)
+  .withArgs([ethereum.Value.fromAddress(Address.fromString(mockPair))])
   .returns([ethereum.Value.fromI32(200)]);
 
 test("Factory spawns pair", () => {
