@@ -15,8 +15,8 @@ import {
   ONE_GNO,
   mgnoPerGno,
   DEPOSIT_ADDRESS,
-  user1,
-  user2,
+  USER1_ADDRESS,
+  USER2_ADDRESS,
   data,
 } from "../src/helpers";
 
@@ -69,48 +69,7 @@ test("Transfer correctly increases mGNO balance of recipient", () => {
   clearStore();
   let transferEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
-    user1.toHexString(),
-    value,
-    data
-  );
-
-  // mint value to user 1
-  handleTransfer(transferEvent);
-  assert.fieldEquals("User", user1.toHexString(), "mgno", value.toString());
-
-  // mint another value to user 1, should have a total of value2x
-  handleTransfer(transferEvent);
-  assert.fieldEquals("User", user1.toHexString(), "mgno", value2x.toString());
-});
-
-test("Transfer correctly decreases mGNO balance of sender", () => {
-  clearStore();
-  // mint value2x to user1
-  let mintEvent = createTransferEvent(
-    ADDRESS_ZERO.toHexString(),
-    user1.toHexString(),
-    value2x,
-    data
-  );
-  handleTransfer(mintEvent);
-  assert.fieldEquals("User", user1.toHexString(), "mgno", value2x.toString());
-
-  // send value from user1 to user2, user one should have value left
-  let transferEvent = createTransferEvent(
-    user1.toHexString(),
-    user2.toHexString(),
-    value,
-    data
-  );
-  handleTransfer(transferEvent);
-  assert.fieldEquals("User", user1.toHexString(), "mgno", value.toString());
-});
-
-test("Transfer correctly increases vote weight of recipient", () => {
-  clearStore();
-  let transferEvent = createTransferEvent(
-    ADDRESS_ZERO.toHexString(),
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     value,
     data
   );
@@ -119,7 +78,68 @@ test("Transfer correctly increases vote weight of recipient", () => {
   handleTransfer(transferEvent);
   assert.fieldEquals(
     "User",
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
+    "mgno",
+    value.toString()
+  );
+
+  // mint another value to user 1, should have a total of value2x
+  handleTransfer(transferEvent);
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "mgno",
+    value2x.toString()
+  );
+});
+
+test("Transfer correctly decreases mGNO balance of sender", () => {
+  clearStore();
+  // mint value2x to USER1_ADDRESS
+  let mintEvent = createTransferEvent(
+    ADDRESS_ZERO.toHexString(),
+    USER1_ADDRESS.toHexString(),
+    value2x,
+    data
+  );
+  handleTransfer(mintEvent);
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "mgno",
+    value2x.toString()
+  );
+
+  // send value from USER1_ADDRESS to USER2_ADDRESS, user one should have value left
+  let transferEvent = createTransferEvent(
+    USER1_ADDRESS.toHexString(),
+    USER2_ADDRESS.toHexString(),
+    value,
+    data
+  );
+  handleTransfer(transferEvent);
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "mgno",
+    value.toString()
+  );
+});
+
+test("Transfer correctly increases vote weight of recipient", () => {
+  clearStore();
+  let transferEvent = createTransferEvent(
+    ADDRESS_ZERO.toHexString(),
+    USER1_ADDRESS.toHexString(),
+    value,
+    data
+  );
+
+  // mint value to user 1
+  handleTransfer(transferEvent);
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
     "voteWeight",
     value.div(mgnoPerGno).toString()
   );
@@ -128,7 +148,7 @@ test("Transfer correctly increases vote weight of recipient", () => {
   handleTransfer(transferEvent);
   assert.fieldEquals(
     "User",
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     "voteWeight",
     value2x.div(mgnoPerGno).toString()
   );
@@ -136,32 +156,32 @@ test("Transfer correctly increases vote weight of recipient", () => {
 
 test("Transfer correctly decreases vote weight of sender", () => {
   clearStore();
-  // mint value2x to user1
+  // mint value2x to USER1_ADDRESS
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     value2x,
     data
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
     "User",
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     "voteWeight",
     value2x.div(mgnoPerGno).toString()
   );
 
-  // send value from user1 to user2, user one should have value left
+  // send value from USER1_ADDRESS to USER2_ADDRESS, user one should have value left
   let transferEvent = createTransferEvent(
-    user1.toHexString(),
-    user2.toHexString(),
+    USER1_ADDRESS.toHexString(),
+    USER2_ADDRESS.toHexString(),
     value,
     data
   );
   handleTransfer(transferEvent);
   assert.fieldEquals(
     "User",
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     "voteWeight",
     value.div(mgnoPerGno).toString()
   );
@@ -169,24 +189,24 @@ test("Transfer correctly decreases vote weight of sender", () => {
 
 test("Transfer to DEPOSIT_ADDRESS does not change vote weight", () => {
   clearStore();
-  // mint value2x to user1
+  // mint value2x to USER1_ADDRESS
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     value2x,
     data
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
     "User",
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     "voteWeight",
     value2x.div(mgnoPerGno).toString()
   );
 
-  // send value from user1 to user2, user one should have value left
+  // send value from USER1_ADDRESS to USER2_ADDRESS, user one should have value left
   let transferEvent = createTransferEvent(
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     DEPOSIT_ADDRESS.toHexString(),
     value,
     data
@@ -194,7 +214,7 @@ test("Transfer to DEPOSIT_ADDRESS does not change vote weight", () => {
   handleTransfer(transferEvent);
   assert.fieldEquals(
     "User",
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     "voteWeight",
     value2x.div(mgnoPerGno).toString()
   );
@@ -202,47 +222,47 @@ test("Transfer to DEPOSIT_ADDRESS does not change vote weight", () => {
 
 test("Transfer resulting in 0 vote weight removes user from store.", () => {
   clearStore();
-  // mint value2x to user1
+  // mint value2x to USER1_ADDRESS
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     value,
     data
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
     "User",
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     "voteWeight",
     value.div(mgnoPerGno).toString()
   );
 
-  // send value from user1 to user2, user one should have 0 left and be removed from store
+  // send value from USER1_ADDRESS to USER2_ADDRESS, user one should have 0 left and be removed from store
   let transferEvent = createTransferEvent(
-    user1.toHexString(),
-    user2.toHexString(),
+    USER1_ADDRESS.toHexString(),
+    USER2_ADDRESS.toHexString(),
     value,
     data
   );
   handleTransfer(transferEvent);
-  assert.notInStore("User", user1.toHexString());
+  assert.notInStore("User", USER1_ADDRESS.toHexString());
 });
 
 test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", () => {
   clearStore();
-  // mint value from ADDRESS_ZERO to user1, ADDRESS_ZERO should not be in store
+  // mint value from ADDRESS_ZERO to USER1_ADDRESS, ADDRESS_ZERO should not be in store
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     value,
     data
   );
   handleTransfer(mintEvent);
   assert.notInStore("User", ADDRESS_ZERO.toHexString());
 
-  // send value from user1 to ADDRESS_ZERO, ADDRESS_ZERO should not be in store
+  // send value from USER1_ADDRESS to ADDRESS_ZERO, ADDRESS_ZERO should not be in store
   let transferEvent = createTransferEvent(
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     ADDRESS_ZERO.toHexString(),
     value,
     data
@@ -253,19 +273,19 @@ test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", 
 
 test("Transfer involving DEPOSIT_ADDRESS does not create a DEPOSIT_ADDRESS entity.", () => {
   clearStore();
-  // mint value from ADDRESS_ZERO to user1, ADDRESS_ZERO should not be in store
+  // mint value from ADDRESS_ZERO to USER1_ADDRESS, ADDRESS_ZERO should not be in store
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     value,
     data
   );
   handleTransfer(mintEvent);
   assert.notInStore("User", DEPOSIT_ADDRESS.toHexString());
 
-  // send value from user1 to ADDRESS_ZERO, ADDRESS_ZERO should not be in store
+  // send value from USER1_ADDRESS to ADDRESS_ZERO, ADDRESS_ZERO should not be in store
   let transferEvent = createTransferEvent(
-    user1.toHexString(),
+    USER1_ADDRESS.toHexString(),
     DEPOSIT_ADDRESS.toHexString(),
     value,
     data

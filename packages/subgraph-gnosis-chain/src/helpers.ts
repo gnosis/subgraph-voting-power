@@ -13,13 +13,13 @@ import { Pair } from "../generated/templates/Pair/Pair";
 export const ADDRESS_ZERO = Address.fromString(
   "0x0000000000000000000000000000000000000000"
 );
-export const user1 = Address.fromString(
+export const USER1_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000001"
 );
-export const user2 = Address.fromString(
+export const USER2_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000002"
 );
-export const mockPair = Address.fromString(
+export const PAIR_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000003"
 );
 export const FACTORY_ADDRESS = Address.fromString(
@@ -31,11 +31,14 @@ export const DEPOSIT_ADDRESS = Address.fromString(
 export const GNO_ADDRESS = Address.fromString(
   "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
 );
+export const OTHERTOKEN_ADDRESS = Address.fromString(
+  "0x0000000000000000000000000000000000000004"
+);
 export const value = BigInt.fromI32(1337);
 export const value2x = BigInt.fromI32(2674);
 export const data = "0x00";
 
-Pair.bind(mockPair);
+Pair.bind(PAIR_ADDRESS);
 export const gno = ERC20.bind(GNO_ADDRESS);
 
 export const mgnoPerGno = BigInt.fromString("32");
