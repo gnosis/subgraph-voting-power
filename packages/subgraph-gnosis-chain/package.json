@@ -7,6 +7,7 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ cristovaoth/gno-voting-power-gc",
+    "test": "graph test",
     "create-local": "graph create --node http://localhost:8020/ cristovaoth/gno-voting-power-gc",
     "remove-local": "graph remove --node http://localhost:8020/ cristovaoth/gno-voting-power-gc",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 cristovaoth/gno-voting-power-gc"
