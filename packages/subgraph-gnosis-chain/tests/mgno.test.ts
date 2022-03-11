@@ -23,7 +23,7 @@ import {
 let value = ONE_GNO.times(mgnoPerGno);
 let value2x = value.times(BigInt.fromI32(2));
 
-export function createTransferEvent(
+function createTransferEvent(
   from: string,
   to: string,
   value: BigInt,

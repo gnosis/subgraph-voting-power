@@ -19,7 +19,7 @@ import {
   data,
 } from "../src/helpers";
 
-export function createTransferEvent(
+function createTransferEvent(
   from: Address,
   to: Address,
   value: BigInt,
