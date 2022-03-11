@@ -7,8 +7,6 @@ import {
 } from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { User, AMMPair } from "../generated/schema";
-import { handleTransfer } from "../src/lgno";
-import { Transfer } from "../generated/ds-gno/GNO";
 import { log, newMockEvent } from "matchstick-as";
 import {
   ADDRESS_ZERO,
@@ -23,6 +21,16 @@ import {
 } from "../src/helpers";
 import { handleNewPair } from "../src/factory";
 import { createPairCreatedEvent } from "./helpers";
+// import { ERC20, Transfer } from "../generated/templates/Pair/ERC20";
+import { Pair, Transfer } from "../generated/templates/Pair/Pair";
+import { handleTransfer } from "../src/pair";
+
+let mintEvent = createTransferEvent(
+  ADDRESS_ZERO.toHexString(),
+  USER1_ADDRESS.toHexString(),
+  value,
+  data
+);
 
 // mock pair.totalSupply()
 createMockedFunction(PAIR_ADDRESS, "totalSupply", "totalSupply():(uint256)")
@@ -43,36 +51,88 @@ function createPair(
   let pairCreatedEvent = createPairCreatedEvent(token0, token1, pair, value);
   handleNewPair(pairCreatedEvent);
   assert.fieldEquals("AMMPair", pair.toHexString(), "id", pair.toHexString());
-  return AMMPair.load(pair.toHexString());
+  const newPair: AMMPair = new AMMPair(pair.toHexString());
+  return newPair;
 }
+
+function createTransferEvent(
+  from: string,
+  to: string,
+  value: BigInt,
+  data: string
+): Transfer {
+  let mockEvent = newMockEvent();
+
+  mockEvent.parameters = new Array();
+
+  mockEvent.parameters.push(
+    new ethereum.EventParam(
+      "from",
+      ethereum.Value.fromAddress(Address.fromString(from))
+    )
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam(
+      "to",
+      ethereum.Value.fromAddress(Address.fromString(to))
+    )
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("data", ethereum.Value.fromString(data))
+  );
+
+  let newTransferEvent = new Transfer(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters
+  );
+
+  return newTransferEvent;
+}
+
+//  START TESTS
 
 test("Updates vote weight for sender on transfer", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
 
-  throw new Error("test not yet defined");
+  // mint 1337 to user 1
+  handleTransfer(mintEvent);
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "gno",
+    value.toString()
+  );
 });
 
-test("Updates vote weight for recipient on transfer", () => {
-  throw new Error("test not yet defined");
-});
+// test("Updates vote weight for recipient on transfer", () => {
+//   throw new Error("test not yet defined");
+// });
 
-test("Updates vote weight for all LPs on sync", () => {
-  throw new Error("test not yet defined");
-});
+// test("Updates vote weight for all LPs on sync", () => {
+//   throw new Error("test not yet defined");
+// });
 
-test("Removes User from LP if pair balance is 0", () => {
-  throw new Error("test not yet defined");
-});
+// test("Removes User from LP if pair balance is 0", () => {
+//   throw new Error("test not yet defined");
+// });
 
-test("Removes position from store pair balance is 0", () => {
-  throw new Error("test not yet defined");
-});
+// test("Removes position from store pair balance is 0", () => {
+//   throw new Error("test not yet defined");
+// });
 
-test("Sets ratio and previous ratio on mint", () => {
-  throw new Error("test not yet defined");
-});
+// test("Sets ratio and previous ratio on mint", () => {
+//   throw new Error("test not yet defined");
+// });
 
-test("Updates ratio on transfer", () => {
-  throw new Error("test not yet defined");
-});
+// test("Updates ratio on transfer", () => {
+//   throw new Error("test not yet defined");
+// });
