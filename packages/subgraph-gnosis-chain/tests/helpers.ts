@@ -16,8 +16,8 @@ import { PairCreated } from "../generated/Factory/Factory";
 import { Pair } from "../generated/templates/Pair/Pair";
 
 export function createTransferEvent(
-  from: string,
-  to: string,
+  from: Address,
+  to: Address,
   value: BigInt,
   data: string
 ): Transfer {
@@ -26,16 +26,10 @@ export function createTransferEvent(
   mockEvent.parameters = new Array();
 
   mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "from",
-      ethereum.Value.fromAddress(Address.fromString(from))
-    )
+    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
   );
   mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "to",
-      ethereum.Value.fromAddress(Address.fromString(to))
-    )
+    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
   );
   mockEvent.parameters.push(
     new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
@@ -84,8 +78,8 @@ export function createSyncEvent(reserve0: BigInt, reserve1: BigInt): Sync {
 
 export function createPairCreatedEvent(
   token0: Address,
-  token1: string,
-  pair: string,
+  token1: Address,
+  pair: Address,
   value: BigInt
 ): PairCreated {
   let mockEvent = newMockEvent();
@@ -97,17 +91,11 @@ export function createPairCreatedEvent(
   );
 
   mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "token1",
-      ethereum.Value.fromAddress(Address.fromString(token1))
-    )
+    new ethereum.EventParam("token1", ethereum.Value.fromAddress(token1))
   );
 
   mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "pair",
-      ethereum.Value.fromAddress(Address.fromString(pair))
-    )
+    new ethereum.EventParam("pair", ethereum.Value.fromAddress(pair))
   );
 
   mockEvent.parameters.push(

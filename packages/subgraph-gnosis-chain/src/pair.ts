@@ -27,7 +27,7 @@ export function handleTransfer(event: Transfer): void {
 
   // ignore initial transfers for first adds
   if (
-    event.params.to.toHexString() == ADDRESS_ZERO &&
+    event.params.to.toHexString() == ADDRESS_ZERO.toString() &&
     event.params.value.equals(BigInt.fromI32(1000))
   ) {
     return;
@@ -46,7 +46,7 @@ export function handleTransfer(event: Transfer): void {
   let value = event.params.value;
 
   // mint
-  if (from.toHexString() == ADDRESS_ZERO) {
+  if (from.toHexString() == ADDRESS_ZERO.toString()) {
     // update total supply
     pair.totalSupply = pair.totalSupply.plus(value);
     // add lp & update vote weight
@@ -72,7 +72,7 @@ export function handleTransfer(event: Transfer): void {
 
   // burn
   if (
-    event.params.to.toHexString() == ADDRESS_ZERO &&
+    event.params.to.toHexString() == ADDRESS_ZERO.toString() &&
     event.params.from.toHexString() == pair.id
   ) {
     pair.totalSupply = pair.totalSupply.minus(value);
@@ -82,19 +82,22 @@ export function handleTransfer(event: Transfer): void {
   }
 
   // transfer from
-  if (from.toHexString() != ADDRESS_ZERO && from.toHexString() != pair.id) {
+  if (
+    from.toHexString() != ADDRESS_ZERO.toString() &&
+    from.toHexString() != pair.id
+  ) {
     const position = loadOrCreateAMMPosition(event.address, from);
     position.balance = position.balance.minus(value);
     if (position.balance == BigInt.fromI32(0)) {
       const lpsIndex = pair.lps.indexOf(userFrom.id);
       pair.lps.splice(lpsIndex, 1);
-
+      updateVoteWeight(userFrom, position);
       store.remove("AMMPosition", position.id);
     } else {
       position.save;
+      updateVoteWeight(userFrom, position);
     }
     // TODO account for deleted position
-    updateVoteWeight(userFrom, position);
 
     // alternative
     // entry.liquidityTokenBalance = pairContract.balanceOf(
@@ -104,7 +107,7 @@ export function handleTransfer(event: Transfer): void {
 
   // transfer to
   if (
-    event.params.to.toHexString() != ADDRESS_ZERO &&
+    event.params.to.toHexString() != ADDRESS_ZERO.toString() &&
     to.toHexString() != pair.id
   ) {
     const position = loadOrCreateAMMPosition(event.address, to);

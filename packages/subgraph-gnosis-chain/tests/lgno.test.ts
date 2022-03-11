@@ -20,8 +20,8 @@ import {
 } from "../src/helpers";
 
 export function createTransferEvent(
-  from: string,
-  to: string,
+  from: Address,
+  to: Address,
   value: BigInt,
   data: string
 ): Transfer {
@@ -30,16 +30,10 @@ export function createTransferEvent(
   mockEvent.parameters = new Array();
 
   mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "from",
-      ethereum.Value.fromAddress(Address.fromString(from))
-    )
+    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
   );
   mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "to",
-      ethereum.Value.fromAddress(Address.fromString(to))
-    )
+    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
   );
   mockEvent.parameters.push(
     new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
@@ -68,11 +62,11 @@ test("Transfer correctly increases lGNO balance of recipient", () => {
 
   // mint 1337 to user 1
   handleTransfer(transferEvent);
-  assert.fieldEquals("User", user1.toLowerCase(), "lgno", value.toString());
+  assert.fieldEquals("User", user1.toHexString(), "lgno", value.toString());
 
   // mint another 1337 to user 1, should have a total of 2674
   handleTransfer(transferEvent);
-  assert.fieldEquals("User", user1.toLowerCase(), "lgno", value2x.toString());
+  assert.fieldEquals("User", user1.toHexString(), "lgno", value2x.toString());
 });
 
 test("Transfer correctly increases vote weight of recipient", () => {
@@ -83,7 +77,7 @@ test("Transfer correctly increases vote weight of recipient", () => {
   handleTransfer(transferEvent);
   assert.fieldEquals(
     "User",
-    user1.toLowerCase(),
+    user1.toHexString(),
     "voteWeight",
     value.toString()
   );
@@ -92,7 +86,7 @@ test("Transfer correctly increases vote weight of recipient", () => {
   handleTransfer(transferEvent);
   assert.fieldEquals(
     "User",
-    user1.toLowerCase(),
+    user1.toHexString(),
     "voteWeight",
     value2x.toString()
   );
@@ -102,12 +96,12 @@ test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", 
   // send 1337 from user1 to ADDRESS_ZERO, ADDRESS_ZERO should not be in store
   let mintEvent = createTransferEvent(ADDRESS_ZERO, user1, value, data);
   handleTransfer(mintEvent);
-  assert.notInStore("User", ADDRESS_ZERO);
+  assert.notInStore("User", ADDRESS_ZERO.toHexString());
 
   // send 1337 from ADDRESS_ZERO to user1, ADDRESS_ZERO should not be in store
   let transferEvent = createTransferEvent(user1, ADDRESS_ZERO, value, data);
   handleTransfer(transferEvent);
-  assert.notInStore("User", ADDRESS_ZERO);
+  assert.notInStore("User", ADDRESS_ZERO.toHexString());
 
   clearStore();
 });

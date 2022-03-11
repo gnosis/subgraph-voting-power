@@ -24,17 +24,13 @@ import { handleNewPair } from "../src/factory";
 import { createPairCreatedEvent } from "./helpers";
 
 // mock pair.totalSupply()
-createMockedFunction(
-  Address.fromString(mockPair),
-  "totalSupply",
-  "totalSupply():(uint256)"
-)
+createMockedFunction(mockPair, "totalSupply", "totalSupply():(uint256)")
   .withArgs([])
   .returns([ethereum.Value.fromI32(100)]);
 
 // mock gno.balanceOf(pair.address)
 createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
-  .withArgs([ethereum.Value.fromAddress(Address.fromString(mockPair))])
+  .withArgs([ethereum.Value.fromAddress(mockPair)])
   .returns([ethereum.Value.fromI32(200)]);
 
 test("Factory spawns pair", () => {
@@ -47,7 +43,12 @@ test("Factory spawns pair", () => {
     value
   );
   handleNewPair(pairCreatedEvent);
-  assert.fieldEquals("AMMPair", mockPair, "id", mockPair);
+  assert.fieldEquals(
+    "AMMPair",
+    mockPair.toHexString(),
+    "id",
+    mockPair.toHexString()
+  );
 });
 
 test("New pair GNO has correct totalSupply", () => {
@@ -60,7 +61,7 @@ test("New pair GNO has correct totalSupply", () => {
     value
   );
   handleNewPair(pairCreatedEvent);
-  assert.fieldEquals("AMMPair", mockPair, "totalSupply", "100");
+  assert.fieldEquals("AMMPair", mockPair.toHexString(), "totalSupply", "100");
 });
 
 test("New pair has correct gnoReserves", () => {
@@ -73,7 +74,7 @@ test("New pair has correct gnoReserves", () => {
     value
   );
   handleNewPair(pairCreatedEvent);
-  assert.fieldEquals("AMMPair", mockPair, "gnoReserves", "200");
+  assert.fieldEquals("AMMPair", mockPair.toHexString(), "gnoReserves", "200");
 });
 
 test("New pair has correct previousRatio", () => {
@@ -86,7 +87,7 @@ test("New pair has correct previousRatio", () => {
     value
   );
   handleNewPair(pairCreatedEvent);
-  assert.fieldEquals("AMMPair", mockPair, "previousRatio", "0");
+  assert.fieldEquals("AMMPair", mockPair.toHexString(), "previousRatio", "0");
 });
 
 test("New pair has correct current ratio", () => {
@@ -99,7 +100,7 @@ test("New pair has correct current ratio", () => {
     value
   );
   handleNewPair(pairCreatedEvent);
-  assert.fieldEquals("AMMPair", mockPair, "ratio", "2");
+  assert.fieldEquals("AMMPair", mockPair.toHexString(), "ratio", "2");
 });
 
 test("New pair has correct lps", () => {
@@ -112,5 +113,5 @@ test("New pair has correct lps", () => {
     value
   );
   handleNewPair(pairCreatedEvent);
-  assert.fieldEquals("AMMPair", mockPair, "lps", "[]");
+  assert.fieldEquals("AMMPair", mockPair.toHexString(), "lps", "[]");
 });
