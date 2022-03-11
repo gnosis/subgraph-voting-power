@@ -34,7 +34,7 @@ createMockedFunction(
 
 // mock gno.balanceOf(pair.address)
 createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
-  .withArgs([ethereum.Value.fromString(mockPair)])
+  .withArgs([ethereum.Value.fromAddress(Address.fromString(mockPair))])
   .returns([ethereum.Value.fromI32(200)]);
 
 test("Factory spawns pair", () => {
