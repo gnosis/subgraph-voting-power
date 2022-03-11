@@ -49,3 +49,68 @@ test("Factory spawns pair", () => {
   handleNewPair(pairCreatedEvent);
   assert.fieldEquals("AMMPair", mockPair, "id", mockPair);
 });
+
+test("New pair GNO has correct totalSupply", () => {
+  clearStore();
+  let otherToken = user1;
+  let pairCreatedEvent = createPairCreatedEvent(
+    GNO_ADDRESS,
+    otherToken,
+    mockPair,
+    value
+  );
+  handleNewPair(pairCreatedEvent);
+  assert.fieldEquals("AMMPair", mockPair, "totalSupply", "100");
+});
+
+test("New pair has correct gnoReserves", () => {
+  clearStore();
+  let otherToken = user1;
+  let pairCreatedEvent = createPairCreatedEvent(
+    GNO_ADDRESS,
+    otherToken,
+    mockPair,
+    value
+  );
+  handleNewPair(pairCreatedEvent);
+  assert.fieldEquals("AMMPair", mockPair, "gnoReserves", "200");
+});
+
+test("New pair has correct previousRatio", () => {
+  clearStore();
+  let otherToken = user1;
+  let pairCreatedEvent = createPairCreatedEvent(
+    GNO_ADDRESS,
+    otherToken,
+    mockPair,
+    value
+  );
+  handleNewPair(pairCreatedEvent);
+  assert.fieldEquals("AMMPair", mockPair, "previousRatio", "0");
+});
+
+test("New pair has correct current ratio", () => {
+  clearStore();
+  let otherToken = user1;
+  let pairCreatedEvent = createPairCreatedEvent(
+    GNO_ADDRESS,
+    otherToken,
+    mockPair,
+    value
+  );
+  handleNewPair(pairCreatedEvent);
+  assert.fieldEquals("AMMPair", mockPair, "ratio", "2");
+});
+
+test("New pair has correct lps", () => {
+  clearStore();
+  let otherToken = user1;
+  let pairCreatedEvent = createPairCreatedEvent(
+    GNO_ADDRESS,
+    otherToken,
+    mockPair,
+    value
+  );
+  handleNewPair(pairCreatedEvent);
+  assert.fieldEquals("AMMPair", mockPair, "lps", "[]");
+});
