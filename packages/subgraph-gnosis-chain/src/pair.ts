@@ -27,7 +27,7 @@ export function handleTransfer(event: Transfer): void {
 
   // ignore initial transfers for first adds
   if (
-    event.params.to.toHexString() == ADDRESS_ZERO.toString() &&
+    event.params.to.toHexString() == ADDRESS_ZERO.toHexString() &&
     event.params.value.equals(BigInt.fromI32(1000))
   ) {
     return;
@@ -46,33 +46,29 @@ export function handleTransfer(event: Transfer): void {
   let value = event.params.value;
 
   // mint
-  if (from.toHexString() == ADDRESS_ZERO.toString()) {
+  if (from.toHexString() == ADDRESS_ZERO.toHexString()) {
     // update total supply
     pair.totalSupply = pair.totalSupply.plus(value);
     // add lp & update vote weight
     if (!pair.lps.includes(userTo.id) && value > BigInt.fromI32(0)) {
       pair.lps.push(userTo.id);
-      log.error("pair.lps.push({})", [userTo.id]);
       const position = loadOrCreateAMMPosition(
         Address.fromString(pair.id),
         Address.fromString(userTo.id)
       );
-      log.error("successfully created AMM position", []);
       position.balance = position.balance.plus(value);
       position.save;
 
       userTo.voteWeight = userTo.voteWeight.plus(
         getGnoInPosition(position.balance, pair)
       );
-      log.error("successfully updated vote weight", []);
-      removeOrSaveUser(userTo.id);
     }
     pair.save();
   }
 
   // burn
   if (
-    event.params.to.toHexString() == ADDRESS_ZERO.toString() &&
+    event.params.to.toHexString() == ADDRESS_ZERO.toHexString() &&
     event.params.from.toHexString() == pair.id
   ) {
     pair.totalSupply = pair.totalSupply.minus(value);
@@ -83,7 +79,7 @@ export function handleTransfer(event: Transfer): void {
 
   // transfer from
   if (
-    from.toHexString() != ADDRESS_ZERO.toString() &&
+    from.toHexString() != ADDRESS_ZERO.toHexString() &&
     from.toHexString() != pair.id
   ) {
     const position = loadOrCreateAMMPosition(event.address, from);
@@ -96,7 +92,9 @@ export function handleTransfer(event: Transfer): void {
     } else {
       position.save;
       updateVoteWeight(userFrom, position);
+      userFrom.save();
     }
+    // userFrom.save();
     // TODO account for deleted position
 
     // alternative
@@ -107,7 +105,7 @@ export function handleTransfer(event: Transfer): void {
 
   // transfer to
   if (
-    event.params.to.toHexString() != ADDRESS_ZERO.toString() &&
+    event.params.to.toHexString() != ADDRESS_ZERO.toHexString() &&
     to.toHexString() != pair.id
   ) {
     const position = loadOrCreateAMMPosition(event.address, to);
@@ -118,6 +116,7 @@ export function handleTransfer(event: Transfer): void {
     //   pairContract.balanceOf(to),
     //   BI_18
     // );
+    userTo.save();
     position.save();
   }
 }
@@ -131,7 +130,6 @@ export function handleSync(event: Sync): void {
     const user = loadOrCreateUser(
       Address.fromString(pair.lps[index].toString())
     );
-    log.error("User: {}\nPair: {}", [user.id, pair.id]);
 
     const position = loadOrCreateAMMPosition(
       event.address,
@@ -139,8 +137,6 @@ export function handleSync(event: Sync): void {
     );
 
     // const position = new AMMPosition(pair.id.concat("-").concat(user.id));
-    log.error("Position: {}", [position.id]);
-
     updateVoteWeight(user, position);
   }
 

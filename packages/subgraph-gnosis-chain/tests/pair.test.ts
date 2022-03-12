@@ -6,7 +6,7 @@ import {
   logStore,
 } from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { User, AMMPair } from "../generated/schema";
+import { User, AMMPair, AMMPosition } from "../generated/schema";
 import { log, newMockEvent } from "matchstick-as";
 import {
   ADDRESS_ZERO,
@@ -18,6 +18,7 @@ import {
   value2x,
   data,
   OTHERTOKEN_ADDRESS,
+  loadOrCreateAMMPosition,
 } from "../src/helpers";
 import { handleNewPair } from "../src/factory";
 import { createPairCreatedEvent } from "./helpers";
@@ -25,12 +26,7 @@ import { createPairCreatedEvent } from "./helpers";
 import { Pair, Transfer } from "../generated/templates/Pair/Pair";
 import { handleTransfer } from "../src/pair";
 
-let mintEvent = createTransferEvent(
-  ADDRESS_ZERO.toHexString(),
-  USER1_ADDRESS.toHexString(),
-  value,
-  data
-);
+let mintEvent = createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value, data);
 
 // mock pair.totalSupply()
 createMockedFunction(PAIR_ADDRESS, "totalSupply", "totalSupply():(uint256)")
@@ -56,8 +52,8 @@ function createPair(
 }
 
 function createTransferEvent(
-  from: string,
-  to: string,
+  from: Address,
+  to: Address,
   value: BigInt,
   data: string
 ): Transfer {
@@ -66,16 +62,10 @@ function createTransferEvent(
   mockEvent.parameters = new Array();
 
   mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "from",
-      ethereum.Value.fromAddress(Address.fromString(from))
-    )
+    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
   );
   mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "to",
-      ethereum.Value.fromAddress(Address.fromString(to))
-    )
+    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
   );
   mockEvent.parameters.push(
     new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
@@ -85,7 +75,7 @@ function createTransferEvent(
   );
 
   let newTransferEvent = new Transfer(
-    mockEvent.address,
+    PAIR_ADDRESS,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
     mockEvent.logType,
@@ -99,19 +89,19 @@ function createTransferEvent(
 
 //  START TESTS
 
-test("Updates vote weight for sender on transfer", () => {
+test("Creates position on mint", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
 
   // mint 1337 to user 1
   handleTransfer(mintEvent);
-  assert.fieldEquals(
-    "User",
-    USER1_ADDRESS.toHexString(),
-    "gno",
-    value.toString()
-  );
+  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+  assert.fieldEquals("AMMPosition", position.id, "balance", value.toString());
 });
+
+// test("Updates vote weight for sender on transfer", () => {
+//   throw new Error("test not yet defined");
+// });
 
 // test("Updates vote weight for recipient on transfer", () => {
 //   throw new Error("test not yet defined");
