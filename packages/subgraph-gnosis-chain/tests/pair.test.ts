@@ -31,7 +31,7 @@ let mintEvent = createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value, data);
 // mock pair.totalSupply()
 createMockedFunction(PAIR_ADDRESS, "totalSupply", "totalSupply():(uint256)")
   .withArgs([])
-  .returns([ethereum.Value.fromI32(100)]);
+  .returns([ethereum.Value.fromI32(value.toI32())]);
 
 // mock gno.balanceOf(pair.address)
 createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
@@ -99,9 +99,21 @@ test("Creates position on mint", () => {
   assert.fieldEquals("AMMPosition", position.id, "balance", value.toString());
 });
 
-// test("Updates vote weight for sender on transfer", () => {
-//   throw new Error("test not yet defined");
-// });
+test("Updates vote weight for sender on mint", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+
+  // mint 1337 to user 1
+  handleTransfer(mintEvent);
+  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+  logStore();
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    value.toString()
+  );
+});
 
 // test("Updates vote weight for recipient on transfer", () => {
 //   throw new Error("test not yet defined");

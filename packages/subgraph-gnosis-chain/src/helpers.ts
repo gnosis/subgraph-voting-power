@@ -145,8 +145,9 @@ export function loadOrCreateAMMPair(address: Address): AMMPair {
     entry = new AMMPair(id);
     entry.totalSupply = ERC20.bind(Address.fromString(id)).totalSupply();
     entry.gnoReserves = gno.balanceOf(Address.fromString(id));
-    entry.previousRatio = BigInt.fromI32(0);
-    entry.ratio = entry.gnoReserves.div(entry.totalSupply);
+    let ratio = entry.gnoReserves.div(entry.totalSupply);
+    entry.previousRatio = ratio;
+    entry.ratio = ratio;
     entry.lps = [];
     entry.save();
   }
