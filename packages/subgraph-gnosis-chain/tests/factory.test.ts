@@ -101,7 +101,7 @@ test("New pair has correct previousRatio", () => {
     "AMMPair",
     PAIR_ADDRESS.toHexString(),
     "previousRatio",
-    "0"
+    "2"
   );
 });
 

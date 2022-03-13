@@ -96,6 +96,7 @@ test("Creates position on mint", () => {
   // mint 1337 to user 1
   handleTransfer(mintEvent);
   let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+  logStore();
   assert.fieldEquals("AMMPosition", position.id, "balance", value.toString());
 });
 
@@ -106,7 +107,7 @@ test("Updates vote weight for sender on mint", () => {
   // mint 1337 to user 1
   handleTransfer(mintEvent);
   let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-  logStore();
+  // logStore();
   assert.fieldEquals(
     "User",
     USER1_ADDRESS.toHexString(),
