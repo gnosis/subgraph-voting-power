@@ -26,12 +26,12 @@ import { createPairCreatedEvent } from "./helpers";
 // mock pair.totalSupply()
 createMockedFunction(PAIR_ADDRESS, "totalSupply", "totalSupply():(uint256)")
   .withArgs([])
-  .returns([ethereum.Value.fromI32(100)]);
+  .returns([ethereum.Value.fromUnsignedBigInt(value)]);
 
 // mock gno.balanceOf(pair.address)
 createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
   .withArgs([ethereum.Value.fromAddress(PAIR_ADDRESS)])
-  .returns([ethereum.Value.fromI32(200)]);
+  .returns([ethereum.Value.fromUnsignedBigInt(value2x)]);
 
 test("Factory spawns pair", () => {
   clearStore();
@@ -51,7 +51,7 @@ test("Factory spawns pair", () => {
   );
 });
 
-test("New pair GNO has correct totalSupply", () => {
+test("New pair has correct totalSupply", () => {
   clearStore();
   let otherToken = USER1_ADDRESS;
   let pairCreatedEvent = createPairCreatedEvent(
@@ -61,12 +61,7 @@ test("New pair GNO has correct totalSupply", () => {
     value
   );
   handleNewPair(pairCreatedEvent);
-  assert.fieldEquals(
-    "AMMPair",
-    PAIR_ADDRESS.toHexString(),
-    "totalSupply",
-    "100"
-  );
+  assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "totalSupply", "0");
 });
 
 test("New pair has correct gnoReserves", () => {
@@ -83,7 +78,7 @@ test("New pair has correct gnoReserves", () => {
     "AMMPair",
     PAIR_ADDRESS.toHexString(),
     "gnoReserves",
-    "200"
+    value2x.toString()
   );
 });
 
@@ -101,7 +96,7 @@ test("New pair has correct previousRatio", () => {
     "AMMPair",
     PAIR_ADDRESS.toHexString(),
     "previousRatio",
-    "2"
+    "0"
   );
 });
 
@@ -115,7 +110,7 @@ test("New pair has correct current ratio", () => {
     value
   );
   handleNewPair(pairCreatedEvent);
-  assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "ratio", "2");
+  assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "ratio", "0");
 });
 
 test("New pair has correct lps", () => {

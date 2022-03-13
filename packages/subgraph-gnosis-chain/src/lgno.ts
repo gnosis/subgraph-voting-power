@@ -10,7 +10,7 @@ export function handleTransfer(event: Transfer): void {
     const userFrom = loadOrCreateUser(from);
     userFrom.lgno = userFrom.lgno.minus(event.params.value);
     userFrom.voteWeight = userFrom.voteWeight.minus(event.params.value);
-    removeOrSaveUser(userFrom.id);
+    removeOrSaveUser(userFrom);
   }
 
   const to = event.params.from;

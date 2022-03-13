@@ -5,6 +5,7 @@ import {
   ADDRESS_ZERO,
   DEPOSIT_ADDRESS,
   mgnoPerGno,
+  removeOrSaveUser,
 } from "./helpers";
 
 export function handleTransfer(event: Transfer): void {
@@ -20,11 +21,7 @@ export function handleTransfer(event: Transfer): void {
     } else {
       userFrom.voteWeight = userFrom.voteWeight.minus(value.div(mgnoPerGno));
     }
-    if (userFrom.voteWeight == BigInt.fromI32(0)) {
-      store.remove("User", userFrom.id);
-    } else {
-      userFrom.save();
-    }
+    removeOrSaveUser(userFrom);
   }
 
   if (
