@@ -34,8 +34,8 @@ export const GNO_ADDRESS = Address.fromString(
 export const OTHERTOKEN_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000004"
 );
-export const value = BigInt.fromI32(1337);
-export const value2x = BigInt.fromI32(2674);
+export const value = BigInt.fromI32(2000000);
+export const value2x = BigInt.fromI32(4000000);
 export const data = "0x00";
 
 Pair.bind(PAIR_ADDRESS);
@@ -109,8 +109,7 @@ export function loadOrCreateUser(address: Address): User {
   return entry;
 }
 
-export function removeOrSaveUser(id: string): void {
-  const user = User.load(id);
+export function removeOrSaveUser(user: User): void {
   if (user) {
     if (user && user.voteWeight == BigInt.fromI32(0)) {
       store.remove("User", user.id);
@@ -141,15 +140,14 @@ export function loadOrCreateAMMPosition(
 }
 
 export function loadOrCreateAMMPair(address: Address): AMMPair {
-  const id = address.toHex();
+  const id = address.toHexString();
   let entry = AMMPair.load(id);
   if (!entry) {
     entry = new AMMPair(id);
-    entry.totalSupply = ERC20.bind(Address.fromString(id)).totalSupply();
+    entry.totalSupply = BigInt.fromI32(0);
     entry.gnoReserves = gno.balanceOf(Address.fromString(id));
-    let ratio = entry.gnoReserves.div(entry.totalSupply);
-    entry.previousRatio = ratio;
-    entry.ratio = ratio;
+    entry.previousRatio = BigInt.fromI32(0);
+    entry.ratio = BigInt.fromI32(0);
     entry.lps = [];
     entry.save();
   }

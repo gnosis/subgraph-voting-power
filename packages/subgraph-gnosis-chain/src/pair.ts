@@ -46,23 +46,23 @@ export function handleTransfer(event: Transfer): void {
   let value = event.params.value;
 
   // mint
-  if (from.toHexString() == ADDRESS_ZERO.toHexString()) {
+  if (
+    from.toHexString() == ADDRESS_ZERO.toHexString() &&
+    value > BigInt.fromI32(0)
+  ) {
     // update total supply
     pair.totalSupply = pair.totalSupply.plus(value);
-    // add lp & update vote weight
-    if (!pair.lps.includes(userTo.id) && value > BigInt.fromI32(0)) {
-      pair.lps.push(userTo.id);
-      const position = loadOrCreateAMMPosition(
-        Address.fromString(pair.id),
-        Address.fromString(userTo.id)
-      );
-      position.balance = position.balance.plus(value);
-      position.save;
-
-      userTo.voteWeight = userTo.voteWeight.plus(
-        getGnoInPosition(position.balance, pair)
-      );
+    pair.gnoReserves = gno.balanceOf(Address.fromString(pair.id));
+    if (pair.ratio == BigInt.fromI32(0)) {
+      pair.ratio = pair.gnoReserves.div(pair.totalSupply);
+      pair.previousRatio = pair.ratio;
     }
+
+    // add lp
+    if (!pair.lps.includes(userTo.id)) {
+      pair.lps.push(userTo.id);
+    }
+
     pair.save();
   }
 
@@ -83,24 +83,18 @@ export function handleTransfer(event: Transfer): void {
     from.toHexString() != pair.id
   ) {
     const position = loadOrCreateAMMPosition(event.address, from);
-    position.balance = position.balance.minus(value);
-    if (position.balance == BigInt.fromI32(0)) {
+    let voteWeightToSubtract = pair.ratio.times(value);
+    userFrom.voteWeight = userFrom.voteWeight.minus(voteWeightToSubtract);
+    // if position balance minus value is equal to 0
+    // then delete position and remove user from pair.lps
+    if (position.balance.minus(value) == BigInt.fromI32(0)) {
       const lpsIndex = pair.lps.indexOf(userFrom.id);
       pair.lps.splice(lpsIndex, 1);
-      updateVoteWeight(userFrom, position);
       store.remove("AMMPosition", position.id);
     } else {
-      position.save;
-      updateVoteWeight(userFrom, position);
-      userFrom.save();
+      position.balance = position.balance.minus(value);
     }
-    // userFrom.save();
-    // TODO account for deleted position
-
-    // alternative
-    // entry.liquidityTokenBalance = pairContract.balanceOf(
-    //   from
-    // );
+    removeOrSaveUser(userFrom);
   }
 
   // transfer to
@@ -110,14 +104,10 @@ export function handleTransfer(event: Transfer): void {
   ) {
     const position = loadOrCreateAMMPosition(event.address, to);
     position.balance = position.balance.plus(value);
-    updateVoteWeight(userTo, position);
-    // alternative
-    // entry.liquidityTokenBalance = convertTokenToDecimal(
-    //   pairContract.balanceOf(to),
-    //   BI_18
-    // );
-    userTo.save();
     position.save();
+
+    userTo.voteWeight = userTo.voteWeight.plus(pair.ratio.times(value));
+    removeOrSaveUser(userTo);
   }
 }
 
