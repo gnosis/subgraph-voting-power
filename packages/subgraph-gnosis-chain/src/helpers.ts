@@ -172,7 +172,7 @@ export function updateVoteWeight(user: User, position: AMMPosition): void {
   // add vote weight from current ratio
   user.voteWeight = position.balance.plus(pair.ratio.times(position.balance));
 
-  removeOrSaveUser(user.id);
+  removeOrSaveUser(user);
 }
 
 // export function createUser(address: Address): void {
