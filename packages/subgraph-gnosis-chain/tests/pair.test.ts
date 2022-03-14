@@ -289,9 +289,15 @@ test("Updates vote weight for all LPs on sync", () => {
   );
 });
 
-// test("Removes position from store pair balance is 0", () => {
-//   throw new Error("test not yet defined");
-// });
+test("Removes position from store if position balance is 0", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+  handleTransfer(mintEvent);
+  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+  assert.fieldEquals("AMMPosition", position.id, "id", position.id);
+  handleTransfer(transferEvent);
+  assert.notInStore("AMMPosition", position.id);
+});
 
 // test("Sets ratio and previous ratio on mint", () => {
 //   throw new Error("test not yet defined");
