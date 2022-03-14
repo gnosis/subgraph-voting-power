@@ -142,7 +142,6 @@ test("Adds User to lps on mint and transfer", () => {
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
   handleTransfer(mintEvent);
   let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
-  logStore();
   assert.fieldEquals(
     "AMMPair",
     pair.id,
@@ -156,7 +155,6 @@ test("Removes User from LP if pair balance is 0", () => {
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
   handleTransfer(mintEvent);
   let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
-  logStore();
   assert.fieldEquals(
     "AMMPair",
     pair.id,
@@ -254,28 +252,42 @@ test("Removes sender if vote weight becomes 0", () => {
   );
 });
 
-// test("Updates vote weight for all LPs on sync", () => {
-//   clearStore();
-//   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+test("Updates vote weight for all LPs on sync", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
 
-//   // mint value to user 1
-//   handleTransfer(mintEvent);
-//   let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
-//   // transfer half of value from USER1 to USER2
-//   handleTransfer(smallTransferEvent);
+  // mint value to user 1
+  handleTransfer(mintEvent);
+  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
 
-//   // mock gno.balanceOf(pair.address)
-//   createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
-//     .withArgs([ethereum.Value.fromAddress(PAIR_ADDRESS)])
-//     .returns([
-//       ethereum.Value.fromUnsignedBigInt(value2x.minus(BigInt.fromI32(40000))),
-//     ]);
+  // transfer half of value from USER1 to USER2
+  handleTransfer(smallTransferEvent);
 
-//   // second param is not used
-//   let syncEvent = createSyncEvent(value2x.minus(BigInt.fromI32(40000)), value);
-//   handleSync(syncEvent);
-//   logStore();
-// });
+  // mock gno.balanceOf(pair.address)
+  createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
+    .withArgs([ethereum.Value.fromAddress(PAIR_ADDRESS)])
+    .returns([ethereum.Value.fromUnsignedBigInt(value)]);
+
+  // emit sync event
+  // note: second param is not used
+  let syncEvent = createSyncEvent(value, value);
+  handleSync(syncEvent);
+
+  let user1Position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+  let user2Position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER2_ADDRESS);
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    user1Position.balance.times(pair.ratio).toString()
+  );
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "voteWeight",
+    user2Position.balance.times(pair.ratio).toString()
+  );
+});
 
 // test("Removes position from store pair balance is 0", () => {
 //   throw new Error("test not yet defined");
@@ -285,6 +297,6 @@ test("Removes sender if vote weight becomes 0", () => {
 //   throw new Error("test not yet defined");
 // });
 
-// test("Updates ratio on transfer", () => {
+// test("Updates ratio on Sync", () => {
 //   throw new Error("test not yet defined");
 // });

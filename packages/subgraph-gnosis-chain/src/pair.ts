@@ -78,9 +78,11 @@ export function handleTransfer(event: Transfer): void {
     userFrom.voteWeight = userFrom.voteWeight.minus(voteWeightToSubtract);
     // if position balance minus value is equal to 0
     // then delete position and remove user from pair.lps
-    if (position.balance.minus(value) == BigInt.fromI32(0)) {
-      const lpsIndex = pair.lps.indexOf(userFrom.id);
-      pair.lps.splice(lpsIndex, 1);
+    const lpsIndex = pair.lps.indexOf(userFrom.id);
+    if (position.balance.minus(value) == BigInt.fromI32(0) && !lpsIndex) {
+      let lps = pair.lps;
+      lps.splice(lpsIndex, 1);
+      pair.lps = lps;
       store.remove("AMMPosition", position.id);
     } else {
       position.balance = position.balance.minus(value);
