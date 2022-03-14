@@ -150,7 +150,7 @@ test("Adds User to lps on mint and transfer", () => {
   );
 });
 
-test("Removes User from LP if pair balance is 0", () => {
+test("Removes User from lps if pair balance is 0", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
   handleTransfer(mintEvent);
@@ -167,6 +167,52 @@ test("Removes User from LP if pair balance is 0", () => {
     pair.id,
     "lps",
     "[".concat(USER2_ADDRESS.toHexString().concat("]"))
+  );
+});
+
+test("Removes position from store if position balance is 0", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+  handleTransfer(mintEvent);
+  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+  assert.fieldEquals("AMMPosition", position.id, "id", position.id);
+  handleTransfer(transferEvent);
+  assert.notInStore("AMMPosition", position.id);
+});
+
+test("Updates position balance for recipient on mint", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+  // mint value to user 1
+  handleTransfer(mintEvent);
+  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
+  assert.fieldEquals("AMMPosition", position.id, "balance", value.toString());
+});
+
+test("Updates vote weight for sender and recipient on transfer", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+
+  // mint value to user 1
+  handleTransfer(mintEvent);
+
+  // transfer value from USER1 to USER2
+  handleTransfer(smallTransferEvent);
+
+  let positionUser1 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+  let positionUser2 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER2_ADDRESS);
+  assert.fieldEquals(
+    "AMMPosition",
+    positionUser1.id,
+    "balance",
+    value.div(BigInt.fromI32(2)).toString()
+  );
+  assert.fieldEquals(
+    "AMMPosition",
+    positionUser2.id,
+    "balance",
+    value.div(BigInt.fromI32(2)).toString()
   );
 });
 
@@ -221,7 +267,7 @@ test("Updates vote weight for sender and recipient on transfer", () => {
   );
 });
 
-test("Removes sender if vote weight becomes 0", () => {
+test("Removes sender if vote weight is 0", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
 
@@ -287,14 +333,4 @@ test("Updates vote weight for all LPs on sync", () => {
     "voteWeight",
     user2Position.balance.times(pair.ratio).toString()
   );
-});
-
-test("Removes position from store if position balance is 0", () => {
-  clearStore();
-  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
-  handleTransfer(mintEvent);
-  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-  assert.fieldEquals("AMMPosition", position.id, "id", position.id);
-  handleTransfer(transferEvent);
-  assert.notInStore("AMMPosition", position.id);
 });
