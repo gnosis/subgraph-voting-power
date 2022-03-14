@@ -93,6 +93,7 @@ export function handleTransfer(event: Transfer): void {
       store.remove("AMMPosition", position.id);
     } else {
       position.balance = position.balance.minus(value);
+      position.save();
     }
     removeOrSaveUser(userFrom);
   }

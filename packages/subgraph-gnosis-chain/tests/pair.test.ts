@@ -25,7 +25,7 @@ import {
 import { handleNewPair } from "../src/factory";
 import { createPairCreatedEvent } from "./helpers";
 // import { ERC20, Transfer } from "../generated/templates/Pair/ERC20";
-import { Pair, Transfer } from "../generated/templates/Pair/Pair";
+import { Pair, Transfer, Sync } from "../generated/templates/Pair/Pair";
 import { handleTransfer } from "../src/pair";
 
 let mintEvent = createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value, data);
@@ -142,6 +142,7 @@ test("Updates vote weight for sender and recipient on transfer", () => {
 
   // transfer value from USER1 to USER2
   handleTransfer(smallTransferEvent);
+  logStore();
   assert.fieldEquals(
     "User",
     USER1_ADDRESS.toHexString(),
@@ -194,7 +195,10 @@ test("Removes sender if vote weight becomes 0", () => {
 });
 
 // test("Updates vote weight for all LPs on sync", () => {
-//   throw new Error("test not yet defined");
+//   // mock gno.balanceOf(pair.address)
+//   createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
+//     .withArgs([ethereum.Value.fromAddress(PAIR_ADDRESS)])
+//     .returns([ethereum.Value.fromUnsignedBigInt(value2x)]);
 // });
 
 // test("Removes User from LP if pair balance is 0", () => {
