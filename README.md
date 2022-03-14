@@ -13,8 +13,9 @@ Currently, it tracks GNO balances in:
   - [x] lgno
   - [x] staking deposits
   - [x] 1Hive
-  - [ ] swapper
-  - [ ] sushiswap
-  - [ ] symetric
-  - [ ] elk
+  - [x] swapper
+  - [x] sushiswap
+  - [x] symetric
+  - [x] elk
+  - [x] baoswap
   - [ ] agave

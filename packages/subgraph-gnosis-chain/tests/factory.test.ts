@@ -19,8 +19,8 @@ import {
   value2x,
   data,
 } from "../src/helpers";
-import { PairCreated } from "../generated/Factory/Factory";
-import { handleNewPair } from "../src/factory";
+import { PairCreated } from "../generated/HoneySwap/Factory";
+import { handleNewPair } from "../src/HoneySwap";
 import { createPairCreatedEvent } from "./helpers";
 
 // mock pair.totalSupply()

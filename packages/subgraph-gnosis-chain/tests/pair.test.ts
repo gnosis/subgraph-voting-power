@@ -22,7 +22,7 @@ import {
   loadOrCreateUser,
   loadOrCreateAMMPair,
 } from "../src/helpers";
-import { handleNewPair } from "../src/factory";
+import { handleNewPair } from "../src/HoneySwap";
 import { createPairCreatedEvent } from "./helpers";
 // import { ERC20, Transfer } from "../generated/templates/Pair/ERC20";
 import { Pair, Transfer, Sync } from "../generated/templates/Pair/Pair";
@@ -295,6 +295,21 @@ test("Removes sender if vote weight is 0", () => {
     USER2_ADDRESS.toHexString(),
     "voteWeight",
     value.times(pair.ratio).toString()
+  );
+});
+
+test("Updates totalSupply on transfer", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+
+  // mint value to user 1
+  handleTransfer(mintEvent);
+  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
+  assert.fieldEquals(
+    "AMMPair",
+    PAIR_ADDRESS.toHexString(),
+    "totalSupply",
+    value.toString()
   );
 });
 

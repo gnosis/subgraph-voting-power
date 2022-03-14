@@ -12,8 +12,7 @@ import { log, newMockEvent } from "matchstick-as";
 import { ADDRESS_ZERO } from "../src/helpers";
 import { Transfer } from "../generated/templates/Pair/ERC20";
 import { Sync } from "../generated/templates/Pair/Pair";
-import { PairCreated } from "../generated/Factory/Factory";
-import { Pair } from "../generated/templates/Pair/Pair";
+import { PairCreated } from "../generated/HoneySwap/Factory";
 
 export function createTransferEvent(
   from: Address,
