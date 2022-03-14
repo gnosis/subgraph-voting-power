@@ -1,6 +1,5 @@
 import { clearStore, test, assert } from "matchstick-as/assembly/index";
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { User } from "../generated/schema";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { handleTransfer } from "../src/mgno";
 import { Transfer } from "../generated/ds-mgno/ERC20";
 import { log, newMockEvent } from "matchstick-as";
