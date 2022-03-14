@@ -22,6 +22,4 @@ type AMMPosition @entity {
   user: User!
   pair: AMMPair!
   balance: BigInt!
-  lowerBound: BigInt!
-  upperBound: BigInt!
 }

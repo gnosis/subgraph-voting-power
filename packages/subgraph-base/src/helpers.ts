@@ -5,7 +5,6 @@ import {
   BigDecimal,
   Address,
   store,
-  Bytes,
 } from "@graphprotocol/graph-ts";
 import { AMMPair, AMMPosition, User } from "../generated/schema";
 import { ERC20 } from "../generated/templates/Pair/ERC20";
@@ -103,7 +102,7 @@ export function loadOrCreateUser(address: Address): User {
     entry.mgno = BigInt.fromI32(0);
     entry.lgno = BigInt.fromI32(0);
     entry.deposit = BigInt.fromI32(0);
-    if (id != ADDRESS_ZERO.toHexString() && !AMMPair.load(id)) {
+    if (id != ADDRESS_ZERO.toHexString()) {
       entry.save();
     }
   }
@@ -120,9 +119,9 @@ export function removeOrSaveUser(user: User): void {
   }
 }
 
-const BIGINT_MAX = BigInt.fromUnsignedBytes(
-  Bytes.fromHexString("ff".repeat(32)) // 256 bits = 32 * ff byte
-);
+const BIGINT_MAX = BigInt.fromI32(2)
+  .pow(256)
+  .minus(BigInt.fromI32(1));
 
 export function loadOrCreateAMMPosition(
   pair: Address,
@@ -133,18 +132,13 @@ export function loadOrCreateAMMPosition(
   const id = pair
     .toHexString()
     .concat("-")
-    .concat(user.toHex())
-    .concat("-")
-    .concat(lowerBound.toHexString())
-    .concat("-")
-    .concat(upperBound.toHexString());
+    .concat(user.toHex());
   let entry = AMMPosition.load(id);
   if (entry === null) {
     entry = new AMMPosition(id);
     entry.pair = pair.toHex();
     entry.user = user.toHex();
     entry.balance = ZERO_BI;
-    // entry;
     entry.save();
   }
 
