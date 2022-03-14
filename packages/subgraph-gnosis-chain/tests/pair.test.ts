@@ -298,7 +298,7 @@ test("Removes sender if vote weight is 0", () => {
   );
 });
 
-test("Updates totalSupply on transfer", () => {
+test("Updates totalSupply on mint", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
 
