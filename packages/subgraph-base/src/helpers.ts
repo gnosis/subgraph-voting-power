@@ -5,43 +5,25 @@ import {
   BigDecimal,
   Address,
   store,
+  Bytes,
+  dataSource,
 } from "@graphprotocol/graph-ts";
 import { AMMPair, AMMPosition, User } from "../generated/schema";
 import { ERC20 } from "../generated/templates/Pair/ERC20";
 import { Pair } from "../generated/templates/Pair/Pair";
 
+export const GNO_ADDRESS = Address.fromString(
+  dataSource.network() === "mainnet"
+    ? "0x6810e776880C02933D47DB1b9fc05908e5386b96"
+    : "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
+);
+
+export const gno = ERC20.bind(GNO_ADDRESS);
+
 export const ADDRESS_ZERO = Address.fromString(
   "0x0000000000000000000000000000000000000000"
 );
-export const USER1_ADDRESS = Address.fromString(
-  "0x0000000000000000000000000000000000000001"
-);
-export const USER2_ADDRESS = Address.fromString(
-  "0x0000000000000000000000000000000000000002"
-);
-export const PAIR_ADDRESS = Address.fromString(
-  "0x0000000000000000000000000000000000000003"
-);
-export const FACTORY_ADDRESS = Address.fromString(
-  "0xa818b4f111ccac7aa31d0bcc0806d64f2e0737d7"
-);
-export const DEPOSIT_ADDRESS = Address.fromString(
-  "0x0B98057eA310F4d31F2a452B414647007d1645d9"
-);
-export const GNO_ADDRESS = Address.fromString(
-  "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
-);
-export const OTHERTOKEN_ADDRESS = Address.fromString(
-  "0x0000000000000000000000000000000000000004"
-);
-export const value = BigInt.fromI32(2000000);
-export const value2x = BigInt.fromI32(4000000);
-export const data = "0x00";
 
-Pair.bind(PAIR_ADDRESS);
-export const gno = ERC20.bind(GNO_ADDRESS);
-
-export const mgnoPerGno = BigInt.fromString("32");
 export const ONE_GNO = BigInt.fromString("1000000000000000000");
 
 export let ZERO_BI = BigInt.fromI32(0);
@@ -102,7 +84,7 @@ export function loadOrCreateUser(address: Address): User {
     entry.mgno = BigInt.fromI32(0);
     entry.lgno = BigInt.fromI32(0);
     entry.deposit = BigInt.fromI32(0);
-    if (id != ADDRESS_ZERO.toHexString()) {
+    if (id != ADDRESS_ZERO.toHexString() && !AMMPair.load(id)) {
       entry.save();
     }
   }
@@ -119,9 +101,9 @@ export function removeOrSaveUser(user: User): void {
   }
 }
 
-const BIGINT_MAX = BigInt.fromI32(2)
-  .pow(256)
-  .minus(BigInt.fromI32(1));
+const BIGINT_MAX = BigInt.fromUnsignedBytes(
+  Bytes.fromHexString("ff".repeat(32)) // 256 bits = 32 * ff byte
+);
 
 export function loadOrCreateAMMPosition(
   pair: Address,
@@ -132,13 +114,18 @@ export function loadOrCreateAMMPosition(
   const id = pair
     .toHexString()
     .concat("-")
-    .concat(user.toHex());
+    .concat(user.toHex())
+    .concat("-")
+    .concat(lowerBound.toHexString())
+    .concat("-")
+    .concat(upperBound.toHexString());
   let entry = AMMPosition.load(id);
   if (entry === null) {
     entry = new AMMPosition(id);
     entry.pair = pair.toHex();
     entry.user = user.toHex();
     entry.balance = ZERO_BI;
+    // entry;
     entry.save();
   }
 

@@ -3,24 +3,16 @@ import {
   clearStore,
   test,
   assert,
-  logStore,
 } from "matchstick-as/assembly/index";
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { AMMPair, User } from "../generated/schema";
-import { log, newMockEvent } from "matchstick-as";
+import { ethereum } from "@graphprotocol/graph-ts";
 import {
-  ADDRESS_ZERO,
   GNO_ADDRESS,
-  gno,
   USER1_ADDRESS,
-  USER2_ADDRESS,
   value,
   PAIR_ADDRESS,
   value2x,
-  data,
-} from "../src/helpers";
-import { PairCreated } from "../generated/HoneySwap/Factory";
-import { handleNewPair } from "../src/HoneySwap";
+} from "./helpers";
+import { handleNewPair } from "../src/factory";
 import { createPairCreatedEvent } from "./helpers";
 
 // mock pair.totalSupply()

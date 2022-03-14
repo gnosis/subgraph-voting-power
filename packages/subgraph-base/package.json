@@ -4,7 +4,8 @@
   "author": "Cristóvão Honorato",
   "scripts": {
     "doall": "rm -rf generated && rm -rf build && graph codegen && graph build",
-    "codegen": "graph codegen"
+    "codegen": "graph codegen",
+    "test": "graph test"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.26.0",

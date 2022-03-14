@@ -1,26 +1,20 @@
-import {
-  createMockedFunction,
-  clearStore,
-  test,
-  assert,
-  logStore,
-} from "matchstick-as/assembly/index";
+import { clearStore, test, assert } from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { User } from "../generated/schema";
 import { handleTransfer } from "../src/mgno";
-import { Transfer } from "../generated/ds-mgno/MGNO";
+import { Transfer } from "../generated/ds-mgno/ERC20";
 import { log, newMockEvent } from "matchstick-as";
 import {
   ADDRESS_ZERO,
   ONE_GNO,
-  mgnoPerGno,
+  MGNO_PER_GNO,
   DEPOSIT_ADDRESS,
   USER1_ADDRESS,
   USER2_ADDRESS,
   data,
-} from "../src/helpers";
+} from "./helpers";
 
-let value = ONE_GNO.times(mgnoPerGno);
+let value = ONE_GNO.times(MGNO_PER_GNO);
 let value2x = value.times(BigInt.fromI32(2));
 
 function createTransferEvent(
@@ -141,7 +135,7 @@ test("Transfer correctly increases vote weight of recipient", () => {
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    value.div(mgnoPerGno).toString()
+    value.div(MGNO_PER_GNO).toString()
   );
 
   // mint another value to user 1, should have a total of value2x
@@ -150,7 +144,7 @@ test("Transfer correctly increases vote weight of recipient", () => {
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    value2x.div(mgnoPerGno).toString()
+    value2x.div(MGNO_PER_GNO).toString()
   );
 });
 
@@ -168,7 +162,7 @@ test("Transfer correctly decreases vote weight of sender", () => {
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    value2x.div(mgnoPerGno).toString()
+    value2x.div(MGNO_PER_GNO).toString()
   );
 
   // send value from USER1_ADDRESS to USER2_ADDRESS, user one should have value left
@@ -183,7 +177,7 @@ test("Transfer correctly decreases vote weight of sender", () => {
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    value.div(mgnoPerGno).toString()
+    value.div(MGNO_PER_GNO).toString()
   );
 });
 
@@ -201,7 +195,7 @@ test("Transfer to DEPOSIT_ADDRESS does not change vote weight", () => {
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    value2x.div(mgnoPerGno).toString()
+    value2x.div(MGNO_PER_GNO).toString()
   );
 
   // send value from USER1_ADDRESS to USER2_ADDRESS, user one should have value left
@@ -216,7 +210,7 @@ test("Transfer to DEPOSIT_ADDRESS does not change vote weight", () => {
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    value2x.div(mgnoPerGno).toString()
+    value2x.div(MGNO_PER_GNO).toString()
   );
 });
 
@@ -234,7 +228,7 @@ test("Transfer resulting in 0 vote weight removes user from store.", () => {
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    value.div(mgnoPerGno).toString()
+    value.div(MGNO_PER_GNO).toString()
   );
 
   // send value from USER1_ADDRESS to USER2_ADDRESS, user one should have 0 left and be removed from store

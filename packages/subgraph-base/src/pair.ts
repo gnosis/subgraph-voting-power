@@ -1,22 +1,13 @@
 import { BigInt, log, store, Address, Bytes } from "@graphprotocol/graph-ts";
-import {
-  Pair as PairContract,
-  Mint,
-  Burn,
-  Swap,
-  Transfer,
-  Sync,
-} from "../generated/templates/Pair/Pair";
+import { Transfer, Sync } from "../generated/templates/Pair/Pair";
 
 import { ERC20 } from "../generated/templates/Pair/ERC20";
 import {
   ADDRESS_ZERO,
-  GNO_ADDRESS,
   loadOrCreateAMMPair,
   loadOrCreateAMMPosition,
   loadOrCreateUser,
   gno,
-  getGnoInPosition,
   removeOrSaveUser,
   updateVoteWeight,
 } from "./helpers";

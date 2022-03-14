@@ -1,4 +1,3 @@
-/* eslint-disable prefer-const */
 import { Address, log } from "@graphprotocol/graph-ts";
 import { PairCreated } from "../generated/Factory/Factory";
 import { Pair } from "../generated/templates";

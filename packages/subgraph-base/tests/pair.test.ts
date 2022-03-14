@@ -18,11 +18,9 @@ import {
   value2x,
   data,
   OTHERTOKEN_ADDRESS,
-  loadOrCreateAMMPosition,
-  loadOrCreateUser,
-  loadOrCreateAMMPair,
-} from "../src/helpers";
-import { handleNewPair } from "../src/HoneySwap";
+} from "./helpers";
+import { loadOrCreateAMMPosition, loadOrCreateAMMPair } from "../src/helpers";
+import { handleNewPair } from "../src/factory";
 import { createPairCreatedEvent } from "./helpers";
 // import { ERC20, Transfer } from "../generated/templates/Pair/ERC20";
 import { Pair, Transfer, Sync } from "../generated/templates/Pair/Pair";

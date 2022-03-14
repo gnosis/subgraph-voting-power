@@ -1,5 +1,5 @@
 import { BigInt, store } from "@graphprotocol/graph-ts";
-import { Transfer } from "../generated/ds-lgno/LGNO";
+import { Transfer } from "../generated/ds-lgno/ERC20";
 import { loadOrCreateUser, removeOrSaveUser, ADDRESS_ZERO } from "./helpers";
 
 export function handleTransfer(event: Transfer): void {
