@@ -57,13 +57,6 @@ export function handleTransfer(event: Transfer): void {
       pair.ratio = pair.gnoReserves.div(pair.totalSupply);
       pair.previousRatio = pair.ratio;
     }
-
-    // add lp
-    if (!pair.lps.includes(userTo.id)) {
-      pair.lps.push(userTo.id);
-    }
-
-    pair.save();
   }
 
   // burn
@@ -73,8 +66,6 @@ export function handleTransfer(event: Transfer): void {
   ) {
     pair.totalSupply = pair.totalSupply.minus(value);
     pair.gnoReserves = gno.balanceOf(Address.fromString(pair.id));
-
-    pair.save();
   }
 
   // transfer from
@@ -103,13 +94,23 @@ export function handleTransfer(event: Transfer): void {
     event.params.to.toHexString() != ADDRESS_ZERO.toHexString() &&
     to.toHexString() != pair.id
   ) {
+    // increase position balance
     const position = loadOrCreateAMMPosition(event.address, to);
     position.balance = position.balance.plus(value);
     position.save();
 
+    // increase vote weight
     userTo.voteWeight = userTo.voteWeight.plus(pair.ratio.times(value));
     removeOrSaveUser(userTo);
+
+    // add lp
+    if (!pair.lps.includes(userTo.id)) {
+      let lps = pair.lps;
+      lps.push(userTo.id);
+      pair.lps = lps;
+    }
   }
+  pair.save();
 }
 
 export function handleSync(event: Sync): void {

@@ -26,7 +26,7 @@ import { handleNewPair } from "../src/factory";
 import { createPairCreatedEvent } from "./helpers";
 // import { ERC20, Transfer } from "../generated/templates/Pair/ERC20";
 import { Pair, Transfer, Sync } from "../generated/templates/Pair/Pair";
-import { handleTransfer } from "../src/pair";
+import { handleSync, handleTransfer } from "../src/pair";
 
 let mintEvent = createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value, data);
 let transferEvent = createTransferEvent(
@@ -101,6 +101,32 @@ function createTransferEvent(
   return newTransferEvent;
 }
 
+function createSyncEvent(reserve0: BigInt, reserve1: BigInt): Sync {
+  let mockEvent = newMockEvent();
+
+  mockEvent.parameters = new Array();
+
+  mockEvent.parameters.push(
+    new ethereum.EventParam("reserve0", ethereum.Value.fromSignedBigInt(value))
+  );
+
+  mockEvent.parameters.push(
+    new ethereum.EventParam("reserve0", ethereum.Value.fromSignedBigInt(value))
+  );
+
+  let newSyncEvent = new Sync(
+    PAIR_ADDRESS,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters
+  );
+
+  return newSyncEvent;
+}
+
 //  TESTS
 
 test("Creates position on mint", () => {
@@ -109,6 +135,41 @@ test("Creates position on mint", () => {
   handleTransfer(mintEvent);
   let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
   assert.fieldEquals("AMMPosition", position.id, "balance", value.toString());
+});
+
+test("Adds User to lps on mint and transfer", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+  handleTransfer(mintEvent);
+  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
+  logStore();
+  assert.fieldEquals(
+    "AMMPair",
+    pair.id,
+    "lps",
+    "[".concat(USER1_ADDRESS.toHexString().concat("]"))
+  );
+});
+
+test("Removes User from LP if pair balance is 0", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+  handleTransfer(mintEvent);
+  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
+  logStore();
+  assert.fieldEquals(
+    "AMMPair",
+    pair.id,
+    "lps",
+    "[".concat(USER1_ADDRESS.toHexString().concat("]"))
+  );
+  handleTransfer(transferEvent);
+  assert.fieldEquals(
+    "AMMPair",
+    pair.id,
+    "lps",
+    "[".concat(USER2_ADDRESS.toHexString().concat("]"))
+  );
 });
 
 test("Updates vote weight for recipient on mint", () => {
@@ -142,7 +203,6 @@ test("Updates vote weight for sender and recipient on transfer", () => {
 
   // transfer value from USER1 to USER2
   handleTransfer(smallTransferEvent);
-  logStore();
   assert.fieldEquals(
     "User",
     USER1_ADDRESS.toHexString(),
@@ -195,14 +255,26 @@ test("Removes sender if vote weight becomes 0", () => {
 });
 
 // test("Updates vote weight for all LPs on sync", () => {
+//   clearStore();
+//   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+
+//   // mint value to user 1
+//   handleTransfer(mintEvent);
+//   let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
+//   // transfer half of value from USER1 to USER2
+//   handleTransfer(smallTransferEvent);
+
 //   // mock gno.balanceOf(pair.address)
 //   createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
 //     .withArgs([ethereum.Value.fromAddress(PAIR_ADDRESS)])
-//     .returns([ethereum.Value.fromUnsignedBigInt(value2x)]);
-// });
+//     .returns([
+//       ethereum.Value.fromUnsignedBigInt(value2x.minus(BigInt.fromI32(40000))),
+//     ]);
 
-// test("Removes User from LP if pair balance is 0", () => {
-//   throw new Error("test not yet defined");
+//   // second param is not used
+//   let syncEvent = createSyncEvent(value2x.minus(BigInt.fromI32(40000)), value);
+//   handleSync(syncEvent);
+//   logStore();
 // });
 
 // test("Removes position from store pair balance is 0", () => {
