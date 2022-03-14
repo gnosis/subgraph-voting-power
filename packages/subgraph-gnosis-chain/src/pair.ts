@@ -138,21 +138,3 @@ export function handleSync(event: Sync): void {
   pair.previousRatio = pair.ratio;
   pair.save();
 }
-
-// export function handleMint(event: Mint): void {
-//   const pair = loadOrCreateAMMPair(event.address);
-//   pair.mints += 1;
-//   pair.save();
-// }
-
-// export function handleBurn(event: Burn): void {
-//   const pair = loadOrCreateAMMPair(event.address);
-//   pair.burns += 1;
-//   pair.save();
-// }
-
-// export function handleSwap(event: Swap): void {
-//   const pair = loadOrCreateAMMPair(event.address);
-//   pair.swaps += 1;
-//   pair.save();
-// }

@@ -298,11 +298,3 @@ test("Removes position from store if position balance is 0", () => {
   handleTransfer(transferEvent);
   assert.notInStore("AMMPosition", position.id);
 });
-
-// test("Sets ratio and previous ratio on mint", () => {
-//   throw new Error("test not yet defined");
-// });
-
-// test("Updates ratio on Sync", () => {
-//   throw new Error("test not yet defined");
-// });
