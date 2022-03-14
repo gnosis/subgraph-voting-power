@@ -141,7 +141,6 @@ export function loadOrCreateAMMPair(address: Address): AMMPair {
     entry.gnoReserves = gno.balanceOf(Address.fromString(id));
     entry.previousRatio = BigInt.fromI32(0);
     entry.ratio = BigInt.fromI32(0);
-    entry.lps = [];
     entry.save();
   }
   return entry;

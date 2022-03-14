@@ -1,12 +1,5 @@
 /* eslint-disable prefer-const */
-import {
-  log,
-  BigInt,
-  BigDecimal,
-  Address,
-  store,
-  Bytes,
-} from "@graphprotocol/graph-ts";
+import { log, BigInt, Address, store } from "@graphprotocol/graph-ts";
 import { AMMPair, User } from "../generated/schema";
 
 export const ADDRESS_ZERO = Address.fromString(
