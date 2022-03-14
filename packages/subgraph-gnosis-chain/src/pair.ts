@@ -7,7 +7,6 @@ import {
   Transfer,
   Sync,
 } from "../generated/templates/Pair/Pair";
-
 import { ERC20 } from "../generated/templates/Pair/ERC20";
 import {
   ADDRESS_ZERO,
@@ -73,7 +72,7 @@ export function handleTransfer(event: Transfer): void {
   ) {
     const position = loadOrCreateAMMPosition(event.address, from);
 
-    let voteWeightToSubtract = pair.ratio.times(value);
+    const voteWeightToSubtract = pair.ratio.times(value);
     userFrom.voteWeight = userFrom.voteWeight.minus(voteWeightToSubtract);
 
     if (position.balance.minus(value) == BigInt.fromI32(0)) {
@@ -107,16 +106,10 @@ export function handleSync(event: Sync): void {
   pair.gnoReserves = gno.balanceOf(event.address);
   // gno.balanceOf(pair) / pair.totalSupply()
   pair.ratio = pair.gnoReserves.div(ERC20.bind(event.address).totalSupply());
-  let positions = pair.positions;
+  const positions = pair.positions;
   if (positions) {
     for (let index = 0; index < positions.length; index++) {
       const position = AMMPosition.load(positions[index]);
-
-      // const position = loadOrCreateAMMPosition(
-      //   event.address,
-      //   Address.fromString(user.id)
-      // );
-
       if (position) {
         const user = loadOrCreateUser(Address.fromString(position.user));
         // const position = new AMMPosition(pair.id.concat("-").concat(user.id));

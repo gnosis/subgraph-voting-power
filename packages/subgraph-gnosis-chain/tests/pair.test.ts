@@ -149,8 +149,6 @@ test("Adds Position to positions on mint and transfer", () => {
   handleTransfer(mintEvent);
   let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
   let positionUser1 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-  log.info("\nPairID: {}, \nPositionID: {}", [pair.id, positionUser1.id]);
-  logStore();
   assert.fieldEquals(
     "AMMPair",
     pair.id,
@@ -377,18 +375,24 @@ test("Updates vote weight for all LPs on sync", () => {
   let syncEvent = createSyncEvent(value, value);
   handleSync(syncEvent);
 
-  let user1Position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-  let user2Position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER2_ADDRESS);
+  let positionUser1 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+  let positionUser2 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER2_ADDRESS);
+  assert.fieldEquals(
+    "AMMPair",
+    pair.id,
+    "positions",
+    "[".concat(positionUser1.id.concat("]"))
+  );
   assert.fieldEquals(
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    user1Position.balance.times(pair.ratio).toString()
+    positionUser1.balance.times(pair.ratio).toString()
   );
   assert.fieldEquals(
     "User",
     USER2_ADDRESS.toHexString(),
     "voteWeight",
-    user2Position.balance.times(pair.ratio).toString()
+    positionUser2.balance.times(pair.ratio).toString()
   );
 });

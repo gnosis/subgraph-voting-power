@@ -18,7 +18,7 @@ type AMMPair @entity {
 }
 
 type AMMPosition @entity {
-  id: ID!
+  id: ID! # pair.id.concat("-").concat(user.id)
   user: User!
   pair: AMMPair!
   balance: BigInt!
