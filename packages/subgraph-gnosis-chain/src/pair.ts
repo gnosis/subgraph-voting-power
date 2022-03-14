@@ -27,7 +27,7 @@ export function handleTransfer(event: Transfer): void {
 
   // ignore initial transfers for first adds
   if (
-    event.params.to.toHexString() == ADDRESS_ZERO &&
+    event.params.to.toHexString() == ADDRESS_ZERO.toHexString() &&
     event.params.value.equals(BigInt.fromI32(1000))
   ) {
     return;
@@ -46,77 +46,73 @@ export function handleTransfer(event: Transfer): void {
   let value = event.params.value;
 
   // mint
-  if (from.toHexString() == ADDRESS_ZERO) {
+  if (
+    from.toHexString() == ADDRESS_ZERO.toHexString() &&
+    value > BigInt.fromI32(0)
+  ) {
     // update total supply
     pair.totalSupply = pair.totalSupply.plus(value);
-    // add lp & update vote weight
-    if (!pair.lps.includes(userTo.id) && value > BigInt.fromI32(0)) {
-      pair.lps.push(userTo.id);
-      log.error("pair.lps.push({})", [userTo.id]);
-      const position = loadOrCreateAMMPosition(
-        Address.fromString(pair.id),
-        Address.fromString(userTo.id)
-      );
-      log.error("successfully created AMM position", []);
-      position.balance = position.balance.plus(value);
-      position.save;
-
-      userTo.voteWeight = userTo.voteWeight.plus(
-        getGnoInPosition(position.balance, pair)
-      );
-      log.error("successfully updated vote weight", []);
-      removeOrSaveUser(userTo.id);
+    pair.gnoReserves = gno.balanceOf(Address.fromString(pair.id));
+    if (pair.ratio == BigInt.fromI32(0)) {
+      pair.ratio = pair.gnoReserves.div(pair.totalSupply);
+      pair.previousRatio = pair.ratio;
     }
-    pair.save();
   }
 
   // burn
   if (
-    event.params.to.toHexString() == ADDRESS_ZERO &&
+    event.params.to.toHexString() == ADDRESS_ZERO.toHexString() &&
     event.params.from.toHexString() == pair.id
   ) {
     pair.totalSupply = pair.totalSupply.minus(value);
     pair.gnoReserves = gno.balanceOf(Address.fromString(pair.id));
-
-    pair.save();
   }
 
   // transfer from
-  if (from.toHexString() != ADDRESS_ZERO && from.toHexString() != pair.id) {
+  if (
+    from.toHexString() != ADDRESS_ZERO.toHexString() &&
+    from.toHexString() != pair.id
+  ) {
     const position = loadOrCreateAMMPosition(event.address, from);
-    position.balance = position.balance.minus(value);
-    if (position.balance == BigInt.fromI32(0)) {
-      const lpsIndex = pair.lps.indexOf(userFrom.id);
-      pair.lps.splice(lpsIndex, 1);
-
+    let voteWeightToSubtract = pair.ratio.times(value);
+    userFrom.voteWeight = userFrom.voteWeight.minus(voteWeightToSubtract);
+    // if position balance minus value is equal to 0
+    // then delete position and remove user from pair.lps
+    const lpsIndex = pair.lps.indexOf(userFrom.id);
+    if (position.balance.minus(value) == BigInt.fromI32(0) && !lpsIndex) {
+      let lps = pair.lps;
+      lps.splice(lpsIndex, 1);
+      pair.lps = lps;
       store.remove("AMMPosition", position.id);
     } else {
-      position.save;
+      position.balance = position.balance.minus(value);
+      position.save();
     }
-    // TODO account for deleted position
-    updateVoteWeight(userFrom, position);
-
-    // alternative
-    // entry.liquidityTokenBalance = pairContract.balanceOf(
-    //   from
-    // );
+    removeOrSaveUser(userFrom);
   }
 
   // transfer to
   if (
-    event.params.to.toHexString() != ADDRESS_ZERO &&
+    event.params.to.toHexString() != ADDRESS_ZERO.toHexString() &&
     to.toHexString() != pair.id
   ) {
+    // increase position balance
     const position = loadOrCreateAMMPosition(event.address, to);
     position.balance = position.balance.plus(value);
-    updateVoteWeight(userTo, position);
-    // alternative
-    // entry.liquidityTokenBalance = convertTokenToDecimal(
-    //   pairContract.balanceOf(to),
-    //   BI_18
-    // );
     position.save();
+
+    // increase vote weight
+    userTo.voteWeight = userTo.voteWeight.plus(pair.ratio.times(value));
+    removeOrSaveUser(userTo);
+
+    // add lp
+    if (!pair.lps.includes(userTo.id)) {
+      let lps = pair.lps;
+      lps.push(userTo.id);
+      pair.lps = lps;
+    }
   }
+  pair.save();
 }
 
 export function handleSync(event: Sync): void {
@@ -128,7 +124,6 @@ export function handleSync(event: Sync): void {
     const user = loadOrCreateUser(
       Address.fromString(pair.lps[index].toString())
     );
-    log.error("User: {}\nPair: {}", [user.id, pair.id]);
 
     const position = loadOrCreateAMMPosition(
       event.address,
@@ -136,8 +131,6 @@ export function handleSync(event: Sync): void {
     );
 
     // const position = new AMMPosition(pair.id.concat("-").concat(user.id));
-    log.error("Position: {}", [position.id]);
-
     updateVoteWeight(user, position);
   }
 
@@ -145,21 +138,3 @@ export function handleSync(event: Sync): void {
   pair.previousRatio = pair.ratio;
   pair.save();
 }
-
-// export function handleMint(event: Mint): void {
-//   const pair = loadOrCreateAMMPair(event.address);
-//   pair.mints += 1;
-//   pair.save();
-// }
-
-// export function handleBurn(event: Burn): void {
-//   const pair = loadOrCreateAMMPair(event.address);
-//   pair.burns += 1;
-//   pair.save();
-// }
-
-// export function handleSwap(event: Swap): void {
-//   const pair = loadOrCreateAMMPair(event.address);
-//   pair.swaps += 1;
-//   pair.save();
-// }

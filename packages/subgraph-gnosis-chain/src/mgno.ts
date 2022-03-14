@@ -5,6 +5,7 @@ import {
   ADDRESS_ZERO,
   DEPOSIT_ADDRESS,
   mgnoPerGno,
+  removeOrSaveUser,
 } from "./helpers";
 
 export function handleTransfer(event: Transfer): void {
@@ -12,22 +13,21 @@ export function handleTransfer(event: Transfer): void {
   const from = event.params.from;
   const value = event.params.value;
 
-  if (from.toHexString() != ADDRESS_ZERO) {
+  if (from.toHexString() != ADDRESS_ZERO.toHexString()) {
     const userFrom = loadOrCreateUser(from);
     userFrom.mgno = userFrom.mgno.minus(value);
-    if (to.toHexString() == DEPOSIT_ADDRESS) {
+    if (to.toHexString() == DEPOSIT_ADDRESS.toHexString()) {
       userFrom.deposit = userFrom.deposit.plus(value.div(mgnoPerGno));
     } else {
       userFrom.voteWeight = userFrom.voteWeight.minus(value.div(mgnoPerGno));
     }
-    if (userFrom.voteWeight == BigInt.fromI32(0)) {
-      store.remove("User", userFrom.id);
-    } else {
-      userFrom.save();
-    }
+    removeOrSaveUser(userFrom);
   }
 
-  if (to.toHexString() != ADDRESS_ZERO && to.toHexString() != DEPOSIT_ADDRESS) {
+  if (
+    to.toHexString() != ADDRESS_ZERO.toHexString() &&
+    to.toHexString() != DEPOSIT_ADDRESS.toHexString()
+  ) {
     const userTo = loadOrCreateUser(to);
     userTo.mgno = userTo.mgno.plus(value);
     userTo.voteWeight = userTo.voteWeight.plus(value.div(mgnoPerGno));
