@@ -14,6 +14,7 @@ import {
   gno,
   USER1_ADDRESS,
   USER2_ADDRESS,
+  OTHERTOKEN_ADDRESS,
   value,
   PAIR_ADDRESS,
   value2x,
@@ -111,17 +112,4 @@ test("New pair has correct current ratio", () => {
   );
   handleNewPair(pairCreatedEvent);
   assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "ratio", "0");
-});
-
-test("New pair has correct lps", () => {
-  clearStore();
-  let otherToken = USER1_ADDRESS;
-  let pairCreatedEvent = createPairCreatedEvent(
-    GNO_ADDRESS,
-    otherToken,
-    PAIR_ADDRESS,
-    value
-  );
-  handleNewPair(pairCreatedEvent);
-  assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "lps", "[]");
 });
