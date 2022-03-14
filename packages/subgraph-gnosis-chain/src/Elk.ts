@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 import { Address, log } from "@graphprotocol/graph-ts";
-import { PairCreated } from "../generated/Factory/Factory";
+import { PairCreated } from "../generated/Elk/Factory";
 import { Pair } from "../generated/templates";
 import { GNO_ADDRESS, loadOrCreateAMMPair } from "./helpers";
 
