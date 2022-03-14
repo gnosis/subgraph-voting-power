@@ -29,6 +29,12 @@ import { Pair, Transfer, Sync } from "../generated/templates/Pair/Pair";
 import { handleSync, handleTransfer } from "../src/pair";
 
 let mintEvent = createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value, data);
+let burnEvent = createTransferEvent(
+  PAIR_ADDRESS,
+  ADDRESS_ZERO,
+  value.div(BigInt.fromI32(2)),
+  data
+);
 let transferEvent = createTransferEvent(
   USER1_ADDRESS,
   USER2_ADDRESS,
@@ -311,6 +317,30 @@ test("Updates totalSupply on mint", () => {
     "totalSupply",
     value.toString()
   );
+});
+
+test("Updates totalSupply on burn", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+
+  // mint value to user 1
+  handleTransfer(mintEvent);
+  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
+  assert.fieldEquals(
+    "AMMPair",
+    PAIR_ADDRESS.toHexString(),
+    "totalSupply",
+    value.toString()
+  );
+  handleTransfer(burnEvent);
+  assert.fieldEquals(
+    "AMMPair",
+    PAIR_ADDRESS.toHexString(),
+    "totalSupply",
+    value.div(BigInt.fromI32(2)).toString()
+  );
+  assert.notInStore("User", pair.id);
+  logStore();
 });
 
 test("Updates vote weight for all LPs on sync", () => {
