@@ -37,7 +37,7 @@ export function handleTransfer(event: Transfer): void {
   // mint
   if (
     from.toHexString() == ADDRESS_ZERO.toHexString() &&
-    value > BigInt.fromI32(0)
+    value.gt(BigInt.fromI32(0))
   ) {
     // update total supply
     pair.totalSupply = pair.totalSupply.plus(value);

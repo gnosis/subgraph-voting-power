@@ -79,6 +79,8 @@ dataSources:
       abis:
         - name: Factory
           file: ../subgraph-base/abis/factory.json
+        - name: ERC20
+          file: ../subgraph-base/abis/ERC20.json
       eventHandlers:
         - event: PairCreated(indexed address,indexed address,address,uint256)
           handler: handleNewPair
@@ -99,6 +101,8 @@ dataSources:
       abis:
         - name: Factory
           file: ../subgraph-base/abis/factory.json
+        - name: ERC20
+          file: ../subgraph-base/abis/ERC20.json
       eventHandlers:
         - event: PairCreated(indexed address,indexed address,address,uint256)
           handler: handleNewPair
@@ -119,6 +123,8 @@ dataSources:
       abis:
         - name: Factory
           file: ../subgraph-base/abis/factory.json
+        - name: ERC20
+          file: ../subgraph-base/abis/ERC20.json
       eventHandlers:
         - event: PairCreated(indexed address,indexed address,address,uint256)
           handler: handleNewPair
@@ -139,6 +145,8 @@ dataSources:
       abis:
         - name: Factory
           file: ../subgraph-base/abis/factory.json
+        - name: ERC20
+          file: ../subgraph-base/abis/ERC20.json
       eventHandlers:
         - event: PairCreated(indexed address,indexed address,address,uint256)
           handler: handleNewPair
@@ -159,6 +167,8 @@ dataSources:
       abis:
         - name: Factory
           file: ../subgraph-base/abis/factory.json
+        - name: ERC20
+          file: ../subgraph-base/abis/ERC20.json
       eventHandlers:
         - event: PairCreated(indexed address,indexed address,address,uint256)
           handler: handleNewPair
