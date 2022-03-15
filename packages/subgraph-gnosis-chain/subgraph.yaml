@@ -162,26 +162,6 @@ dataSources:
       eventHandlers:
         - event: PairCreated(indexed address,indexed address,address,uint256)
           handler: handleNewPair
-  - kind: ethereum/contract
-    name: Symmetric
-    network: xdai
-    source:
-      address: "0x9B4214FD41cD24347A25122AC7bb6B479BED72Ac"
-      abi: Factory
-      startBlock: 13108160
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: ../subgraph-base/src/factory.ts
-      entities:
-        - User
-      abis:
-        - name: Factory
-          file: ../subgraph-base/abis/factory.json
-      eventHandlers:
-        - event: PairCreated(indexed address,indexed address,address,uint256)
-          handler: handleNewPair
 templates:
   - kind: ethereum/contract
     name: Pair
