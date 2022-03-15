@@ -32,10 +32,6 @@ export let ZERO_BD = BigDecimal.fromString("0");
 export let ONE_BD = BigDecimal.fromString("1");
 export let BI_18 = BigInt.fromI32(18);
 
-// export let factoryContract = FactoryContract.bind(
-//   Address.fromString(FACTORY_ADDRESS)
-// );
-
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
   let bd = BigDecimal.fromString("1");
   for (let i = ZERO_BI; i.lt(decimals as BigInt); i = i.plus(ONE_BI)) {
@@ -46,16 +42,6 @@ export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
 
 export function bigDecimalExp18(): BigDecimal {
   return BigDecimal.fromString("1000000000000000000");
-}
-
-export function convertTokenToDecimal(
-  tokenAmount: BigInt,
-  exchangeDecimals: BigInt
-): BigDecimal {
-  if (exchangeDecimals == ZERO_BI) {
-    return tokenAmount.toBigDecimal();
-  }
-  return tokenAmount.toBigDecimal().div(exponentToBigDecimal(exchangeDecimals));
 }
 
 export function equalToZero(value: BigDecimal): boolean {
@@ -101,30 +87,20 @@ export function removeOrSaveUser(user: User): void {
   }
 }
 
-const BIGINT_MAX = BigInt.fromUnsignedBytes(
-  Bytes.fromHexString("ff".repeat(32)) // 256 bits = 32 * ff byte
-);
-
 export function loadOrCreateAMMPosition(
   pair: Address,
-  user: Address,
-  lowerBound: BigInt = BigInt.zero(),
-  upperBound: BigInt = BIGINT_MAX
+  user: Address
 ): AMMPosition {
   const id = pair
     .toHexString()
     .concat("-")
-    .concat(user.toHexString())
-    .concat("-")
-    .concat(lowerBound.toHexString())
-    .concat("-")
-    .concat(upperBound.toHexString());
+    .concat(user.toHex());
   let entry = AMMPosition.load(id);
   if (entry === null) {
     entry = new AMMPosition(id);
-    entry.pair = pair.toHexString();
-    entry.user = user.toHexString();
-    entry.balance = ZERO_BI;
+    entry.pair = pair.toHex();
+    entry.user = user.toHex();
+    entry.liquidity = ZERO_BI;
     // entry;
     entry.save();
   }
@@ -132,48 +108,25 @@ export function loadOrCreateAMMPosition(
   return entry;
 }
 
-export function loadOrCreateAMMPair(address: Address): AMMPair {
+export function loadAMMPair(address: Address): AMMPair {
   const id = address.toHexString();
-  let entry = AMMPair.load(id);
-  if (entry == null) {
-    Pair.create(address);
-    log.info("pair created", []);
-    entry = new AMMPair(id);
-    entry.totalSupply = BigInt.fromI32(0);
-    entry.gnoReserves = gno.balanceOf(Address.fromString(id));
-    entry.previousRatio = BigInt.fromI32(0);
-    entry.ratio = BigInt.fromI32(0);
-    entry.save();
-    log.info("pair saved: {}", [entry.id]);
-  }
+  return AMMPair.load(id);
+}
+
+export function createAMMPair(
+  address: Address,
+  token0: Address,
+  token1: Address
+): AMMPair {
+  const id = address.toHexString();
+  const otherToken = ERC20.bind(token0 === GNO_ADDRESS ? token1 : token0);
+  const entry = new AMMPair(id);
+  entry.price = gno
+    .balanceOf(Address.fromString(id))
+    .toBigDecimal()
+    .div(otherToken.balanceOf(Address.fromString(id)).toBigDecimal());
+  entry.previousPrice = entry.price;
+  entry.save();
+
   return entry;
 }
-
-export function getGnoInPosition(value: BigInt, pair: AMMPair): BigInt {
-  // pair.balanceOf(user) / pair.totalSupply() * gno.balanceOf(pair)
-  // or
-  // value * ratio * gno.balanceOf(pair)
-  return value
-    .times(pair.ratio)
-    .div(gno.balanceOf(Address.fromString(pair.id)));
-}
-
-export function updateVoteWeight(user: User, position: AMMPosition): void {
-  const pair = loadOrCreateAMMPair(Address.fromString(position.pair));
-  // subtract vote weight from previous ratio
-  let amountToSubtract = pair.previousRatio.times(position.balance);
-  user.voteWeight = user.voteWeight.minus(amountToSubtract);
-  // add vote weight from current ratio
-  user.voteWeight = user.voteWeight.plus(pair.ratio.times(position.balance));
-
-  removeOrSaveUser(user);
-}
-
-// export function createUser(address: Address): void {
-//   let user = User.load(address.toHexString());
-//   if (user === null) {
-//     user = new User(address.toHexString());
-//     user.usdSwapped = ZERO_BD;
-//     user.save();
-//   }
-// }

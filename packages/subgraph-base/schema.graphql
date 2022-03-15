@@ -10,18 +10,18 @@ type User @entity {
 
 type AMMPair @entity {
   id: ID! # address
-  totalSupply: BigInt!
-  gnoReserves: BigInt!
-  previousRatio: BigInt!
-  ratio: BigInt!
+  gnoIsFirst: Boolean!
+  otherTokenDecimals: Int!
+  sqrtRatio: BigDecimal!
+  otherToken: ID! # address
   positions: [AMMPosition!]! @derivedFrom(field: "pair")
 }
 
 type AMMPosition @entity {
-  id: ID! # pair.id.concat("-").concat(user.id)
+  id: ID! # <PAIR_ADDRESS>-<USER_ADDRESS>-<LOWER_BOUND>-<UPPER_BOUND>
   user: User!
   pair: AMMPair!
-  balance: BigInt!
-  lowerBound: BigInt!
-  upperBound: BigInt!
+  liquidity: BigInt!
+  lowerTick: BigInt!
+  upperTick: BigInt!
 }

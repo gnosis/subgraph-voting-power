@@ -1,9 +1,8 @@
-import { Address, log } from "@graphprotocol/graph-ts";
-import { PairCreated } from "../generated/Factory/Factory";
-import { Pair } from "../generated/templates";
-import { GNO_ADDRESS, createAMMPair } from "./helpers";
+import { PoolCreated } from "../generated/Factory/Factory";
+import { log, BigInt, Address } from "@graphprotocol/graph-ts";
+import { createAMMPair, GNO_ADDRESS } from "./helpers";
 
-export function handleNewPair(event: PairCreated): void {
+export function handlePoolCreated(event: PoolCreated): void {
   const isGnoTradingPair =
     event.params.token0.equals(GNO_ADDRESS) ||
     event.params.token1.equals(GNO_ADDRESS);
