@@ -46,6 +46,7 @@ export function handleTransfer(event: Transfer): void {
       pair.ratio = pair.gnoReserves.div(pair.totalSupply);
       pair.previousRatio = pair.ratio;
     }
+    pair.save();
   }
 
   // burn
@@ -55,6 +56,7 @@ export function handleTransfer(event: Transfer): void {
   ) {
     pair.totalSupply = pair.totalSupply.minus(value);
     pair.gnoReserves = gno.balanceOf(Address.fromString(pair.id));
+    pair.save();
   }
 
   // transfer from
@@ -66,6 +68,8 @@ export function handleTransfer(event: Transfer): void {
 
     const voteWeightToSubtract = pair.ratio.times(value);
     userFrom.voteWeight = userFrom.voteWeight.minus(voteWeightToSubtract);
+
+    pair.save();
 
     if (position.balance.minus(value) == BigInt.fromI32(0)) {
       store.remove("AMMPosition", position.id);
@@ -84,13 +88,14 @@ export function handleTransfer(event: Transfer): void {
     // increase position balance
     const position = loadOrCreateAMMPosition(event.address, to);
     position.balance = position.balance.plus(value);
+    pair.save();
     position.save();
 
     // increase vote weight
     userTo.voteWeight = userTo.voteWeight.plus(pair.ratio.times(value));
     removeOrSaveUser(userTo);
   }
-  pair.save();
+  // pair.save();
 }
 
 export function handleSync(event: Sync): void {
@@ -99,6 +104,9 @@ export function handleSync(event: Sync): void {
   // gno.balanceOf(pair) / pair.totalSupply()
   pair.ratio = pair.gnoReserves.div(ERC20.bind(event.address).totalSupply());
   const positions = pair.positions;
+  pair.previousRatio = pair.ratio;
+  pair.save();
+  // set set previous ratio to current ratio
   if (positions) {
     for (let index = 0; index < positions.length; index++) {
       const position = AMMPosition.load(positions[index]);
@@ -106,11 +114,8 @@ export function handleSync(event: Sync): void {
         const user = loadOrCreateUser(Address.fromString(position.user));
         // const position = new AMMPosition(pair.id.concat("-").concat(user.id));
         updateVoteWeight(user, position);
+        position.save();
       }
     }
   }
-
-  // set set previous ratio to current ratio
-  pair.previousRatio = pair.ratio;
-  pair.save();
 }
