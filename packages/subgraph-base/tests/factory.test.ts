@@ -3,24 +3,16 @@ import {
   clearStore,
   test,
   assert,
-  logStore,
 } from "matchstick-as/assembly/index";
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { AMMPair, User } from "../generated/schema";
-import { log, newMockEvent } from "matchstick-as";
+import { ethereum } from "@graphprotocol/graph-ts";
 import {
-  ADDRESS_ZERO,
   GNO_ADDRESS,
-  gno,
   USER1_ADDRESS,
-  USER2_ADDRESS,
   value,
   PAIR_ADDRESS,
   value2x,
-  data,
-} from "../src/helpers";
-import { PairCreated } from "../generated/HoneySwap/Factory";
-import { handleNewPair } from "../src/HoneySwap";
+} from "./helpers";
+import { handleNewPair } from "../src/factory";
 import { createPairCreatedEvent } from "./helpers";
 
 // mock pair.totalSupply()
@@ -111,17 +103,4 @@ test("New pair has correct current ratio", () => {
   );
   handleNewPair(pairCreatedEvent);
   assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "ratio", "0");
-});
-
-test("New pair has correct lps", () => {
-  clearStore();
-  let otherToken = USER1_ADDRESS;
-  let pairCreatedEvent = createPairCreatedEvent(
-    GNO_ADDRESS,
-    otherToken,
-    PAIR_ADDRESS,
-    value
-  );
-  handleNewPair(pairCreatedEvent);
-  assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "lps", "[]");
 });

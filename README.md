@@ -15,7 +15,7 @@ Currently, it tracks GNO balances in:
   - [x] 1Hive
   - [x] swapper
   - [x] sushiswap
-  - [x] symetric
   - [x] elk
   - [x] baoswap
+  - [ ] symetric
   - [ ] agave

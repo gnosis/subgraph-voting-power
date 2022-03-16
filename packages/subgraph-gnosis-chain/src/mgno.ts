@@ -1,12 +1,12 @@
-import { BigInt, store } from "@graphprotocol/graph-ts";
-import { Transfer } from "../generated/ds-mgno/MGNO";
-import {
-  loadOrCreateUser,
-  ADDRESS_ZERO,
-  DEPOSIT_ADDRESS,
-  mgnoPerGno,
-  removeOrSaveUser,
-} from "./helpers";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { Transfer } from "../generated/ds-mgno/ERC20";
+import { loadOrCreateUser, ADDRESS_ZERO, removeOrSaveUser } from "./helpers";
+
+export const DEPOSIT_ADDRESS = Address.fromString(
+  "0x0B98057eA310F4d31F2a452B414647007d1645d9"
+);
+
+export const MGNO_PER_GNO = BigInt.fromString("32");
 
 export function handleTransfer(event: Transfer): void {
   const to = event.params.to;
@@ -17,9 +17,9 @@ export function handleTransfer(event: Transfer): void {
     const userFrom = loadOrCreateUser(from);
     userFrom.mgno = userFrom.mgno.minus(value);
     if (to.toHexString() == DEPOSIT_ADDRESS.toHexString()) {
-      userFrom.deposit = userFrom.deposit.plus(value.div(mgnoPerGno));
+      userFrom.deposit = userFrom.deposit.plus(value.div(MGNO_PER_GNO));
     } else {
-      userFrom.voteWeight = userFrom.voteWeight.minus(value.div(mgnoPerGno));
+      userFrom.voteWeight = userFrom.voteWeight.minus(value.div(MGNO_PER_GNO));
     }
     removeOrSaveUser(userFrom);
   }
@@ -30,7 +30,7 @@ export function handleTransfer(event: Transfer): void {
   ) {
     const userTo = loadOrCreateUser(to);
     userTo.mgno = userTo.mgno.plus(value);
-    userTo.voteWeight = userTo.voteWeight.plus(value.div(mgnoPerGno));
+    userTo.voteWeight = userTo.voteWeight.plus(value.div(MGNO_PER_GNO));
     userTo.save();
   }
 }

@@ -1,6 +1,5 @@
-/* eslint-disable prefer-const */
 import { Address, log } from "@graphprotocol/graph-ts";
-import { PairCreated } from "../generated/Elk/Factory";
+import { PairCreated } from "../generated/Factory/Factory";
 import { Pair } from "../generated/templates";
 import { GNO_ADDRESS, loadOrCreateAMMPair } from "./helpers";
 
@@ -11,6 +10,5 @@ export function handleNewPair(event: PairCreated): void {
 
   if (isGnoTradingPair) {
     loadOrCreateAMMPair(event.params.pair);
-    // log.info("Found GNO in POOL: {}", [event.params.pair.toHex()]);
   }
 }
