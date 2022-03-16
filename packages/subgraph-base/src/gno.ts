@@ -1,22 +1,27 @@
-import { BigInt, store } from "@graphprotocol/graph-ts";
-import { Transfer } from "../generated/ds-lgno/LGNO";
-import { loadOrCreateUser, removeOrSaveUser, ADDRESS_ZERO } from "./helpers";
+import {
+  Address,
+  Bytes,
+  BigInt,
+  store,
+  ethereum,
+} from "@graphprotocol/graph-ts";
+import { Transfer } from "../generated/ds-gno/ERC20";
+import { loadOrCreateUser, ADDRESS_ZERO, removeOrSaveUser } from "./helpers";
 
 export function handleTransfer(event: Transfer): void {
-  // note to and from are flipped because of an error in the contract implementation
+  const to = event.params.to;
+  const from = event.params.from;
 
-  const from = event.params.to;
   if (from.toHexString() != ADDRESS_ZERO.toHexString()) {
     const userFrom = loadOrCreateUser(from);
-    userFrom.lgno = userFrom.lgno.minus(event.params.value);
+    userFrom.gno = userFrom.gno.minus(event.params.value);
     userFrom.voteWeight = userFrom.voteWeight.minus(event.params.value);
     removeOrSaveUser(userFrom);
   }
 
-  const to = event.params.from;
   if (to.toHexString() != ADDRESS_ZERO.toHexString()) {
     const userTo = loadOrCreateUser(to);
-    userTo.lgno = userTo.lgno.plus(event.params.value);
+    userTo.gno = userTo.gno.plus(event.params.value);
     userTo.voteWeight = userTo.voteWeight.plus(event.params.value);
     userTo.save();
   }

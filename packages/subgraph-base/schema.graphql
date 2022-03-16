@@ -14,12 +14,14 @@ type AMMPair @entity {
   gnoReserves: BigInt!
   previousRatio: BigInt!
   ratio: BigInt!
-  lps: [User!]!
+  positions: [AMMPosition!]! @derivedFrom(field: "pair")
 }
 
 type AMMPosition @entity {
-  id: ID!
+  id: ID! # pair.id.concat("-").concat(user.id)
   user: User!
   pair: AMMPair!
   balance: BigInt!
+  lowerBound: BigInt!
+  upperBound: BigInt!
 }

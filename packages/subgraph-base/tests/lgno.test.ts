@@ -8,7 +8,7 @@ import {
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { User } from "../generated/schema";
 import { handleTransfer } from "../src/lgno";
-import { Transfer } from "../generated/ds-lgno/LGNO";
+import { Transfer } from "../generated/ds-lgno/ERC20";
 import { log, newMockEvent } from "matchstick-as";
 import {
   ADDRESS_ZERO,
@@ -17,7 +17,7 @@ import {
   value,
   value2x,
   data,
-} from "../src/helpers";
+} from "./helpers";
 
 function createTransferEvent(
   from: Address,

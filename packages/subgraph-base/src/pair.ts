@@ -1,22 +1,13 @@
-import { BigInt, log, store, Address, Bytes } from "@graphprotocol/graph-ts";
-import {
-  Pair as PairContract,
-  Mint,
-  Burn,
-  Swap,
-  Transfer,
-  Sync,
-} from "../generated/templates/Pair/Pair";
+import { BigInt, log, store, Address, Value } from "@graphprotocol/graph-ts";
+import { Transfer, Sync } from "../generated/templates/Pair/Pair";
 
 import { ERC20 } from "../generated/templates/Pair/ERC20";
 import {
   ADDRESS_ZERO,
-  GNO_ADDRESS,
   loadOrCreateAMMPair,
   loadOrCreateAMMPosition,
   loadOrCreateUser,
   gno,
-  getGnoInPosition,
   removeOrSaveUser,
   updateVoteWeight,
 } from "./helpers";
@@ -40,15 +31,13 @@ export function handleTransfer(event: Transfer): void {
   const userTo = loadOrCreateUser(to);
   const userFrom = loadOrCreateUser(from);
 
-  //const pairContract = PairContract.bind(event.address);
-
   // liquidity token amount being transferred
   let value = event.params.value;
 
   // mint
   if (
     from.toHexString() == ADDRESS_ZERO.toHexString() &&
-    value > BigInt.fromI32(0)
+    value.gt(BigInt.fromI32(0))
   ) {
     // update total supply
     pair.totalSupply = pair.totalSupply.plus(value);
@@ -57,6 +46,7 @@ export function handleTransfer(event: Transfer): void {
       pair.ratio = pair.gnoReserves.div(pair.totalSupply);
       pair.previousRatio = pair.ratio;
     }
+    pair.save();
   }
 
   // burn
@@ -66,6 +56,7 @@ export function handleTransfer(event: Transfer): void {
   ) {
     pair.totalSupply = pair.totalSupply.minus(value);
     pair.gnoReserves = gno.balanceOf(Address.fromString(pair.id));
+    pair.save();
   }
 
   // transfer from
@@ -73,22 +64,23 @@ export function handleTransfer(event: Transfer): void {
     from.toHexString() != ADDRESS_ZERO.toHexString() &&
     from.toHexString() != pair.id
   ) {
-    const position = loadOrCreateAMMPosition(event.address, from);
-    let voteWeightToSubtract = pair.ratio.times(value);
+    let position = loadOrCreateAMMPosition(event.address, from);
+
+    const voteWeightToSubtract = pair.ratio.times(value);
     userFrom.voteWeight = userFrom.voteWeight.minus(voteWeightToSubtract);
-    // if position balance minus value is equal to 0
-    // then delete position and remove user from pair.lps
-    const lpsIndex = pair.lps.indexOf(userFrom.id);
-    if (position.balance.minus(value) == BigInt.fromI32(0) && !lpsIndex) {
-      let lps = pair.lps;
-      lps.splice(lpsIndex, 1);
-      pair.lps = lps;
+
+    pair.save();
+
+    if (position.balance.minus(value) == BigInt.fromI32(0)) {
       store.remove("AMMPosition", position.id);
+      removeOrSaveUser(userFrom);
+      pair.set("positions", Value.fromArray([]));
+      pair.save();
     } else {
       position.balance = position.balance.minus(value);
+      removeOrSaveUser(userFrom);
       position.save();
     }
-    removeOrSaveUser(userFrom);
   }
 
   // transfer to
@@ -99,20 +91,13 @@ export function handleTransfer(event: Transfer): void {
     // increase position balance
     const position = loadOrCreateAMMPosition(event.address, to);
     position.balance = position.balance.plus(value);
-    position.save();
-
     // increase vote weight
     userTo.voteWeight = userTo.voteWeight.plus(pair.ratio.times(value));
     removeOrSaveUser(userTo);
-
-    // add lp
-    if (!pair.lps.includes(userTo.id)) {
-      let lps = pair.lps;
-      lps.push(userTo.id);
-      pair.lps = lps;
-    }
+    position.save();
+    pair.save();
+    position.save();
   }
-  pair.save();
 }
 
 export function handleSync(event: Sync): void {
@@ -120,21 +105,19 @@ export function handleSync(event: Sync): void {
   pair.gnoReserves = gno.balanceOf(event.address);
   // gno.balanceOf(pair) / pair.totalSupply()
   pair.ratio = pair.gnoReserves.div(ERC20.bind(event.address).totalSupply());
-  for (let index = 0; index < pair.lps.length; index++) {
-    const user = loadOrCreateUser(
-      Address.fromString(pair.lps[index].toString())
-    );
-
-    const position = loadOrCreateAMMPosition(
-      event.address,
-      Address.fromString(user.id)
-    );
-
-    // const position = new AMMPosition(pair.id.concat("-").concat(user.id));
-    updateVoteWeight(user, position);
-  }
-
-  // set set previous ratio to current ratio
+  const positions = pair.positions;
   pair.previousRatio = pair.ratio;
   pair.save();
+  // set set previous ratio to current ratio
+  if (positions) {
+    for (let index = 0; index < positions.length; index++) {
+      const position = AMMPosition.load(positions[index]);
+      if (position) {
+        const user = loadOrCreateUser(Address.fromString(position.user));
+        // const position = new AMMPosition(pair.id.concat("-").concat(user.id));
+        updateVoteWeight(user, position);
+        position.save();
+      }
+    }
+  }
 }
