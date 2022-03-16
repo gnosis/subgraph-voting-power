@@ -51,8 +51,8 @@ export function handleTransfer(event: Transfer): void {
 
   // burn
   if (
-    event.params.to.toHexString() == ADDRESS_ZERO.toHexString() &&
-    event.params.from.toHexString() == pair.id
+    to.toHexString() == ADDRESS_ZERO.toHexString() &&
+    from.toHexString() == pair.id
   ) {
     pair.totalSupply = pair.totalSupply.minus(value);
     pair.gnoReserves = gno.balanceOf(Address.fromString(pair.id));
