@@ -1,4 +1,4 @@
-import { BigInt, log, store, Address } from "@graphprotocol/graph-ts";
+import { BigInt, log, store, Address, Value } from "@graphprotocol/graph-ts";
 import { Transfer, Sync } from "../generated/templates/Pair/Pair";
 
 import { ERC20 } from "../generated/templates/Pair/ERC20";
@@ -64,7 +64,7 @@ export function handleTransfer(event: Transfer): void {
     from.toHexString() != ADDRESS_ZERO.toHexString() &&
     from.toHexString() != pair.id
   ) {
-    const position = loadOrCreateAMMPosition(event.address, from);
+    let position = loadOrCreateAMMPosition(event.address, from);
 
     const voteWeightToSubtract = pair.ratio.times(value);
     userFrom.voteWeight = userFrom.voteWeight.minus(voteWeightToSubtract);
@@ -74,6 +74,8 @@ export function handleTransfer(event: Transfer): void {
     if (position.balance.minus(value) == BigInt.fromI32(0)) {
       store.remove("AMMPosition", position.id);
       removeOrSaveUser(userFrom);
+      pair.set("positions", Value.fromArray([]));
+      pair.save();
     } else {
       position.balance = position.balance.minus(value);
       removeOrSaveUser(userFrom);

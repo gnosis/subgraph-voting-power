@@ -27,12 +27,13 @@ import { Pair, Transfer, Sync } from "../generated/templates/Pair/Pair";
 import { handleSync, handleTransfer } from "../src/pair";
 
 let mintEvent = createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value, data);
-let burnEvent = createTransferEvent(
+let PreBurnEvent = createTransferEvent(
+  USER1_ADDRESS,
   PAIR_ADDRESS,
-  ADDRESS_ZERO,
-  value.div(BigInt.fromI32(2)),
+  value,
   data
 );
+let burnEvent = createTransferEvent(PAIR_ADDRESS, ADDRESS_ZERO, value, data);
 let transferEvent = createTransferEvent(
   USER1_ADDRESS,
   USER2_ADDRESS,
@@ -188,20 +189,25 @@ test("Removes Position from store if position balance is 0", () => {
   assert.notInStore("AMMPosition", position.id);
 });
 
-test(
-  "Removes Position from positions if balance is 0",
-  () => {
-    clearStore();
-    createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
-    handleTransfer(mintEvent);
-    let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-    assert.fieldEquals("AMMPosition", position.id, "id", position.id);
-    handleTransfer(transferEvent);
-    assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "positions", "");
-    assert.fieldEquals("User", USER1_ADDRESS.toHexString(), "positions", "");
-  },
-  true
-);
+test("Removes Position from positions if balance is 0", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+  handleTransfer(mintEvent);
+  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+  assert.fieldEquals("AMMPosition", position.id, "id", position.id);
+  handleTransfer(PreBurnEvent);
+  handleTransfer(burnEvent);
+  assert.notInStore("AMMPosition", position.id);
+  assert.notInStore("User", USER1_ADDRESS.toHexString());
+  assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "positions", "[]");
+  handleTransfer(mintEvent);
+  assert.fieldEquals(
+    "AMMPair",
+    PAIR_ADDRESS.toHexString(),
+    "positions",
+    "[".concat(position.id.concat("]"))
+  );
+});
 
 test("Updates position balance for recipient on mint", () => {
   clearStore();
@@ -354,7 +360,7 @@ test("Updates totalSupply on burn", () => {
     "AMMPair",
     PAIR_ADDRESS.toHexString(),
     "totalSupply",
-    value.div(BigInt.fromI32(2)).toString()
+    BigInt.fromI32(0).toString()
   );
   assert.notInStore("User", pair.id);
 });
