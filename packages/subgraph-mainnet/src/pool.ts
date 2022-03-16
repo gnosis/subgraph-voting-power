@@ -1,6 +1,5 @@
-/* eslint-disable prefer-const */
-import { AMMPair, AMMPosition, User } from "../generated/schema";
-import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { AMMPosition, User } from "../generated/schema";
+import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import {
   Initialize,
   Swap as SwapEvent,
