@@ -1,6 +1,10 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Transfer } from "../generated/ds-mgno/ERC20";
-import { loadOrCreateUser, ADDRESS_ZERO, removeOrSaveUser } from "./helpers";
+import {
+  loadOrCreateUser,
+  ADDRESS_ZERO,
+  removeOrSaveUser,
+} from "../../subgraph-base/src/helpers";
 
 export const DEPOSIT_ADDRESS = Address.fromString(
   "0x0B98057eA310F4d31F2a452B414647007d1645d9"

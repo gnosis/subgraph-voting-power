@@ -25,16 +25,22 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   const position = loadOrCreateAMMPosition(event.address, event.params.tokenId);
   position.liquidity = position.liquidity.plus(event.params.liquidity);
   position.save();
+
+  // TODO increase voteWeight
 }
 
 export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
   const position = loadOrCreateAMMPosition(event.address, event.params.tokenId);
   position.liquidity = position.liquidity.minus(event.params.liquidity);
   position.save();
+
+  // TODO decrease voteWeight
 }
 
 export function handleTransfer(event: Transfer): void {
   const position = loadOrCreateAMMPosition(event.address, event.params.tokenId);
   position.user = event.params.to.toHexString();
   position.save();
+
+  // TODO transfer voteWeight
 }

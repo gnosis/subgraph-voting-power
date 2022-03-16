@@ -93,7 +93,7 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ../subgraph-base/src/factory.ts
+      file: ../subgraph-base/src/uniswapV2/factory.ts
       entities:
         - User
       abis:
@@ -115,7 +115,7 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ../subgraph-base/src/factory.ts
+      file: ../subgraph-base/src/uniswapV2/factory.ts
       entities:
         - User
       abis:
@@ -137,7 +137,7 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ../subgraph-base/src/factory.ts
+      file: ../subgraph-base/src/uniswapV2/factory.ts
       entities:
         - User
       abis:
@@ -159,7 +159,7 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ../subgraph-base/src/factory.ts
+      file: ../subgraph-base/src/uniswapV2/factory.ts
       entities:
         - User
       abis:
@@ -181,7 +181,7 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ../subgraph-base/src/factory.ts
+      file: ../subgraph-base/src/uniswapV2/factory.ts
       entities:
         - User
       abis:
@@ -202,7 +202,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ../subgraph-base/src/pair.ts
+      file: ../subgraph-base/src/uniswapV2/pair.ts
       entities:
         - AMMPair
       abis:

@@ -6,7 +6,7 @@ import {
   logStore,
 } from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { User, AMMPair, AMMPosition } from "../generated/schema";
+import { User, AMMPair, AMMPosition } from "../../generated/schema";
 import { log, newMockEvent } from "matchstick-as";
 import {
   ADDRESS_ZERO,
@@ -18,13 +18,17 @@ import {
   value2x,
   data,
   OTHERTOKEN_ADDRESS,
-} from "./helpers";
-import { loadOrCreateAMMPosition, loadOrCreateAMMPair } from "../src/helpers";
-import { handleNewPair } from "../src/factory";
+} from "../helpers";
+import {
+  loadOrCreateAMMPosition,
+  loadAMMPair,
+  createAMMPair,
+} from "../../src/uniswapV2/pair";
+import { handleNewPair } from "../src/uniswapV2/factory";
 import { createPairCreatedEvent } from "./helpers";
 // import { ERC20, Transfer } from "../generated/templates/Pair/ERC20";
 import { Pair, Transfer, Sync } from "../generated/templates/Pair/Pair";
-import { handleSync, handleTransfer } from "../src/pair";
+import { handleSync, handleTransfer } from "../src/uniswapV2/pair";
 
 let mintEvent = createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value, data);
 let PreBurnEvent = createTransferEvent(

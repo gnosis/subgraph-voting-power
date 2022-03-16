@@ -10,15 +10,13 @@ type User @entity {
 
 type AMMPair @entity {
   id: ID! # address
-  gnoIsFirst: Boolean!
-  otherTokenDecimals: Int!
   sqrtRatio: BigDecimal!
-  otherToken: ID! # address
+  gnoIsFirst: Boolean!
   positions: [AMMPosition!]! @derivedFrom(field: "pair")
 }
 
 type AMMPosition @entity {
-  id: ID! # <PAIR_ADDRESS>-<USER_ADDRESS>-<LOWER_BOUND>-<UPPER_BOUND>
+  id: ID! # <PAIR_ADDRESS>-<USER_ADDRESS> or <PAIR_ADDRESS>-<TOKEN_ID> for UniV3
   user: User!
   pair: AMMPair!
   liquidity: BigInt!

@@ -11,9 +11,9 @@ import {
   value,
   PAIR_ADDRESS,
   value2x,
-} from "./helpers";
+} from "../helpers";
 import { handleNewPair } from "../src/factory";
-import { createPairCreatedEvent } from "./helpers";
+import { createPairCreatedEvent } from "../helpers";
 
 // mock pair.totalSupply()
 createMockedFunction(PAIR_ADDRESS, "totalSupply", "totalSupply():(uint256)")

@@ -1,4 +1,3 @@
-/* eslint-disable prefer-const */
 import {
   log,
   BigInt,
@@ -26,39 +25,11 @@ export const ADDRESS_ZERO = Address.fromHexString(
 
 export const ONE_GNO = BigInt.fromString("1000000000000000000");
 
-export let ZERO_BI = BigInt.fromI32(0);
+const ZERO_BI = BigInt.fromI32(0);
 export let ONE_BI = BigInt.fromI32(1);
 export let ZERO_BD = BigDecimal.fromString("0");
 export let ONE_BD = BigDecimal.fromString("1");
 export let BI_18 = BigInt.fromI32(18);
-
-export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
-  let bd = BigDecimal.fromString("1");
-  for (let i = ZERO_BI; i.lt(decimals as BigInt); i = i.plus(ONE_BI)) {
-    bd = bd.times(BigDecimal.fromString("10"));
-  }
-  return bd;
-}
-
-export function bigDecimalExp18(): BigDecimal {
-  return BigDecimal.fromString("1000000000000000000");
-}
-
-export function equalToZero(value: BigDecimal): boolean {
-  const formattedVal = parseFloat(value.toString());
-  const zero = parseFloat(ZERO_BD.toString());
-  if (zero == formattedVal) {
-    return true;
-  }
-  return false;
-}
-
-export function isNullEthValue(value: string): boolean {
-  return (
-    value ==
-    "0x0000000000000000000000000000000000000000000000000000000000000001"
-  );
-}
 
 export function loadOrCreateUser(address: Address): User {
   const id = address.toHexString();
@@ -85,48 +56,4 @@ export function removeOrSaveUser(user: User): void {
       user.save();
     }
   }
-}
-
-export function loadOrCreateAMMPosition(
-  pair: Address,
-  user: Address
-): AMMPosition {
-  const id = pair
-    .toHexString()
-    .concat("-")
-    .concat(user.toHex());
-  let entry = AMMPosition.load(id);
-  if (entry === null) {
-    entry = new AMMPosition(id);
-    entry.pair = pair.toHex();
-    entry.user = user.toHex();
-    entry.liquidity = ZERO_BI;
-    // entry;
-    entry.save();
-  }
-
-  return entry;
-}
-
-export function loadAMMPair(address: Address): AMMPair {
-  const id = address.toHexString();
-  return AMMPair.load(id);
-}
-
-export function createAMMPair(
-  address: Address,
-  token0: Address,
-  token1: Address
-): AMMPair {
-  const id = address.toHexString();
-  const otherToken = ERC20.bind(token0 === GNO_ADDRESS ? token1 : token0);
-  const entry = new AMMPair(id);
-  entry.price = gno
-    .balanceOf(Address.fromString(id))
-    .toBigDecimal()
-    .div(otherToken.balanceOf(Address.fromString(id)).toBigDecimal());
-  entry.previousPrice = entry.price;
-  entry.save();
-
-  return entry;
 }
