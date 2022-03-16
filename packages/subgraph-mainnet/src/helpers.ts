@@ -22,41 +22,6 @@ const MAX_SQRT_RATIO = BigInt.fromString(
   "1461446703485210103287273052203988822378723970342"
 );
 
-export function loadOrCreateAMMPosition(
-  pair: Address,
-  user: Address,
-  lowerTick: BigInt = BigInt.fromI32(MIN_TICK),
-  upperTick: BigInt = BigInt.fromI32(MAX_TICK)
-): AMMPosition {
-  const id = pair
-    .toHexString()
-    .concat("-")
-    .concat(user.toHex())
-    .concat("-")
-    .concat(lowerTick.toString())
-    .concat("-")
-    .concat(upperTick.toString());
-  let entry = AMMPosition.load(id);
-  if (entry === null) {
-    entry = new AMMPosition(id);
-    entry.pair = pair.toHex();
-    entry.user = user.toHex();
-    entry.liquidity = BigInt.fromI32(0);
-    entry.lowerTick = lowerTick;
-    entry.upperTick = upperTick;
-    entry.save();
-  }
-
-  return entry;
-}
-
-export function loadAMMPair(address: Address): AMMPair {
-  const id = address.toHexString();
-  const pair = AMMPair.load(id);
-  if (!pair) throw new Error(`pair with ID ${id} not found`);
-  return pair;
-}
-
 export function createAMMPair(
   address: Address,
   token0: Address,
@@ -71,24 +36,6 @@ export function createAMMPair(
 
 const ZERO_BI = BigInt.fromI32(0);
 const ONE_BI = BigInt.fromI32(1);
-
-export function convertTokenToDecimal(
-  tokenAmount: BigInt,
-  exchangeDecimals: BigInt
-): BigDecimal {
-  if (exchangeDecimals == ZERO_BI) {
-    return tokenAmount.toBigDecimal();
-  }
-  return tokenAmount.toBigDecimal().div(exponentToBigDecimal(exchangeDecimals));
-}
-
-function exponentToBigDecimal(decimals: BigInt): BigDecimal {
-  let bd = BigDecimal.fromString("1");
-  for (let i = ZERO_BI; i.lt(decimals as BigInt); i = i.plus(ONE_BI)) {
-    bd = bd.times(BigDecimal.fromString("10"));
-  }
-  return bd;
-}
 
 export let ZERO_BD = BigDecimal.fromString("0");
 export let ONE_BD = BigDecimal.fromString("1");
