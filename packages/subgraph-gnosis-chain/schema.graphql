@@ -1,22 +1,20 @@
 type User @entity {
   id: ID! # address
-  address: Bytes!
+  voteWeight: BigInt!
   gno: BigInt!
   mgno: BigInt!
   lgno: BigInt!
   deposit: BigInt!
-  lps: [AMMPosition!] @derivedFrom(field: "user")
+  positions: [AMMPosition!]! @derivedFrom(field: "user")
 }
 
 type AMMPair @entity {
   id: ID! # address
-  address: Bytes!
   totalSupply: BigInt!
   gnoReserves: BigInt!
-  mints: Int!
-  burns: Int!
-  swaps: Int!
-  syncs: Int!
+  previousRatio: BigInt!
+  ratio: BigInt!
+  lps: [User!]!
 }
 
 type AMMPosition @entity {
