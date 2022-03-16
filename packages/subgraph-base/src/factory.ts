@@ -10,6 +10,5 @@ export function handleNewPair(event: PairCreated): void {
 
   if (isGnoTradingPair) {
     loadOrCreateAMMPair(event.params.pair);
-    // log.info("Found GNO in POOL: {}", [event.params.pair.toHex()]);
   }
 }

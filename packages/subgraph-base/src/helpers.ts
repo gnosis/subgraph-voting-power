@@ -75,7 +75,7 @@ export function isNullEthValue(value: string): boolean {
 }
 
 export function loadOrCreateUser(address: Address): User {
-  const id = address.toHex();
+  const id = address.toHexString();
   let entry = User.load(id);
   if (!entry) {
     entry = new User(id);
@@ -114,7 +114,7 @@ export function loadOrCreateAMMPosition(
   const id = pair
     .toHexString()
     .concat("-")
-    .concat(user.toHex())
+    .concat(user.toHexString())
     .concat("-")
     .concat(lowerBound.toHexString())
     .concat("-")
@@ -122,8 +122,8 @@ export function loadOrCreateAMMPosition(
   let entry = AMMPosition.load(id);
   if (entry === null) {
     entry = new AMMPosition(id);
-    entry.pair = pair.toHex();
-    entry.user = user.toHex();
+    entry.pair = pair.toHexString();
+    entry.user = user.toHexString();
     entry.balance = ZERO_BI;
     // entry;
     entry.save();

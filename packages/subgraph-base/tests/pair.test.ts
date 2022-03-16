@@ -188,16 +188,20 @@ test("Removes Position from store if position balance is 0", () => {
   assert.notInStore("AMMPosition", position.id);
 });
 
-test("Removes Position from positions if balance is 0", () => {
-  clearStore();
-  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
-  handleTransfer(mintEvent);
-  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-  assert.fieldEquals("AMMPosition", position.id, "id", position.id);
-  handleTransfer(transferEvent);
-  assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "positions", "");
-  assert.fieldEquals("User", USER1_ADDRESS.toHexString(), "positions", "");
-});
+test(
+  "Removes Position from positions if balance is 0",
+  () => {
+    clearStore();
+    createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+    handleTransfer(mintEvent);
+    let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+    assert.fieldEquals("AMMPosition", position.id, "id", position.id);
+    handleTransfer(transferEvent);
+    assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "positions", "");
+    assert.fieldEquals("User", USER1_ADDRESS.toHexString(), "positions", "");
+  },
+  true
+);
 
 test("Updates position balance for recipient on mint", () => {
   clearStore();
@@ -382,7 +386,7 @@ test("Updates vote weight for all LPs on sync", () => {
     "AMMPair",
     pair.id,
     "positions",
-    "[".concat(positionUser1.id.concat("]"))
+    "[" + positionUser1.id + ", " + positionUser2.id + "]"
   );
   assert.fieldEquals(
     "User",

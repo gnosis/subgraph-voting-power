@@ -7,7 +7,7 @@ export const ADDRESS_ZERO = Address.fromString(
 );
 
 export function loadOrCreateUser(address: Address): User {
-  const id = address.toHex();
+  const id = address.toHexString();
   let entry = User.load(id);
   if (!entry) {
     entry = new User(id);

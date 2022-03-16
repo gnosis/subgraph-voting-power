@@ -73,11 +73,12 @@ export function handleTransfer(event: Transfer): void {
 
     if (position.balance.minus(value) == BigInt.fromI32(0)) {
       store.remove("AMMPosition", position.id);
+      removeOrSaveUser(userFrom);
     } else {
       position.balance = position.balance.minus(value);
+      removeOrSaveUser(userFrom);
       position.save();
     }
-    removeOrSaveUser(userFrom);
   }
 
   // transfer to
@@ -88,14 +89,13 @@ export function handleTransfer(event: Transfer): void {
     // increase position balance
     const position = loadOrCreateAMMPosition(event.address, to);
     position.balance = position.balance.plus(value);
-    pair.save();
-    position.save();
-
     // increase vote weight
     userTo.voteWeight = userTo.voteWeight.plus(pair.ratio.times(value));
     removeOrSaveUser(userTo);
+    position.save();
+    pair.save();
+    position.save();
   }
-  // pair.save();
 }
 
 export function handleSync(event: Sync): void {
