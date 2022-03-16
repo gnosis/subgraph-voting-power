@@ -142,7 +142,19 @@ test("Creates position on mint", () => {
   assert.fieldEquals("AMMPosition", position.id, "balance", value.toString());
 });
 
-test("Adds Position to positions on mint and transfer", () => {
+test("Creates Position on mint and transfer", () => {
+  clearStore();
+  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+  handleTransfer(mintEvent);
+  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
+  let positionUser1 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
+  assert.fieldEquals("AMMPosition", positionUser1.id, "id", positionUser1.id);
+  handleTransfer(smallTransferEvent);
+  let positionUser2 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER2_ADDRESS);
+  assert.fieldEquals("AMMPosition", positionUser1.id, "id", positionUser1.id);
+});
+
+test("Adds Position to pair.positions and user.positions on mint and transfer", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
   handleTransfer(mintEvent);
