@@ -135,9 +135,9 @@ export function loadOrCreateAMMPosition(
 export function loadOrCreateAMMPair(address: Address): AMMPair {
   const id = address.toHexString();
   let entry = AMMPair.load(id);
-  if (!entry) {
+  if (entry == null) {
     entry = new AMMPair(id);
-    entry.totalSupply = BigInt.fromI32(0);
+    entry.totalSupply = BigInt.fromI32(69);
     entry.gnoReserves = gno.balanceOf(Address.fromString(id));
     entry.previousRatio = BigInt.fromI32(0);
     entry.ratio = BigInt.fromI32(0);
