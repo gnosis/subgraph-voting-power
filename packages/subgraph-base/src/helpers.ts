@@ -8,9 +8,8 @@ import {
   Bytes,
   dataSource,
 } from "@graphprotocol/graph-ts";
-import { AMMPair, AMMPosition, User } from "../generated/schema";
-import { ERC20 } from "../generated/templates/Pair/ERC20";
-import { Pair } from "../generated/templates/Pair/Pair";
+import { User } from "../generated/schema";
+import { ERC20 } from "../generated/ds-gno/ERC20";
 
 export const GNO_ADDRESS = Address.fromString(
   dataSource.network() === "mainnet"
@@ -20,7 +19,7 @@ export const GNO_ADDRESS = Address.fromString(
 
 export const gno = ERC20.bind(GNO_ADDRESS);
 
-export const ADDRESS_ZERO = Address.fromString(
+export const ADDRESS_ZERO = Address.fromHexString(
   "0x0000000000000000000000000000000000000000"
 );
 
@@ -84,7 +83,7 @@ export function loadOrCreateUser(address: Address): User {
     entry.mgno = BigInt.fromI32(0);
     entry.lgno = BigInt.fromI32(0);
     entry.deposit = BigInt.fromI32(0);
-    if (id != ADDRESS_ZERO.toHexString() && !AMMPair.load(id)) {
+    if (id != ADDRESS_ZERO.toHexString()) {
       entry.save();
     }
   }
@@ -104,73 +103,3 @@ export function removeOrSaveUser(user: User): void {
 const BIGINT_MAX = BigInt.fromUnsignedBytes(
   Bytes.fromHexString("ff".repeat(32)) // 256 bits = 32 * ff byte
 );
-
-export function loadOrCreateAMMPosition(
-  pair: Address,
-  user: Address,
-  lowerBound: BigInt = BigInt.zero(),
-  upperBound: BigInt = BIGINT_MAX
-): AMMPosition {
-  const id = pair
-    .toHexString()
-    .concat("-")
-    .concat(user.toHexString())
-    .concat("-")
-    .concat(lowerBound.toHexString())
-    .concat("-")
-    .concat(upperBound.toHexString());
-  let entry = AMMPosition.load(id);
-  if (entry === null) {
-    entry = new AMMPosition(id);
-    entry.pair = pair.toHexString();
-    entry.user = user.toHexString();
-    entry.balance = ZERO_BI;
-    // entry;
-    entry.save();
-  }
-
-  return entry;
-}
-
-export function loadOrCreateAMMPair(address: Address): AMMPair {
-  const id = address.toHexString();
-  let entry = AMMPair.load(id);
-  if (!entry) {
-    entry = new AMMPair(id);
-    entry.totalSupply = BigInt.fromI32(0);
-    entry.gnoReserves = gno.balanceOf(Address.fromString(id));
-    entry.previousRatio = BigInt.fromI32(0);
-    entry.ratio = BigInt.fromI32(0);
-    entry.save();
-  }
-  return entry;
-}
-
-export function getGnoInPosition(value: BigInt, pair: AMMPair): BigInt {
-  // pair.balanceOf(user) / pair.totalSupply() * gno.balanceOf(pair)
-  // or
-  // value * ratio * gno.balanceOf(pair)
-  return value
-    .times(pair.ratio)
-    .div(gno.balanceOf(Address.fromString(pair.id)));
-}
-
-export function updateVoteWeight(user: User, position: AMMPosition): void {
-  const pair = loadOrCreateAMMPair(Address.fromString(position.pair));
-  // subtract vote weight from previous ratio
-  let amountToSubtract = pair.previousRatio.times(position.balance);
-  user.voteWeight = user.voteWeight.minus(amountToSubtract);
-  // add vote weight from current ratio
-  user.voteWeight = user.voteWeight.plus(pair.ratio.times(position.balance));
-
-  removeOrSaveUser(user);
-}
-
-// export function createUser(address: Address): void {
-//   let user = User.load(address.toHexString());
-//   if (user === null) {
-//     user = new User(address.toHexString());
-//     user.usdSwapped = ZERO_BD;
-//     user.save();
-//   }
-// }

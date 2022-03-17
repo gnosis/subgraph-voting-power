@@ -5,23 +5,4 @@ type User @entity {
   mgno: BigInt!
   lgno: BigInt!
   deposit: BigInt!
-  positions: [AMMPosition!]! @derivedFrom(field: "user")
-}
-
-type AMMPair @entity {
-  id: ID! # address
-  totalSupply: BigInt!
-  gnoReserves: BigInt!
-  previousRatio: BigInt!
-  ratio: BigInt!
-  positions: [AMMPosition!]! @derivedFrom(field: "pair")
-}
-
-type AMMPosition @entity {
-  id: ID! # pair.id.concat("-").concat(user.id)
-  user: User!
-  pair: AMMPair!
-  balance: BigInt!
-  lowerBound: BigInt!
-  upperBound: BigInt!
 }

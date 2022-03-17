@@ -3,19 +3,19 @@ This repo is a collection of subgraphs which aggregate the balance of GNO held i
 
 Currently, it tracks GNO balances in:
 * Ethereum Mainnet:
-  - [ ] GNO
-  - [ ] lGNO
+  - [x] GNO
+  - [x] lGNO
   - [ ] Uniswap v3
   - [ ] Balancer
 * Gnosis Chain:
   - [x] GNO
   - [x] mgno
   - [x] lgno
-  - [x] staking deposits
-  - [x] 1Hive
-  - [x] swapper
-  - [x] sushiswap
-  - [x] elk
-  - [x] baoswap
+  - [ ] staking deposits
+  - [ ] 1Hive
+  - [ ] swapper
+  - [ ] sushiswap
+  - [ ] elk
+  - [ ] baoswap
   - [ ] symetric
   - [ ] agave

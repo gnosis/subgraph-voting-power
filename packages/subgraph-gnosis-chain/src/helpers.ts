@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 import { log, BigInt, Address, store } from "@graphprotocol/graph-ts";
-import { AMMPair, User } from "../generated/schema";
+import { User } from "../generated/schema";
 
 export const ADDRESS_ZERO = Address.fromString(
   "0x0000000000000000000000000000000000000000"
@@ -16,7 +16,7 @@ export function loadOrCreateUser(address: Address): User {
     entry.mgno = BigInt.fromI32(0);
     entry.lgno = BigInt.fromI32(0);
     entry.deposit = BigInt.fromI32(0);
-    if (id != ADDRESS_ZERO.toHexString() && !AMMPair.load(id)) {
+    if (id != ADDRESS_ZERO.toHexString()) {
       entry.save();
     }
   }

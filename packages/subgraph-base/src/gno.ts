@@ -23,6 +23,6 @@ export function handleTransfer(event: Transfer): void {
     const userTo = loadOrCreateUser(to);
     userTo.gno = userTo.gno.plus(event.params.value);
     userTo.voteWeight = userTo.voteWeight.plus(event.params.value);
-    userTo.save();
+    removeOrSaveUser(userTo);
   }
 }
