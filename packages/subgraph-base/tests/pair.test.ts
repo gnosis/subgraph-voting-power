@@ -132,62 +132,88 @@ function createSyncEvent(reserve0: BigInt, reserve1: BigInt): Sync {
   return newSyncEvent;
 }
 
+const lowerBound: BigInt = BigInt.zero();
+const BIGINT_MAX = BigInt.fromUnsignedBytes(
+  Bytes.fromHexString("ff".repeat(32)) // 256 bits = 32 * ff byte
+);
+const upperBound: BigInt = BIGINT_MAX;
+
+function getPositionID(pair: Address, user: Address): string {
+  return pair
+    .toHexString()
+    .concat("-")
+    .concat(user.toHexString())
+    .concat("-")
+    .concat(lowerBound.toHexString())
+    .concat("-")
+    .concat(upperBound.toHexString());
+}
+
 //  TESTS
 
 test("Creates position on mint", () => {
   clearStore();
   // mint value to user 1
   handleTransfer(mintEvent);
-  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-  assert.fieldEquals("AMMPosition", position.id, "balance", value.toString());
+  assert.fieldEquals(
+    "AMMPosition",
+    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
+    "balance",
+    value.toString()
+  );
 });
 
 test("Creates Position on mint and transfer", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
   handleTransfer(mintEvent);
-  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
-  let positionUser1 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-  assert.fieldEquals("AMMPosition", positionUser1.id, "id", positionUser1.id);
+  assert.fieldEquals(
+    "AMMPosition",
+    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
+    "id",
+    getPositionID(PAIR_ADDRESS, USER1_ADDRESS)
+  );
   handleTransfer(smallTransferEvent);
-  let positionUser2 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER2_ADDRESS);
-  assert.fieldEquals("AMMPosition", positionUser1.id, "id", positionUser1.id);
+  assert.fieldEquals(
+    "AMMPosition",
+    getPositionID(PAIR_ADDRESS, USER2_ADDRESS),
+    "id",
+    getPositionID(PAIR_ADDRESS, USER2_ADDRESS)
+  );
 });
 
 test("Adds Position to pair.positions and user.positions on mint and transfer", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
   handleTransfer(mintEvent);
-  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
-  let positionUser1 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
   assert.fieldEquals(
     "AMMPair",
-    pair.id,
+    PAIR_ADDRESS.toHexString(),
     "positions",
-    "[".concat(positionUser1.id.concat("]"))
+    "[" + getPositionID(PAIR_ADDRESS, USER1_ADDRESS) + "]"
   );
   assert.fieldEquals(
     "User",
     USER1_ADDRESS.toHexString(),
     "positions",
-    "[".concat(positionUser1.id.concat("]"))
+    "[" + getPositionID(PAIR_ADDRESS, USER1_ADDRESS) + "]"
   );
   handleTransfer(smallTransferEvent);
-  let positionUser2 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER2_ADDRESS);
   assert.fieldEquals(
     "AMMPair",
-    pair.id,
+    PAIR_ADDRESS.toHexString(),
     "positions",
-    "["
-      .concat(positionUser1.id)
-      .concat(", ")
-      .concat(positionUser2.id.concat("]"))
+    "[" +
+      getPositionID(PAIR_ADDRESS, USER1_ADDRESS) +
+      ", " +
+      getPositionID(PAIR_ADDRESS, USER2_ADDRESS) +
+      "]"
   );
   assert.fieldEquals(
     "User",
     USER2_ADDRESS.toHexString(),
     "positions",
-    "[".concat(positionUser2.id.concat("]"))
+    "[" + getPositionID(PAIR_ADDRESS, USER2_ADDRESS) + "]"
   );
 });
 
@@ -195,21 +221,29 @@ test("Removes Position from store if position balance is 0", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
   handleTransfer(mintEvent);
-  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-  assert.fieldEquals("AMMPosition", position.id, "id", position.id);
+  assert.fieldEquals(
+    "AMMPosition",
+    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
+    "id",
+    getPositionID(PAIR_ADDRESS, USER1_ADDRESS)
+  );
   handleTransfer(transferEvent);
-  assert.notInStore("AMMPosition", position.id);
+  assert.notInStore("AMMPosition", getPositionID(PAIR_ADDRESS, USER1_ADDRESS));
 });
 
 test("Removes Position from positions if balance is 0", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
   handleTransfer(mintEvent);
-  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-  assert.fieldEquals("AMMPosition", position.id, "id", position.id);
+  assert.fieldEquals(
+    "AMMPosition",
+    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
+    "id",
+    getPositionID(PAIR_ADDRESS, USER1_ADDRESS)
+  );
   handleTransfer(PreBurnEvent);
   handleTransfer(burnEvent);
-  assert.notInStore("AMMPosition", position.id);
+  assert.notInStore("AMMPosition", getPositionID(PAIR_ADDRESS, USER1_ADDRESS));
   assert.notInStore("User", USER1_ADDRESS.toHexString());
   assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "positions", "[]");
   handleTransfer(mintEvent);
@@ -217,7 +251,7 @@ test("Removes Position from positions if balance is 0", () => {
     "AMMPair",
     PAIR_ADDRESS.toHexString(),
     "positions",
-    "[".concat(position.id.concat("]"))
+    "[" + getPositionID(PAIR_ADDRESS, USER1_ADDRESS) + "]"
   );
 });
 
@@ -226,9 +260,12 @@ test("Updates position balance for recipient on mint", () => {
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
   // mint value to user 1
   handleTransfer(mintEvent);
-  let position = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
-  assert.fieldEquals("AMMPosition", position.id, "balance", value.toString());
+  assert.fieldEquals(
+    "AMMPosition",
+    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
+    "balance",
+    value.toString()
+  );
 });
 
 test("Updates vote weight for sender and recipient on transfer", () => {
@@ -241,17 +278,15 @@ test("Updates vote weight for sender and recipient on transfer", () => {
   // transfer value from USER1 to USER2
   handleTransfer(smallTransferEvent);
 
-  let positionUser1 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-  let positionUser2 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER2_ADDRESS);
   assert.fieldEquals(
     "AMMPosition",
-    positionUser1.id,
+    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
     "balance",
     value.div(BigInt.fromI32(2)).toString()
   );
   assert.fieldEquals(
     "AMMPosition",
-    positionUser2.id,
+    getPositionID(PAIR_ADDRESS, USER2_ADDRESS),
     "balance",
     value.div(BigInt.fromI32(2)).toString()
   );
@@ -345,7 +380,6 @@ test("Updates totalSupply on mint", () => {
 
   // mint value to user 1
   handleTransfer(mintEvent);
-  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
   assert.fieldEquals(
     "AMMPair",
     PAIR_ADDRESS.toHexString(),
@@ -360,7 +394,6 @@ test("Updates totalSupply on burn", () => {
 
   // mint value to user 1
   handleTransfer(mintEvent);
-  let pair = loadOrCreateAMMPair(PAIR_ADDRESS);
   assert.fieldEquals(
     "AMMPair",
     PAIR_ADDRESS.toHexString(),
@@ -374,7 +407,7 @@ test("Updates totalSupply on burn", () => {
     "totalSupply",
     BigInt.fromI32(0).toString()
   );
-  assert.notInStore("User", pair.id);
+  assert.notInStore("User", PAIR_ADDRESS.toHexString());
 });
 
 test("Updates vote weight for all LPs on sync", () => {
