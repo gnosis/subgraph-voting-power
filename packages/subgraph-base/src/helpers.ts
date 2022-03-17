@@ -77,7 +77,7 @@ export function isNullEthValue(value: string): boolean {
 export function loadOrCreateUser(address: Address): User {
   const id = address.toHexString();
   let entry = User.load(id);
-  if (!entry) {
+  if (entry == null) {
     entry = new User(id);
     entry.voteWeight = BigInt.fromI32(0);
     entry.gno = BigInt.fromI32(0);
