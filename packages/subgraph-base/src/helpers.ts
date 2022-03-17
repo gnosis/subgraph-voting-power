@@ -135,7 +135,6 @@ export function loadOrCreateAMMPosition(
 export function loadOrCreateAMMPair(address: Address): AMMPair {
   const id = address.toHexString();
   let entry = AMMPair.load(id);
-  log.info("pair: {}", [entry.id || "null"]);
   if (entry == null) {
     Pair.create(address);
     log.info("pair created", []);
