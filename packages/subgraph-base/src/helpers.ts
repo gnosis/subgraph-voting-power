@@ -20,7 +20,7 @@ export const GNO_ADDRESS = Address.fromString(
 
 export const gno = ERC20.bind(GNO_ADDRESS);
 
-export const ADDRESS_ZERO = Address.fromString(
+export const ADDRESS_ZERO = Address.fromHexString(
   "0x0000000000000000000000000000000000000000"
 );
 
