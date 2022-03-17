@@ -137,7 +137,7 @@ export function loadOrCreateAMMPair(address: Address): AMMPair {
   let entry = AMMPair.load(id);
   if (entry == null) {
     entry = new AMMPair(id);
-    entry.totalSupply = BigInt.fromI32(69);
+    entry.totalSupply = BigInt.fromI32(0);
     entry.gnoReserves = gno.balanceOf(Address.fromString(id));
     entry.previousRatio = BigInt.fromI32(0);
     entry.ratio = BigInt.fromI32(0);
