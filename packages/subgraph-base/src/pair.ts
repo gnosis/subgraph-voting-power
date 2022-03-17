@@ -128,7 +128,7 @@ export function handleSync(event: Sync): void {
   log.info("gno reserves: {}", [pair.gnoReserves.toString()]);
   // gno.balanceOf(pair) / pair.totalSupply()
   pair.ratio = pair.gnoReserves.div(ERC20.bind(event.address).totalSupply());
-  log.info("pair.ratio", [pair.ratio.toString()]);
+  log.info("pair.ratio: {}", [pair.ratio.toString()]);
   const positions = pair.positions;
   log.info("pair.positions: {}", [pair.positions.toString()]);
   pair.previousRatio = pair.ratio;
