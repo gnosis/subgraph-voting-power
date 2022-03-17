@@ -10,7 +10,7 @@ import {
 } from "@graphprotocol/graph-ts";
 import { AMMPair, AMMPosition, User } from "../generated/schema";
 import { ERC20 } from "../generated/templates/Pair/ERC20";
-import { Pair } from "../generated/templates/Pair/Pair";
+import { Pair } from "../generated/templates";
 
 export const GNO_ADDRESS = Address.fromString(
   dataSource.network() === "mainnet"
@@ -135,13 +135,17 @@ export function loadOrCreateAMMPosition(
 export function loadOrCreateAMMPair(address: Address): AMMPair {
   const id = address.toHexString();
   let entry = AMMPair.load(id);
+  log.info("pair: {}", [entry.id || "null"]);
   if (entry == null) {
+    Pair.create(address);
+    log.info("pair created", []);
     entry = new AMMPair(id);
     entry.totalSupply = BigInt.fromI32(0);
     entry.gnoReserves = gno.balanceOf(Address.fromString(id));
     entry.previousRatio = BigInt.fromI32(0);
     entry.ratio = BigInt.fromI32(0);
     entry.save();
+    log.info("pair saved: {}", [entry.id]);
   }
   return entry;
 }
