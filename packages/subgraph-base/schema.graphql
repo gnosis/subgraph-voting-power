@@ -12,7 +12,7 @@ type AMMPair @entity {
   id: ID! # address
   sqrtRatio: BigDecimal!
   gnoIsFirst: Boolean!
-  positions: [AMMPosition!]! @derivedFrom(field: "pair")
+  positions: [AMMPosition!]!
 }
 
 type AMMPosition @entity {

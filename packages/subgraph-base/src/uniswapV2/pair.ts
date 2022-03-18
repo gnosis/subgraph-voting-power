@@ -25,6 +25,8 @@ export function handleTransfer(event: Transfer): void {
 
     if (position.liquidity == BigInt.fromI32(0)) {
       store.remove("AMMPosition", position.id);
+      pair.positions = arrayRemove(pair.positions, position.id);
+      pair.save();
     } else {
       position.save();
     }
@@ -74,24 +76,34 @@ const MIN_TICK = -887272;
 const MAX_TICK = -MIN_TICK;
 
 export function loadOrCreateAMMPosition(
-  pair: Address,
+  pairAddress: Address,
   user: Address
 ): AMMPosition {
-  const id = pair
-    .toHexString()
-    .concat("-")
-    .concat(user.toHexString());
+  const pair = AMMPair.load(pairAddress.toHexString());
+  if (!pair)
+    throw new Error(`Could not find pair ${pairAddress.toHexString()}`);
+
+  const id = pair.id.concat("-").concat(user.toHexString());
   let position = AMMPosition.load(id);
   if (position === null) {
     position = new AMMPosition(id);
-    position.pair = pair.toHexString();
+    position.pair = pair.id;
     position.user = user.toHexString();
     position.liquidity = BigInt.fromI32(0);
     position.lowerTick = BigInt.fromI32(MIN_TICK);
     position.upperTick = BigInt.fromI32(MAX_TICK);
     position.save();
-    log.info("created new position {} in pair {}", [id, pair.toHexString()]);
+
+    pair.positions = [...pair.positions, id];
+    pair.save();
+
+    log.info("created new position {} in pair {}", [id, pair.id]);
   }
 
   return position;
+}
+
+function arrayRemove(array: string[], elementToRemove: string) {
+  const index = array.indexOf(elementToRemove);
+  return [...array.slice(0, index), ...array.slice(index + 1)];
 }

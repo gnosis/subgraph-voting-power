@@ -1,11 +1,11 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt, log } from "@graphprotocol/graph-ts";
 
 import {
   DecreaseLiquidity,
   IncreaseLiquidity,
   Transfer,
 } from "../generated/NonfungiblePositionManager/NonfungiblePositionManager";
-import { AMMPosition } from "../../subgraph-base/generated/schema";
+import { AMMPair, AMMPosition } from "../../subgraph-base/generated/schema";
 import { updateForLiquidityChange } from "../../subgraph-base/src/uniswapV2/voteWeight";
 
 export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
@@ -41,16 +41,26 @@ export function handleTransfer(event: Transfer): void {
 
 const BI_ZERO = BigInt.fromI32(0);
 
-function loadOrCreateAMMPosition(pair: Address, tokenId: BigInt): AMMPosition {
-  const id = pair
-    .toHexString()
-    .concat("-")
-    .concat(tokenId.toHexString());
-  let entry = AMMPosition.load(id);
-  if (entry === null) {
-    entry = new AMMPosition(id);
-    entry.pair = pair.toHex();
-    entry.liquidity = BI_ZERO;
+function loadOrCreateAMMPosition(
+  pairAddress: Address,
+  tokenId: BigInt
+): AMMPosition {
+  const pair = AMMPair.load(pairAddress.toHexString());
+  if (!pair)
+    throw new Error(`Could not find pair ${pairAddress.toHexString()}`);
+
+  const id = pair.id.concat("-").concat(tokenId.toHexString());
+  let position = AMMPosition.load(id);
+  if (position === null) {
+    position = new AMMPosition(id);
+    position.pair = pair.id;
+    position.liquidity = BI_ZERO;
+    position.save();
+
+    pair.positions = [...pair.positions, id];
+    pair.save();
+
+    log.info("created new position {} in pair {}", [id, pair.id]);
   }
-  return entry;
+  return position;
 }
