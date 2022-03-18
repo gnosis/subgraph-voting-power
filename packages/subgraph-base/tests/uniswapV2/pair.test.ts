@@ -136,21 +136,11 @@ function createSyncEvent(reserve0: BigInt, reserve1: BigInt): Sync {
   return newSyncEvent;
 }
 
-const lowerBound: BigInt = BigInt.zero();
-const BIGINT_MAX = BigInt.fromUnsignedBytes(
-  Bytes.fromHexString("ff".repeat(32)) // 256 bits = 32 * ff byte
-);
-const upperBound: BigInt = BIGINT_MAX;
-
 function getPositionID(pair: Address, user: Address): string {
   return pair
     .toHexString()
     .concat("-")
-    .concat(user.toHexString())
-    .concat("-")
-    .concat(lowerBound.toHexString())
-    .concat("-")
-    .concat(upperBound.toHexString());
+    .concat(user.toHexString());
 }
 
 //  TESTS

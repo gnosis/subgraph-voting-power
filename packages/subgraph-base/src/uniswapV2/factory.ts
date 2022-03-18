@@ -2,7 +2,7 @@ import { Address, log } from "@graphprotocol/graph-ts";
 import { PairCreated } from "../../generated/Factory/Factory";
 import { AMMPair } from "../../generated/schema";
 import { Pair } from "../../generated/templates";
-import { gno, GNO_ADDRESS } from "../helpers";
+import { GNO_ADDRESS } from "../helpers";
 
 export function handleNewPair(event: PairCreated): void {
   const isGnoTradingPair =
@@ -19,10 +19,12 @@ export function createAMMPair(
   token0: Address,
   token1: Address
 ): AMMPair {
+  Pair.create(address);
   const id = address.toHexString();
   const pair = new AMMPair(id);
-  pair.gnoIsFirst = token0 === GNO_ADDRESS;
+  pair.gnoIsFirst = token0.toHexString() === GNO_ADDRESS.toHexString();
   pair.save();
 
+  log.info("pair created: {}", [pair.id]);
   return pair;
 }
