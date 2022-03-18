@@ -94,7 +94,7 @@ export function loadOrCreateAMMPosition(
     position.upperTick = BigInt.fromI32(MAX_TICK);
     position.save();
 
-    pair.positions = [...pair.positions, id];
+    pair.positions = pair.positions.concat([id]);
     pair.save();
 
     log.info("created new position {} in pair {}", [id, pair.id]);
@@ -105,5 +105,5 @@ export function loadOrCreateAMMPosition(
 
 function arrayRemove(array: string[], elementToRemove: string): string[] {
   const index = array.indexOf(elementToRemove);
-  return [...array.slice(0, index), ...array.slice(index + 1)];
+  return array.slice(0, index).concat(array.slice(index + 1));
 }

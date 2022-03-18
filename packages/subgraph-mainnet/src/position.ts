@@ -57,7 +57,7 @@ function loadOrCreateAMMPosition(
     position.liquidity = BI_ZERO;
     position.save();
 
-    pair.positions = [...pair.positions, id];
+    pair.positions = pair.positions.concat([id]);
     pair.save();
 
     log.info("created new position {} in pair {}", [id, pair.id]);
