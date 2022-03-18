@@ -8,22 +8,6 @@ import {
 import { AMMPosition } from "../../subgraph-base/generated/schema";
 import { updateForLiquidityChange } from "../../subgraph-base/src/uniswapV2/voteWeight";
 
-const BI_ZERO = BigInt.fromI32(0);
-
-function loadOrCreateAMMPosition(pair: Address, tokenId: BigInt): AMMPosition {
-  const id = pair
-    .toHexString()
-    .concat("-")
-    .concat(tokenId.toHexString());
-  let entry = AMMPosition.load(id);
-  if (entry === null) {
-    entry = new AMMPosition(id);
-    entry.pair = pair.toHex();
-    entry.liquidity = BI_ZERO;
-  }
-  return entry;
-}
-
 export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   const position = loadOrCreateAMMPosition(event.address, event.params.tokenId);
   const previousLiquidity = position.liquidity;
@@ -53,4 +37,20 @@ export function handleTransfer(event: Transfer): void {
   position.save();
 
   updateForLiquidityChange(position, BI_ZERO);
+}
+
+const BI_ZERO = BigInt.fromI32(0);
+
+function loadOrCreateAMMPosition(pair: Address, tokenId: BigInt): AMMPosition {
+  const id = pair
+    .toHexString()
+    .concat("-")
+    .concat(tokenId.toHexString());
+  let entry = AMMPosition.load(id);
+  if (entry === null) {
+    entry = new AMMPosition(id);
+    entry.pair = pair.toHex();
+    entry.liquidity = BI_ZERO;
+  }
+  return entry;
 }

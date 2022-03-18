@@ -1,4 +1,4 @@
-import { BigInt, BigDecimal, Address } from "@graphprotocol/graph-ts";
+import { BigInt, BigDecimal, Address, log } from "@graphprotocol/graph-ts";
 import { AMMPair, AMMPosition, User } from "../../generated/schema";
 import { loadOrCreateUser } from "../helpers";
 
@@ -28,6 +28,17 @@ export function updateForLiquidityChange(
 
   user.voteWeight = user.voteWeight.minus(amountToSubtract).plus(amountToAdd);
   user.save();
+
+  log.info(
+    "updated voting weight of user {} (-{}, +{}) for liquidity change (old: {}, new: {})",
+    [
+      user.id,
+      amountToSubtract.toString(),
+      amountToAdd.toString(),
+      previousLiquidity.toString(),
+      newLiquidity.toString(),
+    ]
+  );
 }
 
 export function updateForRatioChange(
@@ -59,6 +70,17 @@ export function updateForRatioChange(
         .minus(amountToSubtract)
         .plus(amountToAdd);
       user.save();
+
+      log.info(
+        "updated voting weight of user {} (-{}, +{}) for ratio change (old: {}, new: {})",
+        [
+          user.id,
+          amountToSubtract.toString(),
+          amountToAdd.toString(),
+          previousSqrtRatio.toString(),
+          sqrtRatio.toString(),
+        ]
+      );
     }
   }
 }

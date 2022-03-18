@@ -12,6 +12,7 @@ export function handleTransfer(event: Transfer): void {
   const to = event.params.to;
   const userTo = loadOrCreateUser(to);
   const userFrom = loadOrCreateUser(from);
+
   // decrease liquidity and voting weight of sender
   if (
     from.toHexString() != ADDRESS_ZERO.toHexString() &&
@@ -29,6 +30,7 @@ export function handleTransfer(event: Transfer): void {
     }
     removeOrSaveUser(userFrom);
   }
+
   // increase liquidity and voting weight of recipient
   if (
     event.params.to.toHexString() != ADDRESS_ZERO.toHexString() &&
@@ -79,17 +81,17 @@ export function loadOrCreateAMMPosition(
     .toHexString()
     .concat("-")
     .concat(user.toHexString());
-  let entry = AMMPosition.load(id);
-  if (entry === null) {
-    entry = new AMMPosition(id);
-    entry.pair = pair.toHexString();
-    entry.user = user.toHexString();
-    entry.liquidity = BigInt.fromI32(0);
-    entry.lowerTick = BigInt.fromI32(MIN_TICK);
-    entry.upperTick = BigInt.fromI32(MAX_TICK);
-    // entry;
-    entry.save();
+  let position = AMMPosition.load(id);
+  if (position === null) {
+    position = new AMMPosition(id);
+    position.pair = pair.toHexString();
+    position.user = user.toHexString();
+    position.liquidity = BigInt.fromI32(0);
+    position.lowerTick = BigInt.fromI32(MIN_TICK);
+    position.upperTick = BigInt.fromI32(MAX_TICK);
+    position.save();
+    log.info("created new position {} in pair {}", [id, pair.toHexString()]);
   }
 
-  return entry;
+  return position;
 }

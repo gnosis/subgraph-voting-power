@@ -1,5 +1,5 @@
 import { AMMPair } from "../../subgraph-base/generated/schema";
-import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, log } from "@graphprotocol/graph-ts";
 import {
   Initialize,
   Swap as SwapEvent,
@@ -13,6 +13,10 @@ export function handleInitialize(event: Initialize): void {
   if (!pair) return;
   pair.sqrtRatio = toX96Decimal(event.params.sqrtPriceX96);
   pair.save();
+  log.info("initialized ratio of pair {}: {}", [
+    pair.id,
+    pair.sqrtRatio.toString(),
+  ]);
 }
 
 export function handleSwap(event: SwapEvent): void {

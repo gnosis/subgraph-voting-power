@@ -21,10 +21,9 @@ export function createAMMPair(
 ): AMMPair {
   Pair.create(address);
   const id = address.toHexString();
+  log.info("instantiated Pair instance: {}", [id]);
   const pair = new AMMPair(id);
   pair.gnoIsFirst = token0.toHexString() === GNO_ADDRESS.toHexString();
   pair.save();
-
-  log.info("pair created: {}", [pair.id]);
   return pair;
 }
