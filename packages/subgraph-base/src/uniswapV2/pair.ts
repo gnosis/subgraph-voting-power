@@ -103,7 +103,7 @@ export function loadOrCreateAMMPosition(
   return position;
 }
 
-function arrayRemove(array: string[], elementToRemove: string) {
+function arrayRemove(array: string[], elementToRemove: string): string[] {
   const index = array.indexOf(elementToRemove);
   return [...array.slice(0, index), ...array.slice(index + 1)];
 }
