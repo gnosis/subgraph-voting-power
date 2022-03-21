@@ -5,20 +5,36 @@ type User @entity {
   mgno: BigInt!
   lgno: BigInt!
   deposit: BigInt!
-  positions: [AMMPosition!]! @derivedFrom(field: "user")
+  weightedPoolPositions: [ConcentratedLiquidityPosition!]!
+    @derivedFrom(field: "user")
+  concentratedLiquidityPositions: [ConcentratedLiquidityPosition!]!
+    @derivedFrom(field: "user")
 }
 
-type AMMPair @entity {
+# used for Uniswap V2 pairs and Balancer weighted pools
+type WeightedPool @entity {
+  id: ID! # address
+  gnoBalance: BigInt!
+  totalSupply: BigInt!
+}
+type WeightedPoolPosition @entity {
+  id: ID! # <PAIR_ADDRESS>-<USER_ADDRESS>
+  user: User!
+  pool: WeightedPool!
+  liquidity: BigInt!
+}
+
+# used for Uniswap V3 pairs
+type ConcentratedLiquidityPair @entity {
   id: ID! # address
   sqrtRatio: BigDecimal!
   gnoIsFirst: Boolean!
   positions: [AMMPosition!]!
 }
-
-type AMMPosition @entity {
+type ConcentratedLiquidityPosition @entity {
   id: ID! # <PAIR_ADDRESS>-<USER_ADDRESS> or <PAIR_ADDRESS>-<TOKEN_ID> for UniV3
   user: User!
-  pair: AMMPair!
+  pair: ConcentratedLiquidityPair!
   liquidity: BigInt!
   lowerTick: BigInt!
   upperTick: BigInt!
