@@ -14,8 +14,9 @@ type User @entity {
 # used for Uniswap V2 pairs and Balancer weighted pools
 type WeightedPool @entity {
   id: ID! # address
-  gnoBalance: BigInt!
   totalSupply: BigInt!
+  gnoIsFirst: Boolean! # only relevant for uni v2
+  positions: [WeightedPoolPosition!]!
 }
 type WeightedPoolPosition @entity {
   id: ID! # <PAIR_ADDRESS>-<USER_ADDRESS>
@@ -29,7 +30,7 @@ type ConcentratedLiquidityPair @entity {
   id: ID! # address
   sqrtRatio: BigDecimal!
   gnoIsFirst: Boolean!
-  positions: [AMMPosition!]!
+  positions: [ConcentratedLiquidityPosition!]!
 }
 type ConcentratedLiquidityPosition @entity {
   id: ID! # <PAIR_ADDRESS>-<USER_ADDRESS> or <PAIR_ADDRESS>-<TOKEN_ID> for UniV3

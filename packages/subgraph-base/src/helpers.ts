@@ -6,8 +6,7 @@ import {
   store,
   dataSource,
 } from "@graphprotocol/graph-ts";
-import { AMMPair, AMMPosition, User } from "../generated/schema";
-import { ERC20 } from "../generated/templates/Pair/ERC20";
+import { User } from "../generated/schema";
 
 export const GNO_ADDRESS = Address.fromString(
   dataSource.network() == "mainnet"
@@ -15,15 +14,13 @@ export const GNO_ADDRESS = Address.fromString(
     : "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
 );
 
-export const gno = ERC20.bind(GNO_ADDRESS);
-
 export const ADDRESS_ZERO = Address.fromHexString(
   "0x0000000000000000000000000000000000000000"
 );
 
 export const ONE_GNO = BigInt.fromString("1000000000000000000");
 
-const ZERO_BI = BigInt.fromI32(0);
+export const ZERO_BI = BigInt.fromI32(0);
 export const ONE_BI = BigInt.fromI32(1);
 export const ZERO_BD = BigDecimal.fromString("0");
 export const ONE_BD = BigDecimal.fromString("1");
@@ -39,7 +36,7 @@ export function loadOrCreateUser(address: Address): User {
     entry.mgno = BigInt.fromI32(0);
     entry.lgno = BigInt.fromI32(0);
     entry.deposit = BigInt.fromI32(0);
-    if (id != ADDRESS_ZERO.toHexString() && !AMMPair.load(id)) {
+    if (id != ADDRESS_ZERO.toHexString()) {
       entry.save();
     }
   }

@@ -1,11 +1,11 @@
-import { AMMPair } from "../../subgraph-base/generated/schema";
+import { ConcentratedLiquidityPair } from "../../../subgraph-base/generated/schema";
 import { Address, BigDecimal, BigInt, log } from "@graphprotocol/graph-ts";
 import {
   Initialize,
   Swap as SwapEvent,
-} from "../generated/templates/Pool/Pool";
+} from "../../generated/templates/Pool/Pool";
 
-import { updateForRatioChange } from "../../subgraph-base/src/uniswapV2/voteWeight";
+import { updateForRatioChange } from "./voteWeight";
 
 export function handleInitialize(event: Initialize): void {
   // initialize pool sqrt price
@@ -32,9 +32,9 @@ function toX96Decimal(bi: BigInt): BigDecimal {
   return bi.toBigDecimal().div(BigDecimal.fromString((2 ** 96).toString()));
 }
 
-function loadAMMPair(address: Address): AMMPair {
+function loadAMMPair(address: Address): ConcentratedLiquidityPair {
   const id = address.toHexString();
-  const pair = AMMPair.load(id);
+  const pair = ConcentratedLiquidityPair.load(id);
   if (!pair) throw new Error(`pair with ID ${id} not found`);
   return pair;
 }

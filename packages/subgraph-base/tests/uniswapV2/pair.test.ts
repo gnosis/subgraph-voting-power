@@ -6,7 +6,7 @@ import {
   logStore,
 } from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { User, AMMPair, AMMPosition } from "../../generated/schema";
+import { WeightedPool } from "../../generated/schema";
 import { log, newMockEvent } from "matchstick-as";
 import {
   ADDRESS_ZERO,
@@ -22,8 +22,13 @@ import { loadAMMPair, loadOrCreateAMMPosition } from "../../src/uniswapV2/pair";
 import { handleNewPair } from "../../src/uniswapV2/factory";
 import { createPairCreatedEvent } from "../helpers";
 // import { ERC20, Transfer } from "../generated/templates/Pair/ERC20";
-import { Pair, Transfer, Sync } from "../../generated/templates/Pair/Pair";
-import { handleSync, handleTransfer } from "../../src/uniswapV2/pair";
+import {
+  Pair,
+  Transfer,
+  Sync,
+  Swap,
+} from "../../generated/templates/Pair/Pair";
+import { handleSwap, handleTransfer } from "../../src/uniswapV2/pair";
 import { GNO_ADDRESS } from "../../src/helpers";
 
 let mintEvent = createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value, data);
@@ -47,27 +52,25 @@ let smallTransferEvent = createTransferEvent(
   data
 );
 
-// mock pair.totalSupply()
-createMockedFunction(PAIR_ADDRESS, "totalSupply", "totalSupply():(uint256)")
-  .withArgs([])
-  .returns([ethereum.Value.fromI32(value.toI32())]);
-
-// mock gno.balanceOf(pair.address)
-createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
-  .withArgs([ethereum.Value.fromAddress(PAIR_ADDRESS)])
-  .returns([ethereum.Value.fromUnsignedBigInt(value2x)]);
+function simulateMint() {
+  handleTransfer();
+}
 
 function createPair(
   token0: Address,
   token1: Address,
   pair: Address,
   value: BigInt = BigInt.fromU32(0)
-): AMMPair {
+): WeightedPool {
   let pairCreatedEvent = createPairCreatedEvent(token0, token1, pair, value);
   handleNewPair(pairCreatedEvent);
-  assert.fieldEquals("AMMPair", pair.toHexString(), "id", pair.toHexString());
-  const newPair: AMMPair = new AMMPair(pair.toHexString());
-  return newPair;
+  assert.fieldEquals(
+    "WeightedPool",
+    pair.toHexString(),
+    "id",
+    pair.toHexString()
+  );
+  return new WeightedPool(pair.toHexString());
 }
 
 function createTransferEvent(
@@ -93,7 +96,7 @@ function createTransferEvent(
     new ethereum.EventParam("data", ethereum.Value.fromString(data))
   );
 
-  const newTransferEvent = new Transfer(
+  return new Transfer(
     PAIR_ADDRESS,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -102,24 +105,56 @@ function createTransferEvent(
     mockEvent.transaction,
     mockEvent.parameters
   );
-
-  return newTransferEvent;
 }
 
-function createSyncEvent(reserve0: BigInt, reserve1: BigInt): Sync {
+function createSwapEvent(
+  amount0In: BigInt,
+  amount1In: BigInt,
+  amount0Out: BigInt,
+  amount1Out: BigInt,
+  to: Address
+): Swap {
   let mockEvent = newMockEvent();
 
   mockEvent.parameters = new Array();
 
   mockEvent.parameters.push(
-    new ethereum.EventParam("reserve0", ethereum.Value.fromSignedBigInt(value))
+    new ethereum.EventParam("sender", ethereum.Value.fromAddress(to))
   );
 
   mockEvent.parameters.push(
-    new ethereum.EventParam("reserve0", ethereum.Value.fromSignedBigInt(value))
+    new ethereum.EventParam(
+      "amount0In",
+      ethereum.Value.fromSignedBigInt(amount0In)
+    )
   );
 
-  let newSyncEvent = new Sync(
+  mockEvent.parameters.push(
+    new ethereum.EventParam(
+      "amount1In",
+      ethereum.Value.fromSignedBigInt(amount1In)
+    )
+  );
+
+  mockEvent.parameters.push(
+    new ethereum.EventParam(
+      "amount0Out",
+      ethereum.Value.fromSignedBigInt(amount0Out)
+    )
+  );
+
+  mockEvent.parameters.push(
+    new ethereum.EventParam(
+      "amount1Out",
+      ethereum.Value.fromSignedBigInt(amount1Out)
+    )
+  );
+
+  mockEvent.parameters.push(
+    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
+  );
+
+  return new Swap(
     PAIR_ADDRESS,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -128,8 +163,6 @@ function createSyncEvent(reserve0: BigInt, reserve1: BigInt): Sync {
     mockEvent.transaction,
     mockEvent.parameters
   );
-
-  return newSyncEvent;
 }
 
 function getPositionID(pair: Address, user: Address): string {
@@ -141,40 +174,26 @@ function getPositionID(pair: Address, user: Address): string {
 
 //  TESTS
 
-test("Creates position on mint", () => {
-  clearStore();
-  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS);
-
-  // mint value to user 1
-  handleTransfer(mintEvent);
-  assert.fieldEquals(
-    "AMMPosition",
-    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
-    "liquidity",
-    value.toString()
-  );
-});
-
-test("Creates Position on mint and transfer", () => {
+test("Creates WeightedPoolPosition on mint and transfer", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
   handleTransfer(mintEvent);
   assert.fieldEquals(
-    "AMMPosition",
+    "WeightedPoolPosition",
     getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
     "id",
     getPositionID(PAIR_ADDRESS, USER1_ADDRESS)
   );
   handleTransfer(smallTransferEvent);
   assert.fieldEquals(
-    "AMMPosition",
+    "WeightedPoolPosition",
     getPositionID(PAIR_ADDRESS, USER2_ADDRESS),
     "id",
     getPositionID(PAIR_ADDRESS, USER2_ADDRESS)
   );
 });
 
-test("Adds Position to pair.positions and user.positions on mint and transfer", () => {
+test("Adds position to pair.positions and user.positions on mint and transfer", () => {
   clearStore();
   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
   handleTransfer(mintEvent);

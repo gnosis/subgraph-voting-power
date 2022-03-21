@@ -1,12 +1,16 @@
 import { BigInt, BigDecimal, Address, log } from "@graphprotocol/graph-ts";
-import { AMMPair, AMMPosition, User } from "../../generated/schema";
-import { loadOrCreateUser } from "../helpers";
+import {
+  ConcentratedLiquidityPair,
+  ConcentratedLiquidityPosition,
+  User,
+} from "../../../subgraph-base/generated/schema";
+import { loadOrCreateUser } from "../../../subgraph-base/src/helpers";
 
 export function updateForLiquidityChange(
-  position: AMMPosition,
+  position: ConcentratedLiquidityPosition,
   previousLiquidity: BigInt
 ): void {
-  const pair = AMMPair.load(position.pair);
+  const pair = ConcentratedLiquidityPair.load(position.pair);
   if (!pair) throw new Error(`Pair with id ${position.pair} not found`);
   const gnoIsFirst = pair.gnoIsFirst;
   const sqrtRatio = pair.sqrtRatio;
@@ -55,7 +59,7 @@ export function updateForLiquidityChange(
 }
 
 export function updateForRatioChange(
-  pair: AMMPair,
+  pair: ConcentratedLiquidityPair,
   previousSqrtRatio: BigDecimal
 ): void {
   const sqrtRatio = pair.sqrtRatio;
@@ -64,7 +68,7 @@ export function updateForRatioChange(
   const gnoIsFirst = pair.gnoIsFirst;
   const positions = pair.positions;
   for (let index = 0; index < positions.length; index++) {
-    const position = AMMPosition.load(positions[index]);
+    const position = ConcentratedLiquidityPosition.load(positions[index]);
     if (position) {
       const user = loadOrCreateUser(Address.fromString(position.user));
       if (!user) throw new Error(`User with id ${position.user} not found`);
@@ -107,7 +111,7 @@ export function updateForRatioChange(
 }
 
 function getToken0Balance(
-  position: AMMPosition,
+  position: ConcentratedLiquidityPosition,
   sqrtRatio: BigDecimal
 ): BigInt {
   // 1.0001^tick is sqrt(token1/token0).
@@ -148,7 +152,7 @@ function getToken0Balance(
 }
 
 function getToken1Balance(
-  position: AMMPosition,
+  position: ConcentratedLiquidityPosition,
   sqrtRatio: BigDecimal
 ): BigInt {
   // 1.0001^tick is sqrt(token1/token0).
