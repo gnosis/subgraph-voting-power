@@ -28,9 +28,6 @@ export const FACTORY_ADDRESS = Address.fromString(
   "0xa818b4f111ccac7aa31d0bcc0806d64f2e0737d7"
 );
 
-export const GNO_ADDRESS = Address.fromString(
-  "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
-);
 export const OTHERTOKEN_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000004"
 );

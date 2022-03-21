@@ -4,15 +4,13 @@ import {
   BigDecimal,
   Address,
   store,
-  Bytes,
   dataSource,
 } from "@graphprotocol/graph-ts";
 import { AMMPair, AMMPosition, User } from "../generated/schema";
 import { ERC20 } from "../generated/templates/Pair/ERC20";
-import { Pair } from "../generated/templates";
 
 export const GNO_ADDRESS = Address.fromString(
-  dataSource.network() === "mainnet"
+  dataSource.network() == "mainnet"
     ? "0x6810e776880C02933D47DB1b9fc05908e5386b96"
     : "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
 );
@@ -26,10 +24,10 @@ export const ADDRESS_ZERO = Address.fromHexString(
 export const ONE_GNO = BigInt.fromString("1000000000000000000");
 
 const ZERO_BI = BigInt.fromI32(0);
-export let ONE_BI = BigInt.fromI32(1);
-export let ZERO_BD = BigDecimal.fromString("0");
-export let ONE_BD = BigDecimal.fromString("1");
-export let BI_18 = BigInt.fromI32(18);
+export const ONE_BI = BigInt.fromI32(1);
+export const ZERO_BD = BigDecimal.fromString("0");
+export const ONE_BD = BigDecimal.fromString("1");
+export const BI_18 = BigInt.fromI32(18);
 
 export function loadOrCreateUser(address: Address): User {
   const id = address.toHexString();

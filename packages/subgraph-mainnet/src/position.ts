@@ -51,7 +51,7 @@ function loadOrCreateAMMPosition(
 
   const id = pair.id.concat("-").concat(tokenId.toHexString());
   let position = AMMPosition.load(id);
-  if (position === null) {
+  if (!position) {
     position = new AMMPosition(id);
     position.pair = pair.id;
     position.liquidity = BI_ZERO;

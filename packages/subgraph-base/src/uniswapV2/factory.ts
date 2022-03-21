@@ -1,4 +1,4 @@
-import { Address, log } from "@graphprotocol/graph-ts";
+import { Address, dataSource, log } from "@graphprotocol/graph-ts";
 import { PairCreated } from "../../generated/Factory/Factory";
 import { AMMPair } from "../../generated/schema";
 import { Pair } from "../../generated/templates";
@@ -23,7 +23,7 @@ export function createAMMPair(
   const id = address.toHexString();
   log.info("instantiated Pair instance: {}", [id]);
   const pair = new AMMPair(id);
-  pair.gnoIsFirst = token0.toHexString() === GNO_ADDRESS.toHexString();
+  pair.gnoIsFirst = token0.toHexString() == GNO_ADDRESS.toHexString();
   pair.save();
   return pair;
 }

@@ -11,6 +11,16 @@ export function updateForLiquidityChange(
   const gnoIsFirst = pair.gnoIsFirst;
   const sqrtRatio = pair.sqrtRatio;
 
+  if (sqrtRatio.equals(ZERO_BD)) {
+    // Since Sync will only be emitted after transfer, we have no sqrtRatio available
+    // for the very first LP token transfer. We simply don't update the voting weight here
+    // as we can rely on it being set in the handling of the upcoming Sync event.
+    log.info("skipping vote weight calculation for first deposit into {}", [
+      pair.id,
+    ]);
+    return;
+  }
+
   const user = loadOrCreateUser(Address.fromString(position.user));
 
   // temporarily set position liquidity to the previous value
@@ -28,7 +38,10 @@ export function updateForLiquidityChange(
 
   user.voteWeight = user.voteWeight.minus(amountToSubtract).plus(amountToAdd);
   user.save();
-
+  log.info("gnoIsFirst: {}, pair.sqrtRatio: {}", [
+    gnoIsFirst.toString(),
+    pair.sqrtRatio.toString(),
+  ]);
   log.info(
     "updated voting weight of user {} (-{}, +{}) for liquidity change (old: {}, new: {})",
     [
@@ -56,19 +69,27 @@ export function updateForRatioChange(
       const user = loadOrCreateUser(Address.fromString(position.user));
       if (!user) throw new Error(`User with id ${position.user} not found`);
 
-      // subtract vote weight from previous ratio
-      const amountToSubtract = gnoIsFirst
-        ? getToken0Balance(position, previousSqrtRatio)
-        : getToken1Balance(position, previousSqrtRatio);
+      log.info("gnoIsFirst: {}, pair.sqrtRatio: {}", [
+        gnoIsFirst.toString(),
+        pair.sqrtRatio.toString(),
+      ]);
 
-      // add vote weight from new ratio
+      // add vote weight for new ratio
       const amountToAdd = gnoIsFirst
         ? getToken0Balance(position, pair.sqrtRatio)
         : getToken1Balance(position, pair.sqrtRatio);
 
+      // subtract vote weight for previous ratio
+      let amountToSubtract = ZERO_BI;
+      if (previousSqrtRatio.equals(ZERO_BD)) {
+        amountToSubtract = gnoIsFirst
+          ? getToken0Balance(position, previousSqrtRatio)
+          : getToken1Balance(position, previousSqrtRatio);
+      }
+
       user.voteWeight = user.voteWeight
-        .minus(amountToSubtract)
-        .plus(amountToAdd);
+        .plus(amountToAdd)
+        .minus(amountToSubtract);
       user.save();
 
       log.info(

@@ -45,8 +45,6 @@ export function handleTransfer(event: Transfer): void {
     updateForLiquidityChange(position, previousLiquidity);
 
     position.save();
-    // increase vote weight
-    removeOrSaveUser(userTo);
   }
 }
 
@@ -85,7 +83,7 @@ export function loadOrCreateAMMPosition(
 
   const id = pair.id.concat("-").concat(user.toHexString());
   let position = AMMPosition.load(id);
-  if (position === null) {
+  if (!position) {
     position = new AMMPosition(id);
     position.pair = pair.id;
     position.user = user.toHexString();
