@@ -2,7 +2,12 @@ import { BigInt, log, store, Address, Value } from "@graphprotocol/graph-ts";
 import { Transfer, Sync, Swap } from "../../generated/templates/Pair/Pair";
 
 import { ERC20 } from "../../generated/templates/Pair/ERC20";
-import { ADDRESS_ZERO, loadOrCreateUser, removeOrSaveUser } from "../helpers";
+import {
+  ADDRESS_ZERO,
+  loadOrCreateUser,
+  removeOrSaveUser,
+  ZERO_BI,
+} from "../helpers";
 import {
   User,
   WeightedPool,
@@ -11,7 +16,7 @@ import {
 
 export function handleTransfer(event: Transfer): void {
   const pool = loadWeightedPool(event.address);
-  const gnoReserves = User.load(pool.id).gno;
+  const gnoReserves = loadGnoReserves(pool.id);
   log.info("pool loaded: {}, gno reserves: {}, total supply: {}", [
     pool.id,
     gnoReserves.toString(),
@@ -78,7 +83,7 @@ export function handleTransfer(event: Transfer): void {
     // decrease position liquidity and remove it if it gets to zero
     if (position.liquidity.minus(value) == BigInt.fromI32(0)) {
       store.remove("WeightedPoolPosition", position.id);
-      pool.set("positions", Value.fromArray([]));
+      pool.positions = arrayRemove(pool.positions, position.id);
       pool.save();
       log.info("removed from position {} of user {}", [
         position.id,
@@ -86,7 +91,6 @@ export function handleTransfer(event: Transfer): void {
       ]);
     } else {
       position.liquidity = position.liquidity.minus(value);
-      removeOrSaveUser(userFrom);
       position.save();
       log.info("adjusted from position {} of user {}, new liquidity: {}", [
         position.id,
@@ -96,9 +100,7 @@ export function handleTransfer(event: Transfer): void {
     }
 
     // decrease vote weight
-    const voteWeightToSubtract = value
-      .times(pool.gnoReserves)
-      .div(pool.totalSupply);
+    const voteWeightToSubtract = value.times(gnoReserves).div(pool.totalSupply);
     userFrom.voteWeight = userFrom.voteWeight.minus(voteWeightToSubtract);
     removeOrSaveUser(userFrom);
     log.info("subtracted {} from vote weight of {}, for a new total of {}", [
@@ -123,7 +125,7 @@ export function handleTransfer(event: Transfer): void {
     ]);
 
     // increase vote weight
-    const voteWeightToAdd = value.times(pool.gnoReserves).div(pool.totalSupply);
+    const voteWeightToAdd = value.times(gnoReserves).div(pool.totalSupply);
     userTo.voteWeight = userTo.voteWeight.plus(voteWeightToAdd);
     removeOrSaveUser(userTo);
     log.info("added {} from vote weight of {}, for a new total of {}", [
@@ -146,7 +148,7 @@ export function handleSwap(event: Swap): void {
     : event.params.amount1Out;
 
   // Swap() is emitted after Transfer(), so reading the pool's balance will give us the updated value
-  const gnoReserves = User.load(pool.id).gno;
+  const gnoReserves = loadGnoReserves(pool.id);
   // to get the GNO reserves before the swap, we add the amount delta
   const gnoReservesBefore = gnoReserves.plus(gnoIn).minus(gnoOut);
 
@@ -211,4 +213,15 @@ function loadWeightedPool(address: Address): WeightedPool {
   const pool = WeightedPool.load(id);
   if (!pool) throw new Error(`WeightedPool with id ${id} not found`);
   return pool;
+}
+
+function loadGnoReserves(accountAddress: string): BigInt {
+  const user = User.load(accountAddress);
+  if (!user) return ZERO_BI;
+  return user.gno;
+}
+
+function arrayRemove(array: string[], elementToRemove: string): string[] {
+  const index = array.indexOf(elementToRemove);
+  return array.slice(0, index).concat(array.slice(index + 1));
 }

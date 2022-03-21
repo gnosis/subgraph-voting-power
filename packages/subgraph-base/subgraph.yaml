@@ -56,6 +56,7 @@ dataSources:
       file: ./src/uniswapV2/factory.ts
       entities:
         - User
+        - WeightedPool
       abis:
         - name: Factory
           file: ./abis/factory.json
@@ -76,7 +77,9 @@ templates:
       language: wasm/assemblyscript
       file: ./src/uniswapV2/pair.ts
       entities:
+        - User
         - WeightedPool
+        - WeightedPoolPosition
       abis:
         - name: Pair
           file: ./abis/pair.json

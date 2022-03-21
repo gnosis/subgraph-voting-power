@@ -53,10 +53,10 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/factory.ts
+      file: ./src/uniswapV3/factory.ts
       entities:
-        - Pool
-        - Token
+        - User
+        - ConcentratedLiquidityPair
       abis:
         - name: Factory
           file: ./abis/factory.json
@@ -78,10 +78,10 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/position.ts
+      file: ./src/uniswapV3/position.ts
       entities:
-        - Pool
-        - Token
+        - ConcentratedLiquidityPair
+        - ConcentratedLiquidityPosition
       abis:
         - name: NonfungiblePositionManager
           file: ./abis/NonfungiblePositionManager.json
@@ -108,10 +108,11 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/pool.ts
+      file: ./src/uniswapV3/pool.ts
       entities:
-        - Pool
-        - Token
+        - User
+        - ConcentratedLiquidityPair
+        - ConcentratedLiquidityPosition
       abis:
         - name: Pool
           file: ./abis/pool.json

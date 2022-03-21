@@ -9,7 +9,7 @@ import { updateForRatioChange } from "./voteWeight";
 
 export function handleInitialize(event: Initialize): void {
   // initialize pool sqrt price
-  const pair = loadAMMPair(event.address);
+  const pair = loadConcentratedLiquidityPair(event.address);
   if (!pair) return;
   pair.sqrtRatio = toX96Decimal(event.params.sqrtPriceX96);
   pair.save();
@@ -20,7 +20,7 @@ export function handleInitialize(event: Initialize): void {
 }
 
 export function handleSwap(event: SwapEvent): void {
-  const pair = loadAMMPair(event.address);
+  const pair = loadConcentratedLiquidityPair(event.address);
   const previousSqrtRatio = pair.sqrtRatio;
   pair.sqrtRatio = toX96Decimal(event.params.sqrtPriceX96);
   pair.save();
@@ -32,7 +32,9 @@ function toX96Decimal(bi: BigInt): BigDecimal {
   return bi.toBigDecimal().div(BigDecimal.fromString((2 ** 96).toString()));
 }
 
-function loadAMMPair(address: Address): ConcentratedLiquidityPair {
+function loadConcentratedLiquidityPair(
+  address: Address
+): ConcentratedLiquidityPair {
   const id = address.toHexString();
   const pair = ConcentratedLiquidityPair.load(id);
   if (!pair) throw new Error(`pair with ID ${id} not found`);

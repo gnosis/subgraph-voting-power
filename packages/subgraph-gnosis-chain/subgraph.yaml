@@ -96,6 +96,7 @@ dataSources:
       file: ../subgraph-base/src/uniswapV2/factory.ts
       entities:
         - User
+        - WeightedPool
       abis:
         - name: Factory
           file: ../subgraph-base/abis/factory.json
@@ -118,6 +119,7 @@ dataSources:
       file: ../subgraph-base/src/uniswapV2/factory.ts
       entities:
         - User
+        - WeightedPool
       abis:
         - name: Factory
           file: ../subgraph-base/abis/factory.json
@@ -140,6 +142,7 @@ dataSources:
       file: ../subgraph-base/src/uniswapV2/factory.ts
       entities:
         - User
+        - WeightedPool
       abis:
         - name: Factory
           file: ../subgraph-base/abis/factory.json
@@ -162,6 +165,7 @@ dataSources:
       file: ../subgraph-base/src/uniswapV2/factory.ts
       entities:
         - User
+        - WeightedPool
       abis:
         - name: Factory
           file: ../subgraph-base/abis/factory.json
@@ -184,6 +188,7 @@ dataSources:
       file: ../subgraph-base/src/uniswapV2/factory.ts
       entities:
         - User
+        - WeightedPool
       abis:
         - name: Factory
           file: ../subgraph-base/abis/factory.json
@@ -204,7 +209,9 @@ templates:
       language: wasm/assemblyscript
       file: ../subgraph-base/src/uniswapV2/pair.ts
       entities:
+        - User
         - WeightedPool
+        - WeightedPoolPosition
       abis:
         - name: Pair
           file: ../subgraph-base/abis/pair.json
