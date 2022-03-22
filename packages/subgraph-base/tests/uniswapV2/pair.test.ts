@@ -1,62 +1,89 @@
-import {
-  createMockedFunction,
-  clearStore,
-  test,
-  assert,
-  logStore,
-} from "matchstick-as/assembly/index";
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { WeightedPool } from "../../generated/schema";
-import { log, newMockEvent } from "matchstick-as";
+import { clearStore, test, assert } from "matchstick-as/assembly/index";
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
+import { User, WeightedPool } from "../../generated/schema";
+import { newMockEvent } from "matchstick-as";
 import {
   ADDRESS_ZERO,
   USER1_ADDRESS,
   USER2_ADDRESS,
   PAIR_ADDRESS,
   value,
-  value2x,
-  data,
   OTHERTOKEN_ADDRESS,
 } from "../helpers";
-import { loadAMMPair, loadOrCreateAMMPosition } from "../../src/uniswapV2/pair";
 import { handleNewPair } from "../../src/uniswapV2/factory";
+import { handleTransfer as handleGnoTransfer } from "../../src/gno";
 import { createPairCreatedEvent } from "../helpers";
-// import { ERC20, Transfer } from "../generated/templates/Pair/ERC20";
-import {
-  Pair,
-  Transfer,
-  Sync,
-  Swap,
-} from "../../generated/templates/Pair/Pair";
+import { Transfer, Swap } from "../../generated/templates/Pair/Pair";
+import { Transfer as GnoTransfer } from "../../generated/ds-gno/ERC20";
 import { handleSwap, handleTransfer } from "../../src/uniswapV2/pair";
-import { GNO_ADDRESS } from "../../src/helpers";
+import { GNO_ADDRESS, ZERO_BD, ZERO_BI } from "../../src/helpers";
 
-let mintEvent = createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value, data);
-let PreBurnEvent = createTransferEvent(
-  USER1_ADDRESS,
-  PAIR_ADDRESS,
-  value,
-  data
-);
-let burnEvent = createTransferEvent(PAIR_ADDRESS, ADDRESS_ZERO, value, data);
-let transferEvent = createTransferEvent(
-  USER1_ADDRESS,
-  USER2_ADDRESS,
-  value,
-  data
-);
+let transferEvent = createTransferEvent(USER1_ADDRESS, USER2_ADDRESS, value);
 let smallTransferEvent = createTransferEvent(
   USER1_ADDRESS,
   USER2_ADDRESS,
-  value.div(BigInt.fromI32(2)),
-  data
+  value.div(BigInt.fromI32(2))
 );
 
-function simulateMint() {
-  handleTransfer();
+function resetFixtures(): void {
+  clearStore();
+
+  // add user with a bit of GNO
+  const user = new User(USER1_ADDRESS.toHexString());
+  user.voteWeight = value;
+  user.gno = value;
+  user.mgno = BigInt.fromI32(0);
+  user.lgno = BigInt.fromI32(0);
+  user.deposit = BigInt.fromI32(0);
+  user.save();
+
+  const pairCreatedEvent = createPairCreatedEvent(
+    GNO_ADDRESS,
+    OTHERTOKEN_ADDRESS,
+    PAIR_ADDRESS,
+    value
+  );
+  handleNewPair(pairCreatedEvent);
 }
 
-function createPair(
+function simulateMint(): void {
+  // 1) GNO transfer: user1 -> pair
+  handleGnoTransfer(createGnoTransferEvent(USER1_ADDRESS, PAIR_ADDRESS, value));
+
+  // 2) LP token transfer: zero -> user1
+  handleTransfer(createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value));
+}
+
+function simulateBurn(): void {
+  // 1) LP token transfers: user1 -> pair -> zero
+  handleTransfer(createTransferEvent(USER1_ADDRESS, PAIR_ADDRESS, value));
+  handleTransfer(createTransferEvent(PAIR_ADDRESS, ADDRESS_ZERO, value));
+
+  // 2) GNO transfer: pair -> user1
+  handleGnoTransfer(createGnoTransferEvent(PAIR_ADDRESS, USER1_ADDRESS, value));
+}
+
+function simulateSwap(): void {
+  const USER9_ADDRESS = Address.fromString(
+    "0x0000000000000000000000000000000000000009"
+  );
+  // 1) transfer GNO to pool
+  handleGnoTransfer(
+    createGnoTransferEvent(USER9_ADDRESS, PAIR_ADDRESS, BigInt.fromI32(105000))
+  );
+
+  handleSwap(
+    createSwapEvent(
+      BigInt.fromI32(105000),
+      ZERO_BI,
+      ZERO_BI,
+      BigInt.fromI32(100000),
+      USER9_ADDRESS
+    )
+  );
+}
+
+function createPool(
   token0: Address,
   token1: Address,
   pair: Address,
@@ -77,7 +104,7 @@ function createTransferEvent(
   from: Address,
   to: Address,
   value: BigInt,
-  data: string
+  data: string = "0x00"
 ): Transfer {
   const mockEvent = newMockEvent();
 
@@ -98,6 +125,40 @@ function createTransferEvent(
 
   return new Transfer(
     PAIR_ADDRESS,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters
+  );
+}
+
+function createGnoTransferEvent(
+  from: Address,
+  to: Address,
+  value: BigInt,
+  data: string = "0x00"
+): GnoTransfer {
+  const mockEvent = newMockEvent();
+
+  mockEvent.parameters = new Array();
+
+  mockEvent.parameters.push(
+    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("data", ethereum.Value.fromString(data))
+  );
+
+  return new GnoTransfer(
+    GNO_ADDRESS,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
     mockEvent.logType,
@@ -175,9 +236,9 @@ function getPositionID(pair: Address, user: Address): string {
 //  TESTS
 
 test("Creates WeightedPoolPosition on mint and transfer", () => {
-  clearStore();
-  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
-  handleTransfer(mintEvent);
+  resetFixtures();
+
+  simulateMint();
   assert.fieldEquals(
     "WeightedPoolPosition",
     getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
@@ -194,24 +255,34 @@ test("Creates WeightedPoolPosition on mint and transfer", () => {
 });
 
 test("Adds position to pair.positions and user.positions on mint and transfer", () => {
-  clearStore();
-  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
-  handleTransfer(mintEvent);
+  resetFixtures();
+
+  simulateMint();
   assert.fieldEquals(
-    "AMMPair",
+    "WeightedPool",
     PAIR_ADDRESS.toHexString(),
     "positions",
     "[" + getPositionID(PAIR_ADDRESS, USER1_ADDRESS) + "]"
   );
+
+  assert.fieldEquals(
+    "WeightedPoolPosition",
+    PAIR_ADDRESS.toHexString()
+      .concat("-")
+      .concat(USER1_ADDRESS.toHexString()),
+    "user",
+    USER1_ADDRESS.toHexString()
+  );
+
   assert.fieldEquals(
     "User",
     USER1_ADDRESS.toHexString(),
-    "positions",
+    "weightedPoolPositions",
     "[" + getPositionID(PAIR_ADDRESS, USER1_ADDRESS) + "]"
   );
   handleTransfer(smallTransferEvent);
   assert.fieldEquals(
-    "AMMPair",
+    "WeightedPool",
     PAIR_ADDRESS.toHexString(),
     "positions",
     "[" +
@@ -223,56 +294,35 @@ test("Adds position to pair.positions and user.positions on mint and transfer", 
   assert.fieldEquals(
     "User",
     USER2_ADDRESS.toHexString(),
-    "positions",
+    "weightedPoolPositions",
     "[" + getPositionID(PAIR_ADDRESS, USER2_ADDRESS) + "]"
   );
 });
 
-test("Removes Position from store if position balance is 0", () => {
-  clearStore();
-  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
-  handleTransfer(mintEvent);
+test("Removes position if liquidity is 0", () => {
+  resetFixtures();
+
+  simulateMint();
   assert.fieldEquals(
-    "AMMPosition",
+    "WeightedPoolPosition",
     getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
     "id",
     getPositionID(PAIR_ADDRESS, USER1_ADDRESS)
   );
   handleTransfer(transferEvent);
-  assert.notInStore("AMMPosition", getPositionID(PAIR_ADDRESS, USER1_ADDRESS));
-});
-
-test("Removes Position from positions if balance is 0", () => {
-  clearStore();
-  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
-  handleTransfer(mintEvent);
-  assert.fieldEquals(
-    "AMMPosition",
-    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
-    "id",
+  assert.notInStore(
+    "WeightedPoolPosition",
     getPositionID(PAIR_ADDRESS, USER1_ADDRESS)
   );
-  handleTransfer(PreBurnEvent);
-  handleTransfer(burnEvent);
-  assert.notInStore("AMMPosition", getPositionID(PAIR_ADDRESS, USER1_ADDRESS));
-  assert.notInStore("User", USER1_ADDRESS.toHexString());
-  assert.fieldEquals("AMMPair", PAIR_ADDRESS.toHexString(), "positions", "[]");
-  handleTransfer(mintEvent);
-  assert.fieldEquals(
-    "AMMPair",
-    PAIR_ADDRESS.toHexString(),
-    "positions",
-    "[" + getPositionID(PAIR_ADDRESS, USER1_ADDRESS) + "]"
-  );
 });
 
-test("Updates position balance for recipient on mint", () => {
-  clearStore();
-  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+test("Updates position liquidity for recipient on mint", () => {
+  resetFixtures();
+
   // mint value to user 1
-  handleTransfer(mintEvent);
+  simulateMint();
   assert.fieldEquals(
-    "AMMPosition",
+    "WeightedPoolPosition",
     getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
     "liquidity",
     value.toString()
@@ -280,24 +330,22 @@ test("Updates position balance for recipient on mint", () => {
 });
 
 test("Updates positions of sender and recipient on transfer", () => {
-  clearStore();
-  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+  resetFixtures();
 
   // mint value to user 1
-  handleTransfer(mintEvent);
-  handleSync(createSyncEvent(value, value));
+  simulateMint();
 
   // transfer value from USER1 to USER2
   handleTransfer(smallTransferEvent);
 
   assert.fieldEquals(
-    "AMMPosition",
+    "WeightedPoolPosition",
     getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
     "liquidity",
     value.div(BigInt.fromI32(2)).toString()
   );
   assert.fieldEquals(
-    "AMMPosition",
+    "WeightedPoolPosition",
     getPositionID(PAIR_ADDRESS, USER2_ADDRESS),
     "liquidity",
     value.div(BigInt.fromI32(2)).toString()
@@ -305,12 +353,10 @@ test("Updates positions of sender and recipient on transfer", () => {
 });
 
 test("Updates vote weight for recipient on mint", () => {
-  clearStore();
-  createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+  resetFixtures();
 
   // mint value to user 1
-  handleTransfer(mintEvent);
-  handleSync(createSyncEvent(value, value));
+  simulateMint();
 
   assert.fieldEquals(
     "User",
@@ -320,91 +366,97 @@ test("Updates vote weight for recipient on mint", () => {
   );
 });
 
-// test("Updates vote weight for sender and recipient on transfer", () => {
-//   clearStore();
-//   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+test("Updates vote weight for sender and recipient on transfer", () => {
+  resetFixtures();
 
-//   // mint value to user 1
-//   handleTransfer(mintEvent);
-//   let pair = loadAMMPair(PAIR_ADDRESS);
-//   assert.fieldEquals("User", USER1_ADDRESS.toHexString(), "voteWeight", "1234");
+  // mint value to user 1
+  simulateMint();
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    "2000000"
+  );
 
-//   // transfer value from USER1 to USER2
-//   handleTransfer(smallTransferEvent);
-//   assert.fieldEquals(
-//     "User",
-//     USER1_ADDRESS.toHexString(),
-//     "voteWeight",
-//     "12345"
-//   );
-//   assert.fieldEquals(
-//     "User",
-//     USER2_ADDRESS.toHexString(),
-//     "voteWeight",
-//     "123456"
-//   );
-// });
+  // transfer value from USER1 to USER2
+  handleTransfer(smallTransferEvent);
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    "1000000"
+  );
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "voteWeight",
+    "1000000"
+  );
+});
 
-// test("Removes sender if vote weight is 0", () => {
-//   clearStore();
-//   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+test("Removes sender if vote weight is 0", () => {
+  resetFixtures();
 
-//   // mint value to user 1
-//   handleTransfer(mintEvent);
-//   let pair = loadAMMPair(PAIR_ADDRESS);
-//   assert.fieldEquals(
-//     "User",
-//     USER1_ADDRESS.toHexString(),
-//     "voteWeight",
-//     "1234567"
-//   );
+  // mint value to user 1
+  simulateMint();
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    "2000000"
+  );
 
-//   // transfer value from USER1 to USER2
-//   handleTransfer(transferEvent);
-//   assert.notInStore(
-//     "AMMPosition",
-//     PAIR_ADDRESS.toHexString()
-//       .concat("-")
-//       .concat(USER1_ADDRESS.toHexString())
-//   );
-//   assert.notInStore("User", USER1_ADDRESS.toHexString());
-//   assert.fieldEquals(
-//     "User",
-//     USER2_ADDRESS.toHexString(),
-//     "voteWeight",
-//     "1234567"
-//   );
-// });
+  // transfer value from USER1 to USER2
+  handleTransfer(transferEvent);
+  assert.notInStore(
+    "WeightedPoolPosition",
+    PAIR_ADDRESS.toHexString()
+      .concat("-")
+      .concat(USER1_ADDRESS.toHexString())
+  );
+  assert.notInStore("User", USER1_ADDRESS.toHexString());
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "voteWeight",
+    "2000000"
+  );
+});
 
-// test("Updates vote weight for all LPs on sync", () => {
-//   clearStore();
-//   createPair(GNO_ADDRESS, OTHERTOKEN_ADDRESS, PAIR_ADDRESS, value);
+test("Updates vote weight for all LPs on swap", () => {
+  resetFixtures();
+  // mint value to user 1
+  simulateMint();
+  // transfer half of value from USER1 to USER2
+  handleTransfer(smallTransferEvent);
+  // vote weights before swap:
+  // user1: 1000000
+  // user2: 1000000
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    "1000000"
+  );
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "voteWeight",
+    "1000000"
+  );
 
-//   // mint value to user 1
-//   handleTransfer(mintEvent);
-//   let pair = loadAMMPair(PAIR_ADDRESS);
+  simulateSwap();
 
-//   // transfer half of value from USER1 to USER2
-//   handleTransfer(smallTransferEvent);
-
-//   // mock gno.balanceOf(pair.address)
-//   createMockedFunction(GNO_ADDRESS, "balanceOf", "balanceOf(address):(uint256)")
-//     .withArgs([ethereum.Value.fromAddress(PAIR_ADDRESS)])
-//     .returns([ethereum.Value.fromUnsignedBigInt(value)]);
-
-//   // emit sync event
-//   // note: second param is not used
-//   let syncEvent = createSyncEvent(value, value);
-//   handleSync(syncEvent);
-
-//   let positionUser1 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER1_ADDRESS);
-//   let positionUser2 = loadOrCreateAMMPosition(PAIR_ADDRESS, USER2_ADDRESS);
-//   assert.fieldEquals(
-//     "AMMPair",
-//     pair.id,
-//     "positions",
-//     "[" + positionUser1.id + ", " + positionUser2.id + "]"
-//   );
-//   assert.fieldEquals("User", USER1_ADDRESS.toHexString(), "voteWeight", "111");
-//   assert.fieldEquals("User", USER2_ADDRESS.toHexString(), "voteWeight", "222");
-// });
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    "1052500"
+  );
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "voteWeight",
+    "1052500"
+  );
+});

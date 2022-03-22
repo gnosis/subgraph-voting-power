@@ -1,29 +1,21 @@
-import {
-  createMockedFunction,
-  clearStore,
-  test,
-  assert,
-  logStore,
-} from "matchstick-as/assembly/index";
+import { clearStore, test, assert } from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { User } from "../generated/schema";
 import { handleTransfer } from "../src/gno";
 import { Transfer } from "../generated/ds-gno/ERC20";
-import { log, newMockEvent } from "matchstick-as";
+import { newMockEvent } from "matchstick-as";
 import {
   ADDRESS_ZERO,
   USER1_ADDRESS,
   USER2_ADDRESS,
   value,
   value2x,
-  data,
 } from "./helpers";
 
 function createTransferEvent(
   from: string,
   to: string,
   value: BigInt,
-  data: string
+  data: string = "0x00"
 ): Transfer {
   let mockEvent = newMockEvent();
 
@@ -65,8 +57,7 @@ test("Transfer correctly increases GNO balance of recipient", () => {
   let transferEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value,
-    data
+    value
   );
 
   // mint 1337 to user 1
@@ -94,8 +85,7 @@ test("Transfer correctly decreases GNO balance of sender", () => {
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value2x,
-    data
+    value2x
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
@@ -109,8 +99,7 @@ test("Transfer correctly decreases GNO balance of sender", () => {
   let transferEvent = createTransferEvent(
     USER1_ADDRESS.toHexString(),
     USER2_ADDRESS.toHexString(),
-    value,
-    data
+    value
   );
   handleTransfer(transferEvent);
   assert.fieldEquals(
@@ -127,8 +116,7 @@ test("Transfer correctly increases vote weight of recipient", () => {
   let transferEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value,
-    data
+    value
   );
 
   // mint 1337 to user 1
@@ -156,8 +144,7 @@ test("Transfer correctly decreases vote weight of sender", () => {
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value2x,
-    data
+    value2x
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
@@ -171,8 +158,7 @@ test("Transfer correctly decreases vote weight of sender", () => {
   let transferEvent = createTransferEvent(
     USER1_ADDRESS.toHexString(),
     USER2_ADDRESS.toHexString(),
-    value,
-    data
+    value
   );
   handleTransfer(transferEvent);
   assert.fieldEquals(
@@ -190,8 +176,7 @@ test("Transfer resulting in 0 vote weight removes user from store.", () => {
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value,
-    data
+    value
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
@@ -205,8 +190,7 @@ test("Transfer resulting in 0 vote weight removes user from store.", () => {
   let transferEvent = createTransferEvent(
     USER1_ADDRESS.toHexString(),
     USER2_ADDRESS.toHexString(),
-    value,
-    data
+    value
   );
   handleTransfer(transferEvent);
   assert.notInStore("User", USER1_ADDRESS.toHexString());
@@ -219,8 +203,7 @@ test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", 
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value,
-    data
+    value
   );
   handleTransfer(mintEvent);
   assert.notInStore("User", ADDRESS_ZERO.toHexString());
@@ -229,8 +212,7 @@ test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", 
   let transferEvent = createTransferEvent(
     USER1_ADDRESS.toHexString(),
     ADDRESS_ZERO.toHexString(),
-    value,
-    data
+    value
   );
   handleTransfer(transferEvent);
   assert.notInStore("User", ADDRESS_ZERO.toHexString());

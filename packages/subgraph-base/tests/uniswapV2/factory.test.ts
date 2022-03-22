@@ -15,7 +15,7 @@ test("Factory spawns pair", () => {
   );
   handleNewPair(pairCreatedEvent);
   assert.fieldEquals(
-    "AMMPair",
+    "WeightedPool",
     PAIR_ADDRESS.toHexString(),
     "id",
     PAIR_ADDRESS.toHexString()
@@ -29,7 +29,7 @@ test("New pair has correct GNO position", () => {
     createPairCreatedEvent(GNO_ADDRESS, otherToken, PAIR_ADDRESS, value)
   );
   assert.fieldEquals(
-    "AMMPair",
+    "WeightedPool",
     PAIR_ADDRESS.toHexString(),
     "gnoIsFirst",
     "true"
@@ -40,7 +40,7 @@ test("New pair has correct GNO position", () => {
     createPairCreatedEvent(otherToken, GNO_ADDRESS, PAIR_ADDRESS, value)
   );
   assert.fieldEquals(
-    "AMMPair",
+    "WeightedPool",
     PAIR_ADDRESS.toHexString(),
     "gnoIsFirst",
     "false"

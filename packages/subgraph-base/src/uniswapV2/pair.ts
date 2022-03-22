@@ -128,7 +128,7 @@ export function handleTransfer(event: Transfer): void {
     const voteWeightToAdd = value.times(gnoReserves).div(pool.totalSupply);
     userTo.voteWeight = userTo.voteWeight.plus(voteWeightToAdd);
     removeOrSaveUser(userTo);
-    log.info("added {} from vote weight of {}, for a new total of {}", [
+    log.info("added {} to vote weight of {}, for a new total of {}", [
       voteWeightToAdd.toString(),
       userTo.id,
       userTo.voteWeight.toString(),
@@ -150,9 +150,9 @@ export function handleSwap(event: Swap): void {
   // Swap() is emitted after Transfer(), so reading the pool's balance will give us the updated value
   const gnoReserves = loadGnoReserves(pool.id);
   // to get the GNO reserves before the swap, we add the amount delta
-  const gnoReservesBefore = gnoReserves.plus(gnoIn).minus(gnoOut);
+  const gnoReservesBefore = gnoReserves.minus(gnoIn).plus(gnoOut);
 
-  log.info("handle swap in {}, gno reserves before: {}, after: ", [
+  log.info("handle swap in {}, gno reserves before: {}, after: {}", [
     pool.id,
     gnoReservesBefore.toString(),
     gnoReserves.toString(),
@@ -171,16 +171,20 @@ export function handleSwap(event: Swap): void {
         const voteWeightToAdd = position.liquidity
           .times(gnoReserves)
           .div(pool.totalSupply);
-        user.voteWeight.minus(voteWeightToSubtract).plus(voteWeightToAdd);
-
-        log.info("update vote weight of user {} with liquidity {} (-{}, +{})", [
-          user.id,
-          position.liquidity.toString(),
-          voteWeightToSubtract.toString(),
-          voteWeightToAdd.toString(),
-        ]);
-
+        user.voteWeight = user.voteWeight
+          .plus(voteWeightToAdd)
+          .minus(voteWeightToSubtract);
         user.save();
+
+        log.info(
+          "updated vote weight of user {} with liquidity {} (-{}, +{})",
+          [
+            user.id,
+            position.liquidity.toString(),
+            voteWeightToSubtract.toString(),
+            voteWeightToAdd.toString(),
+          ]
+        );
       }
     }
   }

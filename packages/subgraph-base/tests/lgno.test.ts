@@ -1,29 +1,15 @@
-import {
-  createMockedFunction,
-  clearStore,
-  test,
-  assert,
-  logStore,
-} from "matchstick-as/assembly/index";
+import { clearStore, test, assert } from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { User } from "../generated/schema";
 import { handleTransfer } from "../src/lgno";
 import { Transfer } from "../generated/ds-lgno/ERC20";
-import { log, newMockEvent } from "matchstick-as";
-import {
-  ADDRESS_ZERO,
-  USER1_ADDRESS,
-  USER2_ADDRESS,
-  value,
-  value2x,
-  data,
-} from "./helpers";
+import { newMockEvent } from "matchstick-as";
+import { ADDRESS_ZERO, USER1_ADDRESS, value, value2x } from "./helpers";
 
 function createTransferEvent(
   from: Address,
   to: Address,
   value: BigInt,
-  data: string
+  data: string = "0x00"
 ): Transfer {
   let mockEvent = newMockEvent();
 
@@ -58,12 +44,7 @@ function createTransferEvent(
 test("Transfer correctly increases lGNO balance of recipient", () => {
   clearStore();
   // note: from and to are reversed due to an error in the implementation
-  let transferEvent = createTransferEvent(
-    USER1_ADDRESS,
-    ADDRESS_ZERO,
-    value,
-    data
-  );
+  let transferEvent = createTransferEvent(USER1_ADDRESS, ADDRESS_ZERO, value);
 
   // mint 1337 to user 1
   handleTransfer(transferEvent);
@@ -86,12 +67,7 @@ test("Transfer correctly increases lGNO balance of recipient", () => {
 
 test("Transfer correctly increases vote weight of recipient", () => {
   clearStore();
-  let transferEvent = createTransferEvent(
-    USER1_ADDRESS,
-    ADDRESS_ZERO,
-    value,
-    data
-  );
+  let transferEvent = createTransferEvent(USER1_ADDRESS, ADDRESS_ZERO, value);
 
   // mint 1337 to user 1
   handleTransfer(transferEvent);
@@ -114,17 +90,12 @@ test("Transfer correctly increases vote weight of recipient", () => {
 
 test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", () => {
   // send 1337 from USER1_ADDRESS to ADDRESS_ZERO, ADDRESS_ZERO should not be in store
-  let mintEvent = createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value, data);
+  let mintEvent = createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value);
   handleTransfer(mintEvent);
   assert.notInStore("User", ADDRESS_ZERO.toHexString());
 
   // send 1337 from ADDRESS_ZERO to USER1_ADDRESS, ADDRESS_ZERO should not be in store
-  let transferEvent = createTransferEvent(
-    USER1_ADDRESS,
-    ADDRESS_ZERO,
-    value,
-    data
-  );
+  let transferEvent = createTransferEvent(USER1_ADDRESS, ADDRESS_ZERO, value);
   handleTransfer(transferEvent);
   assert.notInStore("User", ADDRESS_ZERO.toHexString());
 

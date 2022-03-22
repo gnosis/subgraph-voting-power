@@ -28,25 +28,27 @@ export const BI_18 = BigInt.fromI32(18);
 
 export function loadOrCreateUser(address: Address): User {
   const id = address.toHexString();
-  let entry = User.load(id);
-  if (entry == null) {
-    entry = new User(id);
-    entry.voteWeight = BigInt.fromI32(0);
-    entry.gno = BigInt.fromI32(0);
-    entry.mgno = BigInt.fromI32(0);
-    entry.lgno = BigInt.fromI32(0);
-    entry.deposit = BigInt.fromI32(0);
+  let user = User.load(id);
+  if (user == null) {
+    user = new User(id);
+    user.voteWeight = BigInt.fromI32(0);
+    user.gno = BigInt.fromI32(0);
+    user.mgno = BigInt.fromI32(0);
+    user.lgno = BigInt.fromI32(0);
+    user.deposit = BigInt.fromI32(0);
     if (id != ADDRESS_ZERO.toHexString()) {
-      entry.save();
+      user.save();
+      log.info("created user {}", [id]);
     }
   }
-  return entry;
+  return user;
 }
 
 export function removeOrSaveUser(user: User): void {
   if (user) {
     if (user && user.voteWeight == BigInt.fromI32(0)) {
       store.remove("User", user.id);
+      log.info("removed user {}", [user.id]);
     } else {
       user.save();
     }

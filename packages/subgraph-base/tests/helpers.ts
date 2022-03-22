@@ -1,13 +1,5 @@
-import {
-  createMockedFunction,
-  clearStore,
-  test,
-  assert,
-  logStore,
-} from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { User } from "../generated/schema";
-import { log, newMockEvent } from "matchstick-as";
+import { newMockEvent } from "matchstick-as";
 import { Transfer } from "../generated/templates/Pair/ERC20";
 import { Sync } from "../generated/templates/Pair/Pair";
 import { PairCreated } from "../generated/Factory/Factory";
@@ -33,7 +25,6 @@ export const OTHERTOKEN_ADDRESS = Address.fromString(
 );
 export const value = BigInt.fromI32(2000000);
 export const value2x = BigInt.fromI32(4000000);
-export const data = "0x00";
 
 export function createTransferEvent(
   from: Address,

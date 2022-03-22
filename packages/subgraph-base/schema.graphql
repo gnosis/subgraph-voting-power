@@ -5,8 +5,7 @@ type User @entity {
   mgno: BigInt!
   lgno: BigInt!
   deposit: BigInt!
-  weightedPoolPositions: [ConcentratedLiquidityPosition!]!
-    @derivedFrom(field: "user")
+  weightedPoolPositions: [WeightedPoolPosition!]! @derivedFrom(field: "user")
   concentratedLiquidityPositions: [ConcentratedLiquidityPosition!]!
     @derivedFrom(field: "user")
 }
