@@ -1,8 +1,9 @@
-import { Address, BigInt, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 
 import {
   DecreaseLiquidity,
   IncreaseLiquidity,
+  NonfungiblePositionManager,
   Transfer,
 } from "../../generated/NonfungiblePositionManager/NonfungiblePositionManager";
 import {
@@ -10,12 +11,16 @@ import {
   ConcentratedLiquidityPosition,
 } from "../../../subgraph-base/generated/schema";
 import { updateForLiquidityChange } from "./voteWeight";
+import { ADDRESS_ZERO, ZERO_BI } from "../../../subgraph-base/src/helpers";
+import { Factory } from "../../generated/Factory/Factory";
 
 export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   const position = loadOrCreateConcentratedLiquidityPosition(
-    event.address,
+    event,
     event.params.tokenId
   );
+  if (position == null) return;
+
   const previousLiquidity = position.liquidity;
   position.liquidity = position.liquidity.plus(event.params.liquidity);
   position.save();
@@ -25,9 +30,11 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
 
 export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
   const position = loadOrCreateConcentratedLiquidityPosition(
-    event.address,
+    event,
     event.params.tokenId
   );
+  if (position == null) return;
+
   const previousLiquidity = position.liquidity;
   position.liquidity = position.liquidity.minus(event.params.liquidity);
   position.save();
@@ -37,45 +44,90 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
 
 export function handleTransfer(event: Transfer): void {
   const position = loadOrCreateConcentratedLiquidityPosition(
-    event.address,
+    event,
     event.params.tokenId
   );
+  if (position == null) return;
+
+  const recipient = event.params.to.toHexString();
   const liquidity = position.liquidity;
-  position.liquidity = BI_ZERO;
-  updateForLiquidityChange(position, liquidity);
 
-  position.liquidity = liquidity;
-  position.user = event.params.to.toHexString();
+  log.info("Transfer nun-fungible position {} from {} to {} (liquidity: {})", [
+    position.id,
+    position.user,
+    recipient,
+    liquidity.toString(),
+  ]);
+
+  // update vote weight of sender
+  if (position.user !== ADDRESS_ZERO.toHexString()) {
+    // temporarily set to zero for updating vote weight
+    position.liquidity = ZERO_BI;
+    updateForLiquidityChange(position, liquidity);
+    position.liquidity = liquidity;
+  }
+
+  // update vote weight of recipient
+  position.user = recipient;
   position.save();
-
-  updateForLiquidityChange(position, BI_ZERO);
+  updateForLiquidityChange(position, ZERO_BI);
 }
 
-const BI_ZERO = BigInt.fromI32(0);
+const FACTORY_ADDRESS = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+const factoryContract = Factory.bind(Address.fromString(FACTORY_ADDRESS));
 
 function loadOrCreateConcentratedLiquidityPosition(
-  pairAddress: Address,
+  event: ethereum.Event,
   tokenId: BigInt
-): ConcentratedLiquidityPosition {
-  const pair = ConcentratedLiquidityPair.load(pairAddress.toHexString());
-  if (!pair)
-    throw new Error(`Could not find pair ${pairAddress.toHexString()}`);
+): ConcentratedLiquidityPosition | null {
+  let position = ConcentratedLiquidityPosition.load(tokenId.toString());
 
-  const id = pair.id.concat("-").concat(tokenId.toHexString());
-  let position = ConcentratedLiquidityPosition.load(id);
   if (!position) {
-    position = new ConcentratedLiquidityPosition(id);
-    position.pair = pair.id;
-    position.liquidity = BI_ZERO;
+    const contract = NonfungiblePositionManager.bind(event.address);
+    const positionCall = contract.try_positions(tokenId);
+
+    if (positionCall.reverted) {
+      // apparently this happens :/
+      // (see: https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/mappings/position-manager.ts#L20)
+      log.warning("positions call reverted, could not create position {}", [
+        tokenId.toString(),
+      ]);
+      return null;
+    }
+
+    const positionResult = positionCall.value;
+    const poolAddress = factoryContract.getPool(
+      positionResult.value2,
+      positionResult.value3,
+      positionResult.value4
+    );
+    const pair = ConcentratedLiquidityPair.load(poolAddress.toHexString());
+    if (!pair) {
+      throw new Error(`Could not find pair ${poolAddress.toHexString()}`);
+    }
+
+    position = new ConcentratedLiquidityPosition(tokenId.toString());
+    // The user gets correctly updated in the Transfer handler
+    position.user = ADDRESS_ZERO.toHexString();
+    position.pair = poolAddress.toHexString();
+    position.liquidity = ZERO_BI;
+    position.lowerTick = BigInt.fromI32(positionResult.value5);
+    position.upperTick = BigInt.fromI32(positionResult.value6);
     position.save();
 
-    pair.positions = pair.positions.concat([id]);
+    pair.positions = pair.positions.concat([tokenId.toString()]);
     pair.save();
 
-    log.info("created new ConcentratedLiquidityPair {} in pair {}", [
-      id,
-      pair.id,
-    ]);
+    log.info(
+      "created new position {} in pair {} with lower tick: {}, upper tick: {}",
+      [
+        tokenId.toString(),
+        pair.id,
+        position.lowerTick.toString(),
+        position.upperTick.toString(),
+      ]
+    );
   }
+
   return position;
 }
