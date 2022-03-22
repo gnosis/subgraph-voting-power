@@ -13,7 +13,7 @@ export function handleInitialize(event: Initialize): void {
   if (!pair) return;
   pair.sqrtRatio = toX96Decimal(event.params.sqrtPriceX96);
   pair.save();
-  log.info("initialized ratio of pair {}: {}", [
+  log.info("initialized pair {}, sqrtRatio: {}", [
     pair.id,
     pair.sqrtRatio.toString(),
   ]);

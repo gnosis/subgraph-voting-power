@@ -2,9 +2,12 @@ import { BigInt, BigDecimal, Address, log } from "@graphprotocol/graph-ts";
 import {
   ConcentratedLiquidityPair,
   ConcentratedLiquidityPosition,
-  User,
 } from "../../../subgraph-base/generated/schema";
-import { loadOrCreateUser } from "../../../subgraph-base/src/helpers";
+import {
+  loadOrCreateUser,
+  removeOrSaveUser,
+  ZERO_BI,
+} from "../../../subgraph-base/src/helpers";
 
 export function updateForLiquidityChange(
   position: ConcentratedLiquidityPosition,
@@ -16,13 +19,9 @@ export function updateForLiquidityChange(
   const sqrtRatio = pair.sqrtRatio;
 
   if (sqrtRatio.equals(ZERO_BD)) {
-    // Since Sync will only be emitted after transfer, we have no sqrtRatio available
-    // for the very first LP token transfer. We simply don't update the voting weight here
-    // as we can rely on it being set in the handling of the upcoming Sync event.
-    log.info("skipping vote weight calculation for first deposit into {}", [
-      pair.id,
-    ]);
-    return;
+    throw new Error(
+      `Cannot update position ${position.id} since sqrtRatio is not yet initialized for pair ${pair.id}`
+    );
   }
 
   const user = loadOrCreateUser(Address.fromString(position.user));
@@ -41,11 +40,7 @@ export function updateForLiquidityChange(
     : getToken1Balance(position, pair.sqrtRatio);
 
   user.voteWeight = user.voteWeight.minus(amountToSubtract).plus(amountToAdd);
-  user.save();
-  log.info("gnoIsFirst: {}, pair.sqrtRatio: {}", [
-    gnoIsFirst.toString(),
-    pair.sqrtRatio.toString(),
-  ]);
+  removeOrSaveUser(user);
   log.info(
     "updated voting weight of user {} (-{}, +{}) for liquidity change (old: {}, new: {})",
     [
@@ -94,8 +89,7 @@ export function updateForRatioChange(
       user.voteWeight = user.voteWeight
         .plus(amountToAdd)
         .minus(amountToSubtract);
-      user.save();
-
+      removeOrSaveUser(user);
       log.info(
         "updated voting weight of user {} (-{}, +{}) for ratio change (old: {}, new: {})",
         [
@@ -138,7 +132,7 @@ function getToken0Balance(
     );
   } else if (sqrtRatio > upperBound) {
     // liquidity is fully in token1
-    return BigInt.fromI32(0);
+    return ZERO_BI;
   } else {
     // liquidity is in token0 and token1
     // use equation (11) from https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf
@@ -170,7 +164,7 @@ function getToken1Balance(
 
   if (sqrtRatio < lowerBound) {
     // liquidity is fully in token0
-    return BigInt.fromI32(0);
+    return ZERO_BI;
   } else if (sqrtRatio > upperBound) {
     // liquidity is fully in token1
     // use equation (8) from https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf
@@ -190,7 +184,6 @@ function bigDecimalToBigInt(bd: BigDecimal): BigInt {
   return BigInt.fromString(bd.toString().split(".")[0]);
 }
 
-const ZERO_BI = BigInt.fromI32(0);
 const ONE_BI = BigInt.fromI32(1);
 const ZERO_BD = BigDecimal.fromString("0");
 const ONE_BD = BigDecimal.fromString("1");

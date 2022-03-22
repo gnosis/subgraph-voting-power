@@ -33,7 +33,7 @@ type ConcentratedLiquidityPair @entity {
   positions: [ConcentratedLiquidityPosition!]!
 }
 type ConcentratedLiquidityPosition @entity {
-  id: ID! # <PAIR_ADDRESS>-<USER_ADDRESS> or <PAIR_ADDRESS>-<TOKEN_ID> for UniV3
+  id: ID! # UniV3 NFT tokenId
   user: User!
   pair: ConcentratedLiquidityPair!
   liquidity: BigInt!

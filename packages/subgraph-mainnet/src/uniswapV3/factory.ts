@@ -1,5 +1,6 @@
 import { Address, log } from "@graphprotocol/graph-ts";
 import { ConcentratedLiquidityPair } from "../../../subgraph-base/generated/schema";
+import { ZERO_BD } from "../../../subgraph-base/src/helpers";
 import { PoolCreated } from "../../generated/Factory/Factory";
 import { Pool } from "../../generated/templates";
 
@@ -31,6 +32,8 @@ function createConcentratedLiquidityPair(
   log.info("instantiated ConcentratedLiquidityPair instance: {}", [id]);
   const pair = new ConcentratedLiquidityPair(id);
   pair.gnoIsFirst = token0.equals(GNO_ADDRESS);
+  pair.sqrtRatio = ZERO_BD;
+  pair.positions = [];
   pair.save();
   return pair;
 }
