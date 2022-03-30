@@ -180,39 +180,6 @@ test("Transfer correctly decreases vote weight of sender", () => {
   );
 });
 
-test("Transfer to DEPOSIT_ADDRESS does not change vote weight", () => {
-  clearStore();
-  // mint value2x to USER1_ADDRESS
-  let mintEvent = createTransferEvent(
-    ADDRESS_ZERO.toHexString(),
-    USER1_ADDRESS.toHexString(),
-    value2x,
-    data
-  );
-  handleTransfer(mintEvent);
-  assert.fieldEquals(
-    "User",
-    USER1_ADDRESS.toHexString(),
-    "voteWeight",
-    value2x.div(MGNO_PER_GNO).toString()
-  );
-
-  // send value from USER1_ADDRESS to USER2_ADDRESS, user one should have value left
-  let transferEvent = createTransferEvent(
-    USER1_ADDRESS.toHexString(),
-    DEPOSIT_ADDRESS.toHexString(),
-    value,
-    data
-  );
-  handleTransfer(transferEvent);
-  assert.fieldEquals(
-    "User",
-    USER1_ADDRESS.toHexString(),
-    "voteWeight",
-    value2x.div(MGNO_PER_GNO).toString()
-  );
-});
-
 test("Transfer resulting in 0 vote weight removes user from store.", () => {
   clearStore();
   // mint value2x to USER1_ADDRESS
