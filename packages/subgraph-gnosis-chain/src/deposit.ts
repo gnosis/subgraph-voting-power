@@ -1,8 +1,6 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import { DepositEvent } from "../generated/ds-deposit/SBCDepositContract";
-import { loadOrCreateUser } from "./helpers";
-
-const ONE_GNO = BigInt.fromString("1000000000000000000");
+import { loadOrCreateUser, ONE_GNO } from "../../subgraph-base/src/helpers";
 
 export function handleDeposit(event: DepositEvent): void {
   const user = event.transaction.from;

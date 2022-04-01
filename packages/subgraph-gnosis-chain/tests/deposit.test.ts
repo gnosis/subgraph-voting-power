@@ -4,7 +4,6 @@ import { handleDeposit } from "../src/deposit";
 import { DepositEvent } from "../generated/ds-deposit/SBCDepositContract";
 import { log, newMockEvent } from "matchstick-as";
 import {
-  ADDRESS_ZERO,
   ONE_GNO,
   MGNO_PER_GNO,
   DEPOSIT_ADDRESS,
