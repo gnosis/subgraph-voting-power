@@ -1,7 +1,6 @@
 import { BigInt, log, store, Address, Value } from "@graphprotocol/graph-ts";
 import { Transfer, Sync, Swap } from "../../generated/templates/Pair/Pair";
 
-import { ERC20 } from "../../generated/templates/Pair/ERC20";
 import {
   ADDRESS_ZERO,
   loadOrCreateUser,
@@ -22,14 +21,6 @@ export function handleTransfer(event: Transfer): void {
     gnoReserves.toString(),
     pool.totalSupply.toString(),
   ]);
-
-  // ignore initial transfers for first adds
-  // if (
-  //   event.params.to.toHexString() == ADDRESS_ZERO.toHexString() &&
-  //   event.params.value.equals(BigInt.fromI32(1000))
-  // ) {
-  //   return;
-  // }
 
   // user stats
   const from = event.params.from;
@@ -158,7 +149,6 @@ export function handleSwap(event: Swap): void {
     gnoReserves.toString(),
   ]);
 
-  // set set previous ratio to current ratio
   if (pool.positions) {
     for (let index = 0; index < pool.positions.length; index++) {
       const position = WeightedPoolPosition.load(pool.positions[index]);
