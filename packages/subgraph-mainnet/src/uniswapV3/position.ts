@@ -11,7 +11,11 @@ import {
   ConcentratedLiquidityPosition,
 } from "../../../subgraph-base/generated/schema";
 import { updateForLiquidityChange } from "./voteWeight";
-import { ADDRESS_ZERO, ZERO_BI } from "../../../subgraph-base/src/helpers";
+import {
+  ADDRESS_ZERO,
+  GNO_ADDRESS,
+  ZERO_BI,
+} from "../../../subgraph-base/src/helpers";
 import { Factory } from "../../generated/Factory/Factory";
 
 export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
@@ -94,11 +98,18 @@ function loadOrCreateConcentratedLiquidityPosition(
       ]);
       return null;
     }
-
     const positionResult = positionCall.value;
+    const tokenA = positionResult.value2;
+    const tokenB = positionResult.value3;
+
+    if (!tokenA.equals(GNO_ADDRESS) && !tokenB.equals(GNO_ADDRESS)) {
+      // we don't track this pair, so we can ignore this position
+      return null;
+    }
+
     const poolAddress = factoryContract.getPool(
-      positionResult.value2,
-      positionResult.value3,
+      tokenA,
+      tokenB,
       positionResult.value4
     );
     const pair = ConcentratedLiquidityPair.load(poolAddress.toHexString());
