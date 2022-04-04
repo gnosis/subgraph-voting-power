@@ -97,12 +97,14 @@ test("updates vote weight after swaps", () => {
     "1"
   );
 
+  // sqrtRatio changes from 1/1 (x=1, y=1) to 1/2 => ratio changes to 1/4
+  // x=2 GNO reserves, y=0.5 other token reserves (preserving x*y=k)
   handleSwap(createSwapEvent(1, 2));
   assert.fieldEquals(
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    ONE_GNO.div(BigInt.fromI32(2)).toString()
+    "1999999999999999999" // there is some rounding error
   );
 });
 
