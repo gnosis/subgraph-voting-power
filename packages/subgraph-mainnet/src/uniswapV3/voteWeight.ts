@@ -19,9 +19,11 @@ export function updateForLiquidityChange(
   const sqrtRatio = pair.sqrtRatio;
 
   if (sqrtRatio.equals(ZERO_BD)) {
-    throw new Error(
-      `Cannot update position ${position.id} since sqrtRatio is not yet initialized for pair ${pair.id}`
+    log.warning(
+      "Cannot update position {} since sqrtRatio is not yet initialized for pair {}",
+      [position.id, pair.id]
     );
+    return;
   }
 
   const user = loadOrCreateUser(Address.fromString(position.user));
@@ -80,7 +82,7 @@ export function updateForRatioChange(
 
       // subtract vote weight for previous ratio
       let amountToSubtract = ZERO_BI;
-      if (previousSqrtRatio.equals(ZERO_BD)) {
+      if (!previousSqrtRatio.equals(ZERO_BD)) {
         amountToSubtract = gnoIsFirst
           ? getToken0Balance(position, previousSqrtRatio)
           : getToken1Balance(position, previousSqrtRatio);
