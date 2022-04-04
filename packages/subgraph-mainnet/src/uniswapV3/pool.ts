@@ -29,7 +29,13 @@ export function handleSwap(event: SwapEvent): void {
 }
 
 function toX96Decimal(bi: BigInt): BigDecimal {
-  return bi.toBigDecimal().div(BigDecimal.fromString((2 ** 96).toString()));
+  return bi.toBigDecimal().div(
+    BigDecimal.fromString(
+      BigInt.fromI32(2)
+        .pow(96)
+        .toString()
+    )
+  );
 }
 
 function loadConcentratedLiquidityPair(
