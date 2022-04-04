@@ -56,9 +56,7 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/balancer/vault.ts
       entities:
-        - User
         - WeightedPool
-        - WeightedPoolPosition
       abis:
         - name: Vault
           file: ./abis/Vault.json
@@ -84,6 +82,8 @@ dataSources:
       abis:
         - name: WeightedPoolFactory
           file: ./abis/WeightedPoolFactory.json
+        - name: WeightedPool
+          file: ./abis/WeightedPool.json
       eventHandlers:
         - event: PoolCreated(indexed address)
           handler: handleNewWeightedPool
@@ -102,7 +102,10 @@ dataSources:
       entities:
         - WeightedPool
       abis:
-        file: ./abis/WeightedPoolFactory.json
+        - name: WeightedPoolFactory
+          file: ./abis/WeightedPoolFactory.json
+        - name: WeightedPool
+          file: ./abis/WeightedPool.json
       eventHandlers:
         - event: PoolCreated(indexed address)
           handler: handleNewWeightedPool
@@ -120,7 +123,6 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/uniswapV3/factory.ts
       entities:
-        - User
         - ConcentratedLiquidityPair
       abis:
         - name: Factory

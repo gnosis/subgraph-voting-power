@@ -18,7 +18,7 @@ export function handleNewPair(event: PairCreated): void {
   }
 }
 
-export function createWeightedPool(
+function createWeightedPool(
   address: Address,
   token0: Address,
   token1: Address

@@ -1,13 +1,35 @@
+import { BigInt, Address, log } from "@graphprotocol/graph-ts";
+import {
+  User,
+  WeightedPool,
+  WeightedPoolPosition,
+} from "../../../subgraph-base/generated/schema";
+import {
+  GNO_ADDRESS,
+  loadOrCreateUser,
+  removeOrSaveUser,
+  ZERO_BI,
+} from "../../../subgraph-base/src/helpers";
+import {
+  InternalBalanceChanged,
+  Swap as SwapEvent,
+} from "../../generated/Vault/Vault";
+
 export function handleSwap(event: SwapEvent): void {
   const pool = loadWeightedPool(event.address);
 
-  // swaps don't change LP token total supply, but they do change the GNO reserves and thus the ratio
-  const gnoIn = pool.gnoIsFirst
-    ? event.params.amount0In
-    : event.params.amount1In;
-  const gnoOut = pool.gnoIsFirst
-    ? event.params.amount0Out
-    : event.params.amount1Out;
+  // swaps don't change LP token total supply, but they might change the GNO reserves
+  const gnoIn = event.params.tokenIn.equals(GNO_ADDRESS)
+    ? event.params.amountIn
+    : ZERO_BI;
+  const gnoOut = event.params.tokenOut.equals(GNO_ADDRESS)
+    ? event.params.amountIn
+    : ZERO_BI;
+
+  if (gnoIn.equals(ZERO_BI) && gnoOut.equals(ZERO_BI)) {
+    // no change in GNO reserves
+    return;
+  }
 
   // Swap() is emitted after Transfer(), so reading the pool's balance will give us the updated value
   const gnoReserves = loadGnoReserves(pool.id);
@@ -51,25 +73,28 @@ export function handleSwap(event: SwapEvent): void {
   }
 }
 
-// account for Balancer internal GNO balances -> add field to user: balancerInternalGno
-// export function handleInternalBalanceChange(event: InternalBalanceChanged): void {
-//     createUserEntity(event.params.user);
+export function handleInternalBalanceChange(
+  event: InternalBalanceChanged
+): void {
+  if (event.params.token === GNO_ADDRESS) {
+    const user = loadOrCreateUser(event.params.user);
+    user.balancerInternalGno = user.balancerInternalGno.plus(
+      event.params.delta
+    );
+    user.voteWeight = user.voteWeight.plus(event.params.delta);
+    removeOrSaveUser(user);
+  }
+}
 
-//     let userAddress = event.params.user.toHexString();
-//     let token = event.params.token;
-//     let balanceId = userAddress.concat(token.toHexString());
+function loadWeightedPool(address: Address): WeightedPool {
+  const id = address.toHexString();
+  const pool = WeightedPool.load(id);
+  if (!pool) throw new Error(`WeightedPool with id ${id} not found`);
+  return pool;
+}
 
-//     let userBalance = UserInternalBalance.load(balanceId);
-//     if (userBalance == null) {
-//       userBalance = new UserInternalBalance(balanceId);
-
-//       userBalance.userAddress = userAddress;
-//       userBalance.token = token;
-//       userBalance.balance = ZERO_BD;
-//     }
-
-//     let transferAmount = tokenToDecimal(event.params.delta, getTokenDecimals(token));
-//     userBalance.balance = userBalance.balance.plus(transferAmount);
-
-//     userBalance.save();
-//   }
+function loadGnoReserves(accountAddress: string): BigInt {
+  const user = User.load(accountAddress);
+  if (!user) return ZERO_BI;
+  return user.gno;
+}

@@ -1,5 +1,5 @@
 import { BigInt, log, store, Address, Value } from "@graphprotocol/graph-ts";
-import { Transfer, Sync, Swap } from "../../generated/templates/Pair/Pair";
+import { Transfer, Swap } from "../../generated/templates/Pair/Pair";
 
 import {
   ADDRESS_ZERO,
@@ -130,7 +130,7 @@ export function handleTransfer(event: Transfer): void {
 export function handleSwap(event: Swap): void {
   const pool = loadWeightedPool(event.address);
 
-  // swaps don't change LP token total supply, but they do change the GNO reserves and thus the ratio
+  // swaps don't change LP token total supply, but they do change the GNO reserves
   const gnoIn = pool.gnoIsFirst
     ? event.params.amount0In
     : event.params.amount1In;

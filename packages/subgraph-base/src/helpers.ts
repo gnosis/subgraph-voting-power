@@ -36,6 +36,7 @@ export function loadOrCreateUser(address: Address): User {
     user.mgno = BigInt.fromI32(0);
     user.lgno = BigInt.fromI32(0);
     user.deposit = BigInt.fromI32(0);
+    user.balancerInternalGno = BigInt.fromI32(0);
     if (id != ADDRESS_ZERO.toHexString()) {
       user.save();
       log.info("created user {}", [id]);
