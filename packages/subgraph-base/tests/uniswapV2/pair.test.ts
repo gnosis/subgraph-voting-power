@@ -83,23 +83,6 @@ function simulateSwap(): void {
   );
 }
 
-function createPool(
-  token0: Address,
-  token1: Address,
-  pair: Address,
-  value: BigInt = BigInt.fromU32(0)
-): WeightedPool {
-  let pairCreatedEvent = createPairCreatedEvent(token0, token1, pair, value);
-  handleNewPair(pairCreatedEvent);
-  assert.fieldEquals(
-    "WeightedPool",
-    pair.toHexString(),
-    "id",
-    pair.toHexString()
-  );
-  return new WeightedPool(pair.toHexString());
-}
-
 function createTransferEvent(
   from: Address,
   to: Address,

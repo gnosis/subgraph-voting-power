@@ -14,7 +14,7 @@ export const GNO_ADDRESS = Address.fromString(
     : "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
 );
 
-export const ADDRESS_ZERO = Address.fromHexString(
+export const ADDRESS_ZERO = Address.fromString(
   "0x0000000000000000000000000000000000000000"
 );
 
