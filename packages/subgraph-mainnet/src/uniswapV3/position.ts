@@ -77,7 +77,7 @@ export function handleTransfer(event: Transfer): void {
   updateForLiquidityChange(position, ZERO_BI);
 }
 
-const FACTORY_ADDRESS = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+export const FACTORY_ADDRESS = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 const factoryContract = Factory.bind(Address.fromString(FACTORY_ADDRESS));
 
 function loadOrCreateConcentratedLiquidityPosition(

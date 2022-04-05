@@ -46,7 +46,7 @@ export function loadOrCreateUser(address: Address): User {
 
 export function removeOrSaveUser(user: User): void {
   if (user) {
-    if (user && user.voteWeight == BigInt.fromI32(0)) {
+    if (user.voteWeight == BigInt.fromI32(0)) {
       store.remove("User", user.id);
       log.info("removed user {}", [user.id]);
     } else {
