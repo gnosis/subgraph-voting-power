@@ -1,5 +1,5 @@
 import { BigInt, log, store, Address, Value } from "@graphprotocol/graph-ts";
-import { Transfer, Swap } from "../../generated/templates/Pair/Pair";
+import { Transfer, Sync, Swap } from "../../generated/templates/Pair/Pair";
 
 import {
   ADDRESS_ZERO,
@@ -14,7 +14,20 @@ import {
 } from "../../generated/schema";
 
 export function handleTransfer(event: Transfer): void {
-  const pool = loadWeightedPool(event.address);
+  const id = event.address.toHexString();
+  const pool = WeightedPool.load(id);
+  if (!pool) {
+    log.warning(
+      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
+      [
+        id,
+        event.transaction.hash.toHexString(),
+        event.transactionLogIndex.toString(),
+      ]
+    );
+    return;
+  }
+
   const gnoReserves = loadGnoReserves(pool.id);
   log.info("pool loaded: {}, gno reserves: {}, total supply: {}", [
     pool.id,
@@ -128,9 +141,21 @@ export function handleTransfer(event: Transfer): void {
 }
 
 export function handleSwap(event: Swap): void {
-  const pool = loadWeightedPool(event.address);
+  const id = event.address.toHexString();
+  const pool = WeightedPool.load(id);
+  if (!pool) {
+    log.warning(
+      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
+      [
+        id,
+        event.transaction.hash.toHexString(),
+        event.transactionLogIndex.toString(),
+      ]
+    );
+    return;
+  }
 
-  // swaps don't change LP token total supply, but they do change the GNO reserves
+  // swaps don't change LP token total supply, but they do change the GNO reserves and thus the ratio
   const gnoIn = pool.gnoIsFirst
     ? event.params.amount0In
     : event.params.amount1In;
@@ -149,6 +174,7 @@ export function handleSwap(event: Swap): void {
     gnoReserves.toString(),
   ]);
 
+  // set set previous ratio to current ratio
   if (pool.positions) {
     for (let index = 0; index < pool.positions.length; index++) {
       const position = WeightedPoolPosition.load(pool.positions[index]);
@@ -200,13 +226,6 @@ function loadOrCreateWeightedPoolPosition(
     log.info("created new position {} in WeightedPool {}", [id, pool.id]);
   }
   return position;
-}
-
-function loadWeightedPool(address: Address): WeightedPool {
-  const id = address.toHexString();
-  const pool = WeightedPool.load(id);
-  if (!pool) throw new Error(`WeightedPool with id ${id} not found`);
-  return pool;
 }
 
 function loadGnoReserves(accountAddress: string): BigInt {
