@@ -62,7 +62,7 @@ dataSources:
           file: ./abis/Vault.json
       eventHandlers:
         - event: Swap(indexed bytes32,indexed address,indexed address,uint256,uint256)
-          handler: handleSwapEvent
+          handler: handleSwap
         - event: InternalBalanceChanged(indexed address,indexed address,int256)
           handler: handleInternalBalanceChange
   - kind: ethereum/contract
