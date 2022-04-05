@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum, log, store } from "@graphprotocol/graph-ts";
 
 import {
   DecreaseLiquidity,
@@ -41,9 +41,9 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
 
   const previousLiquidity = position.liquidity;
   position.liquidity = position.liquidity.minus(event.params.liquidity);
-  position.save();
 
   updateForLiquidityChange(position, previousLiquidity);
+  removeOrSavePosition(position);
 }
 
 export function handleTransfer(event: Transfer): void {
@@ -64,7 +64,7 @@ export function handleTransfer(event: Transfer): void {
   ]);
 
   // update vote weight of sender
-  if (position.user !== ADDRESS_ZERO.toHexString()) {
+  if (position.user != ADDRESS_ZERO.toHexString()) {
     // temporarily set to zero for updating vote weight
     position.liquidity = ZERO_BI;
     updateForLiquidityChange(position, liquidity);
@@ -141,4 +141,13 @@ function loadOrCreateConcentratedLiquidityPosition(
   }
 
   return position;
+}
+
+function removeOrSavePosition(position: ConcentratedLiquidityPosition): void {
+  if (position.liquidity.equals(ZERO_BI)) {
+    store.remove("ConcentratedLiquidityPosition", position.id);
+    log.info("removed concentrated liquidity position {}", [position.id]);
+  } else {
+    position.save();
+  }
 }
