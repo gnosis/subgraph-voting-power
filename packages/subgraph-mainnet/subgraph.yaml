@@ -80,6 +80,8 @@ dataSources:
       entities:
         - WeightedPool
       abis:
+        - name: Vault
+          file: ./abis/Vault.json
         - name: WeightedPoolFactory
           file: ./abis/WeightedPoolFactory.json
         - name: WeightedPool
@@ -102,6 +104,8 @@ dataSources:
       entities:
         - WeightedPool
       abis:
+        - name: Vault
+          file: ./abis/Vault.json
         - name: WeightedPoolFactory
           file: ./abis/WeightedPoolFactory.json
         - name: WeightedPool
@@ -182,6 +186,8 @@ templates:
         - WeightedPool
         - WeightedPoolPosition
       abis:
+        - name: Vault
+          file: ./abis/Vault.json
         - name: WeightedPool
           file: ./abis/ERC20.json
       eventHandlers:
