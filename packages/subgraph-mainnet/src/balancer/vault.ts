@@ -76,7 +76,7 @@ export function handleSwap(event: SwapEvent): void {
 export function handleInternalBalanceChange(
   event: InternalBalanceChanged
 ): void {
-  if (event.params.token === GNO_ADDRESS) {
+  if (event.params.token.equals(GNO_ADDRESS)) {
     const user = loadOrCreateUser(event.params.user);
     user.balancerInternalGno = user.balancerInternalGno.plus(
       event.params.delta
