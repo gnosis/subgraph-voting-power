@@ -41,18 +41,21 @@ export function updateForLiquidityChange(
     ? getToken0Balance(position, pair.sqrtRatio)
     : getToken1Balance(position, pair.sqrtRatio);
 
-  user.voteWeight = user.voteWeight.minus(amountToSubtract).plus(amountToAdd);
-  removeOrSaveUser(user);
-  log.info(
-    "updated voting weight of user {} (-{}, +{}) for liquidity change (old: {}, new: {})",
-    [
-      user.id,
-      amountToSubtract.toString(),
-      amountToAdd.toString(),
-      previousLiquidity.toString(),
-      newLiquidity.toString(),
-    ]
-  );
+  const delta = amountToAdd.minus(amountToSubtract);
+
+  if (!delta.equals(ZERO_BI)) {
+    user.voteWeight = user.voteWeight.plus(delta);
+    removeOrSaveUser(user);
+    log.info(
+      "updated voting weight of user {} (delta: {}) for liquidity change (old: {}, new: {})",
+      [
+        user.id,
+        delta.toString(),
+        previousLiquidity.toString(),
+        newLiquidity.toString(),
+      ]
+    );
+  }
 }
 
 export function updateForRatioChange(
@@ -88,20 +91,22 @@ export function updateForRatioChange(
           : getToken1Balance(position, previousSqrtRatio);
       }
 
-      user.voteWeight = user.voteWeight
-        .plus(amountToAdd)
-        .minus(amountToSubtract);
-      removeOrSaveUser(user);
-      log.info(
-        "updated voting weight of user {} (-{}, +{}) for ratio change (old: {}, new: {})",
-        [
-          user.id,
-          amountToSubtract.toString(),
-          amountToAdd.toString(),
-          previousSqrtRatio.toString(),
-          sqrtRatio.toString(),
-        ]
-      );
+      const delta = amountToAdd.minus(amountToSubtract);
+
+      if (!delta.equals(ZERO_BI)) {
+        user.voteWeight = user.voteWeight.plus(delta);
+        removeOrSaveUser(user);
+        log.info(
+          "updated voting weight of user {} (delta: {}) for ratio change (old: {}, new: {}, position: {})",
+          [
+            user.id,
+            delta.toString(),
+            previousSqrtRatio.toString(),
+            sqrtRatio.toString(),
+            position.id,
+          ]
+        );
+      }
     }
   }
 }
@@ -126,24 +131,48 @@ function getToken0Balance(
   if (sqrtRatio < lowerBound) {
     // liquidity is fully in token0
     // use equation (4) from https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf
-    return bigDecimalToBigInt(
+    const result = bigDecimalToBigInt(
       position.liquidity
         .toBigDecimal()
         .times(upperBound.minus(lowerBound))
         .div(lowerBound.times(upperBound))
     );
+    log.info(
+      "liquidity ({}) of position {} is fully in GNO at sqrtRatio {}, balance: {}",
+      [
+        position.liquidity.toString(),
+        position.id,
+        sqrtRatio.toString(),
+        result.toString(),
+      ]
+    );
+    return result;
   } else if (sqrtRatio > upperBound) {
     // liquidity is fully in token1
+    log.info(
+      "liquidity ({}) of position {} is fully in other token at sqrtRatio {}",
+      [position.liquidity.toString(), position.id, sqrtRatio.toString()]
+    );
     return ZERO_BI;
   } else {
     // liquidity is in token0 and token1
     // use equation (11) from https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf
-    return bigDecimalToBigInt(
+    const result = bigDecimalToBigInt(
       position.liquidity
         .toBigDecimal()
         .times(upperBound.minus(sqrtRatio))
         .div(sqrtRatio.times(upperBound))
     );
+    log.info(
+      "liquidity ({}) of position {} is partially in GNO at sqrtRatio {}, balance: {}",
+      [
+        position.liquidity.toString(),
+        position.id,
+        sqrtRatio.toString(),
+        result.toString(),
+      ]
+    );
+    return result;
   }
 }
 
@@ -166,19 +195,43 @@ function getToken1Balance(
 
   if (sqrtRatio < lowerBound) {
     // liquidity is fully in token0
+    log.info(
+      "liquidity ({}) of position {} is fully in other token at sqrtRatio {}",
+      [position.liquidity.toString(), position.id, sqrtRatio.toString()]
+    );
     return ZERO_BI;
   } else if (sqrtRatio > upperBound) {
     // liquidity is fully in token1
     // use equation (8) from https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf
-    return bigDecimalToBigInt(
+    const result = bigDecimalToBigInt(
       position.liquidity.toBigDecimal().times(upperBound.minus(lowerBound))
     );
+    log.info(
+      "liquidity ({}) of position {} is fully in GNO at sqrtRatio {}, balance: {}",
+      [
+        position.liquidity.toString(),
+        position.id,
+        sqrtRatio.toString(),
+        result.toString(),
+      ]
+    );
+    return result;
   } else {
     // liquidity is in token0 and token1
     // use equation (12) from https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf
-    return bigDecimalToBigInt(
+    const result = bigDecimalToBigInt(
       position.liquidity.toBigDecimal().times(sqrtRatio.minus(lowerBound))
     );
+    log.info(
+      "liquidity ({}) of position {} is partially in GNO at sqrtRatio {}, balance: {}",
+      [
+        position.liquidity.toString(),
+        position.id,
+        sqrtRatio.toString(),
+        result.toString(),
+      ]
+    );
+    return result;
   }
 }
 
