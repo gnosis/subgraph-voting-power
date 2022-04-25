@@ -31,7 +31,7 @@ export function handleSwap(event: SwapEvent): void {
 
   const pool = loadWeightedPool(event.params.poolId);
 
-  // Swap() is emitted after Transfer(), so reading the pool's balance will give us the updated value
+  // TODO: THis does not work, since Balancer holds the assets in the vault, so we need to keep track of the pool's GNO balance in another way
   const gnoReserves = loadGnoReserves(pool.id);
   // to get the GNO reserves before the swap, we add the amount delta
   const gnoReservesBefore = gnoReserves.minus(gnoIn).plus(gnoOut);
