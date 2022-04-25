@@ -146,6 +146,11 @@ function loadOrCreateConcentratedLiquidityPosition(
 function removeOrSavePosition(position: ConcentratedLiquidityPosition): void {
   if (position.liquidity.equals(ZERO_BI)) {
     store.remove("ConcentratedLiquidityPosition", position.id);
+    const pair = ConcentratedLiquidityPair.load(position.pair);
+    if (pair) {
+      pair.positions.splice(pair.positions.indexOf(pair.id), 1);
+      pair.save();
+    }
     log.info("removed concentrated liquidity position {}", [position.id]);
   } else {
     position.save();

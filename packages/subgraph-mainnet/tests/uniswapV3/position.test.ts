@@ -172,6 +172,14 @@ test("deletes position with zero liquidity", () => {
   );
 
   assert.notInStore("ConcentratedLiquidityPosition", TOKEN_ID.toHexString());
+
+  // also removed from pair.positions
+  assert.fieldEquals(
+    "ConcentratedLiquidityPair",
+    TOKEN_ID.toHexString(),
+    "positions",
+    "[]"
+  );
 });
 
 test("updates vote weights when transferring a position", () => {});
