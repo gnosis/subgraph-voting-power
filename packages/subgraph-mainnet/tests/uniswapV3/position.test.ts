@@ -109,6 +109,13 @@ function createTestPosition(): void {
   position.lowerTick = BigInt.fromI32(MIN_TICK);
   position.upperTick = BigInt.fromI32(MAX_TICK);
   position.save();
+
+  const pair = ConcentratedLiquidityPair.load(PAIR_ADDRESS.toHexString());
+  if (!pair) {
+    throw new Error("must call resetFixtures before createTestPosition");
+  }
+  pair.positions = [position.id];
+  pair.save();
 }
 
 test("updates vote weight when minting new position", () => {
@@ -117,7 +124,7 @@ test("updates vote weight when minting new position", () => {
 
   assert.fieldEquals(
     "ConcentratedLiquidityPosition",
-    TOKEN_ID.toHexString(),
+    TOKEN_ID.toString(),
     "liquidity",
     "1000000000000000000"
   );
@@ -166,17 +173,15 @@ test("deletes position with zero liquidity", () => {
   resetFixtures();
   createTestPosition();
 
-  // decrease by 0.1
-  handleDecreaseLiquidity(
-    createDecreaseLiquidityEvent(ONE_GNO.div(BigInt.fromI32(10)))
-  );
+  // decrease by 1 (full amount)
+  handleDecreaseLiquidity(createDecreaseLiquidityEvent(ONE_GNO));
 
-  assert.notInStore("ConcentratedLiquidityPosition", TOKEN_ID.toHexString());
+  assert.notInStore("ConcentratedLiquidityPosition", TOKEN_ID.toString());
 
   // also removed from pair.positions
   assert.fieldEquals(
     "ConcentratedLiquidityPair",
-    TOKEN_ID.toHexString(),
+    PAIR_ADDRESS.toHexString(),
     "positions",
     "[]"
   );

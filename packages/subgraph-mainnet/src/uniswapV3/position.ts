@@ -148,11 +148,17 @@ function removeOrSavePosition(position: ConcentratedLiquidityPosition): void {
     store.remove("ConcentratedLiquidityPosition", position.id);
     const pair = ConcentratedLiquidityPair.load(position.pair);
     if (pair) {
-      pair.positions.splice(pair.positions.indexOf(pair.id), 1);
+      pair.positions = arrayRemove(pair.positions, position.id);
       pair.save();
     }
     log.info("removed concentrated liquidity position {}", [position.id]);
   } else {
+    log.info("save {}", [position.liquidity.toString()]);
     position.save();
   }
+}
+
+function arrayRemove(array: string[], elementToRemove: string): string[] {
+  const index = array.indexOf(elementToRemove);
+  return array.slice(0, index).concat(array.slice(index + 1));
 }
