@@ -45,7 +45,6 @@ export function updateForLiquidityChange(
 
   if (!delta.equals(ZERO_BI)) {
     user.voteWeight = user.voteWeight.plus(delta);
-    removeOrSaveUser(user);
     log.info(
       "updated voting weight of user {} (delta: {}) for liquidity change (old: {}, new: {})",
       [
@@ -55,6 +54,8 @@ export function updateForLiquidityChange(
         newLiquidity.toString(),
       ]
     );
+
+    removeOrSaveUser(user);
   }
 }
 
@@ -95,7 +96,6 @@ export function updateForRatioChange(
 
       if (!delta.equals(ZERO_BI)) {
         user.voteWeight = user.voteWeight.plus(delta);
-        removeOrSaveUser(user);
         log.info(
           "updated voting weight of user {} (delta: {}) for ratio change (old: {}, new: {}, position: {})",
           [
@@ -106,6 +106,8 @@ export function updateForRatioChange(
             position.id,
           ]
         );
+
+        removeOrSaveUser(user);
       }
     }
   }

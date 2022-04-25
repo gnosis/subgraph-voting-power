@@ -20,6 +20,7 @@ import {
 import {
   DecreaseLiquidity,
   IncreaseLiquidity,
+  Transfer,
 } from "../../generated/NonfungiblePositionManager/NonfungiblePositionManager";
 import {
   handleIncreaseLiquidity,
@@ -187,7 +188,23 @@ test("deletes position with zero liquidity", () => {
   );
 });
 
-test("updates vote weights when transferring a position", () => {});
+test("updates vote weights when transferring a position", () => {
+  resetFixtures();
+  createTestPosition();
+
+  handleTransfer(createTransferEvent(USER2_ADDRESS));
+
+  // user 1 has zero vote weight and is deleted
+  assert.notInStore("User", USER1_ADDRESS.toString());
+
+  // user 2 got 1 GNO vote weight
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "voteWeight",
+    ONE_GNO.toString()
+  );
+});
 
 function createIncreaseLiquidityEvent(liquidity: BigInt): IncreaseLiquidity {
   const mockEvent = newMockEvent();
@@ -235,6 +252,35 @@ function createDecreaseLiquidityEvent(liquidity: BigInt): DecreaseLiquidity {
   );
 
   return new DecreaseLiquidity(
+    NONFUNGIBLE_POSITION_MANAGER_ADDRESS,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters
+  );
+}
+
+function createTransferEvent(to: Address): Transfer {
+  const mockEvent = newMockEvent();
+
+  mockEvent.parameters = new Array();
+
+  mockEvent.parameters.push(
+    new ethereum.EventParam("from", ethereum.Value.fromAddress(USER1_ADDRESS))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam(
+      "tokenId",
+      ethereum.Value.fromUnsignedBigInt(TOKEN_ID)
+    )
+  );
+
+  return new Transfer(
     NONFUNGIBLE_POSITION_MANAGER_ADDRESS,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
