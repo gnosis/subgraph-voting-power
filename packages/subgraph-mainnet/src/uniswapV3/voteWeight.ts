@@ -72,7 +72,6 @@ export function updateForRatioChange(
     const position = ConcentratedLiquidityPosition.load(positions[index]);
     if (position) {
       const user = loadOrCreateUser(Address.fromString(position.user));
-      if (!user) throw new Error(`User with id ${position.user} not found`);
 
       log.info("gnoIsFirst: {}, pair.sqrtRatio: {}", [
         gnoIsFirst.toString(),
@@ -113,21 +112,21 @@ export function updateForRatioChange(
   }
 }
 
-function getToken0Balance(
+export function getToken0Balance(
   position: ConcentratedLiquidityPosition,
   sqrtRatio: BigDecimal
 ): BigInt {
-  // 1.0001^tick is sqrt(token1/token0).
+  // 1.0001^(tick/2) is sqrt(token1/token0).
 
-  // lower and upper bounds are expressed as a sqrt ratios
-  // see: Uniswap v3 whitepaper section 6.1
+  // lower and upper bounds are expressed as a tick indices (exponents to sqrt(1.0001))
+  // see: Uniswap v3 whitepaper section 6.1 and equation 6.2
   const lowerBound = bigDecimalExponated(
     BigDecimal.fromString("1.0001"),
-    position.lowerTick
+    position.lowerTick.div(BigInt.fromI32(2))
   );
   const upperBound = bigDecimalExponated(
     BigDecimal.fromString("1.0001"),
-    position.upperTick
+    position.upperTick.div(BigInt.fromI32(2))
   );
 
   if (sqrtRatio < lowerBound) {
@@ -178,21 +177,21 @@ function getToken0Balance(
   }
 }
 
-function getToken1Balance(
+export function getToken1Balance(
   position: ConcentratedLiquidityPosition,
   sqrtRatio: BigDecimal
 ): BigInt {
-  // 1.0001^tick is sqrt(token1/token0).
+  // 1.0001^(tick/2) is sqrt(token1/token0).
 
-  // lower and upper bounds are expressed as a sqrt ratios
-  // see: Uniswap v3 whitepaper section 6.1
+  // lower and upper bounds are expressed as a tick indices (exponents to sqrt(1.0001))
+  // see: Uniswap v3 whitepaper section 6.1 and equation 6.2
   const lowerBound = bigDecimalExponated(
     BigDecimal.fromString("1.0001"),
-    position.lowerTick
+    position.lowerTick.div(BigInt.fromI32(2))
   );
   const upperBound = bigDecimalExponated(
     BigDecimal.fromString("1.0001"),
-    position.upperTick
+    position.upperTick.div(BigInt.fromI32(2))
   );
 
   if (sqrtRatio < lowerBound) {
