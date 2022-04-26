@@ -116,8 +116,6 @@ export function getToken0Balance(
   position: ConcentratedLiquidityPosition,
   sqrtRatio: BigDecimal
 ): BigInt {
-  // 1.0001^(tick/2) is sqrt(token1/token0).
-
   // lower and upper bounds are expressed as a tick indices (exponents to sqrt(1.0001))
   // see: Uniswap v3 whitepaper section 6.1 and equation 6.2
   const lowerBound = bigDecimalExponated(
@@ -181,8 +179,6 @@ export function getToken1Balance(
   position: ConcentratedLiquidityPosition,
   sqrtRatio: BigDecimal
 ): BigInt {
-  // 1.0001^(tick/2) is sqrt(token1/token0).
-
   // lower and upper bounds are expressed as a tick indices (exponents to sqrt(1.0001))
   // see: Uniswap v3 whitepaper section 6.1 and equation 6.2
   const lowerBound = bigDecimalExponated(
