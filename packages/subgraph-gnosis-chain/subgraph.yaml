@@ -82,6 +82,26 @@ dataSources:
         - event: DepositEvent(bytes,bytes,bytes,bytes,bytes)
           handler: handleDeposit
       file: ./src/deposit.ts
+  - kind: ethereum
+    name: ds-sgno
+    network: xdai
+    source:
+      address: "0xa4ef9da5ba71cc0d2e5e877a910a37ec43420445"
+      abi: ERC20
+      startBlock: 21275850
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - User
+      abis:
+        - name: ERC20
+          file: ../subgraph-base/abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/sgno.ts
   - kind: ethereum/contract
     name: HoneySwap
     network: xdai

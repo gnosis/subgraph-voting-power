@@ -36,6 +36,7 @@ function resetFixtures(): void {
   user.gno = BigInt.fromI32(0);
   user.mgno = BigInt.fromI32(0);
   user.lgno = BigInt.fromI32(0);
+  user.sgno = BigInt.fromI32(0);
   user.deposit = BigInt.fromI32(0);
   user.save();
 }
