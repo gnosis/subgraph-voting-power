@@ -1,4 +1,3 @@
-import { BigInt } from "@graphprotocol/graph-ts";
 import { DepositEvent } from "../generated/ds-deposit/SBCDepositContract";
 import { loadOrCreateUser, ONE_GNO } from "../../subgraph-base/src/helpers";
 

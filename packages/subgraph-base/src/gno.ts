@@ -1,10 +1,3 @@
-import {
-  Address,
-  Bytes,
-  BigInt,
-  store,
-  ethereum,
-} from "@graphprotocol/graph-ts";
 import { Transfer } from "../generated/ds-gno/ERC20";
 import { loadOrCreateUser, ADDRESS_ZERO, removeOrSaveUser } from "./helpers";
 
