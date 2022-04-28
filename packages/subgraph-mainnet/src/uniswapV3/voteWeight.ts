@@ -13,6 +13,10 @@ export function updateForLiquidityChange(
   position: ConcentratedLiquidityPosition,
   previousLiquidity: BigInt
 ): void {
+  if (!position.user) {
+    return;
+  }
+
   const pair = ConcentratedLiquidityPair.load(position.pair);
   if (!pair) throw new Error(`Pair with id ${position.pair} not found`);
   const gnoIsFirst = pair.gnoIsFirst;
@@ -70,7 +74,7 @@ export function updateForRatioChange(
   const positions = pair.positions;
   for (let index = 0; index < positions.length; index++) {
     const position = ConcentratedLiquidityPosition.load(positions[index]);
-    if (position) {
+    if (position && position.user) {
       const user = loadOrCreateUser(Address.fromString(position.user));
 
       log.info("gnoIsFirst: {}, pair.sqrtRatio: {}", [
