@@ -58,7 +58,7 @@ export function handleTransfer(event: Transfer): void {
 
   log.info("Transfer nun-fungible position {} from {} to {} (liquidity: {})", [
     position.id,
-    position.user,
+    (position.user || "") as string,
     recipient,
     liquidity.toString(),
   ]);

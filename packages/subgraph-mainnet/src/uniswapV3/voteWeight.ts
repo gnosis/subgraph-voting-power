@@ -30,7 +30,7 @@ export function updateForLiquidityChange(
     return;
   }
 
-  const user = loadOrCreateUser(Address.fromString(position.user));
+  const user = loadOrCreateUser(Address.fromString(position.user as string));
 
   // temporarily set position liquidity to the previous value
   const newLiquidity = position.liquidity;
@@ -75,7 +75,9 @@ export function updateForRatioChange(
   for (let index = 0; index < positions.length; index++) {
     const position = ConcentratedLiquidityPosition.load(positions[index]);
     if (position && position.user) {
-      const user = loadOrCreateUser(Address.fromString(position.user));
+      const user = loadOrCreateUser(
+        Address.fromString(position.user as string)
+      );
 
       log.info("gnoIsFirst: {}, pair.sqrtRatio: {}", [
         gnoIsFirst.toString(),
