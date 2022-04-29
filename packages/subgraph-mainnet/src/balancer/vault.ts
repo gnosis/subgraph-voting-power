@@ -1,6 +1,5 @@
-import { BigInt, Address, log, Bytes } from "@graphprotocol/graph-ts";
+import { Address, log, Bytes } from "@graphprotocol/graph-ts";
 import {
-  User,
   WeightedPool,
   WeightedPoolPosition,
 } from "../../../subgraph-base/generated/schema";
@@ -12,10 +11,11 @@ import {
 } from "../../../subgraph-base/src/helpers";
 import {
   InternalBalanceChanged,
-  Swap as SwapEvent,
+  PoolBalanceChanged,
+  Swap,
 } from "../../generated/Vault/Vault";
 
-export function handleSwap(event: SwapEvent): void {
+export function handleSwap(event: Swap): void {
   // swaps don't change LP token total supply, but they might change the GNO reserves
   const gnoIn = event.params.tokenIn.equals(GNO_ADDRESS)
     ? event.params.amountIn
@@ -31,10 +31,11 @@ export function handleSwap(event: SwapEvent): void {
 
   const pool = loadWeightedPool(event.params.poolId);
 
-  // TODO: THis does not work, since Balancer holds the assets in the vault, so we need to keep track of the pool's GNO balance in another way
-  const gnoReserves = loadGnoReserves(pool.id);
-  // to get the GNO reserves before the swap, we add the amount delta
-  const gnoReservesBefore = gnoReserves.minus(gnoIn).plus(gnoOut);
+  const gnoReservesBefore = pool.gnoBalance;
+  pool.gnoBalance = pool.gnoBalance.plus(gnoIn);
+  pool.gnoBalance = pool.gnoBalance.minus(gnoOut);
+  pool.save();
+  const gnoReserves = pool.gnoBalance;
 
   log.info("handle swap in {}, gno reserves before: {}, after: {}", [
     pool.id,
@@ -73,6 +74,18 @@ export function handleSwap(event: SwapEvent): void {
   }
 }
 
+export function handleBalanceChange(event: PoolBalanceChanged): void {
+  const index = event.params.tokens.findIndex(t => t.equals(GNO_ADDRESS));
+  if (index == -1) {
+    return;
+  }
+
+  const delta = event.params.deltas[index];
+  const pool = loadWeightedPool(event.params.poolId);
+  pool.gnoBalance = pool.gnoBalance.plus(delta);
+  pool.save();
+}
+
 export function handleInternalBalanceChange(
   event: InternalBalanceChanged
 ): void {
@@ -84,12 +97,6 @@ export function handleInternalBalanceChange(
     user.voteWeight = user.voteWeight.plus(event.params.delta);
     removeOrSaveUser(user);
   }
-}
-
-function loadGnoReserves(accountAddress: string): BigInt {
-  const user = User.load(accountAddress);
-  if (!user) return ZERO_BI;
-  return user.gno;
 }
 
 function loadWeightedPool(poolId: Bytes): WeightedPool {

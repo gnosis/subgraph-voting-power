@@ -29,6 +29,7 @@ function createWeightedPool(
   const pool = new WeightedPool(id);
   pool.gnoIsFirst = token0.equals(GNO_ADDRESS);
   pool.totalSupply = ZERO_BI;
+  pool.gnoBalance = ZERO_BI;
   pool.save();
   return pool;
 }

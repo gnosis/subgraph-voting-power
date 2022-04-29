@@ -21,10 +21,11 @@ export function handlePoolCreated(event: PoolCreated): void {
   const tokensCall = vaultContract.try_getPoolTokens(poolId);
   if (!tokensCall.reverted) {
     const tokens = tokensCall.value.value0;
-    if (tokens.some((token) => token.equals(GNO_ADDRESS))) {
+    if (tokens.some(token => token.equals(GNO_ADDRESS))) {
       const pool = new WeightedPool(address.toHexString());
       pool.positions = [];
       pool.totalSupply = ZERO_BI;
+      pool.gnoBalance = ZERO_BI;
       pool.gnoIsFirst = false;
       pool.save();
       log.info("instantiated WeightedPool instance: {}", [

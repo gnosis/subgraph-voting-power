@@ -16,6 +16,7 @@ type WeightedPool @entity {
   id: ID! # address
   totalSupply: BigInt!
   gnoIsFirst: Boolean! # only relevant for uni v2
+  gnoBalance: BigInt!
   positions: [WeightedPoolPosition!]!
 }
 type WeightedPoolPosition @entity {
