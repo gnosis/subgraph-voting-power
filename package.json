@@ -1,0 +1,25 @@
+{
+  "name": "subgraph-voting-power",
+  "license": "UNLICENSED",
+  "author": "Cristóvão Honorato",
+  "scripts": {
+    "codegen": "graph codegen",
+    "codegen:gc": "graph codegen -o generated-gc subgraph-gnosis-chain.yaml",
+    "build": "graph build",
+    "build:gc": "graph build -o build-gc subgraph-gnosis-chain.yaml",
+    "clean": "rm -rf generated && rm -rf build",
+    "clean:gc": "rm -rf generated-gc && rm -rf build-gc",
+    "doall": "yarn clean && yarn codegen && yarn build",
+    "doall:gc": "yarn clean:gc && yarn codegen:gc && yarn build:gc",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ jfschwarz/gno-voting-power-eth",
+    "deploy:gc": "graph deploy -o build-gc --node https://api.thegraph.com/deploy/ jfschwarz/gno-voting-power-gc",
+    "test": "graph test"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.29.0",
+    "@graphprotocol/graph-ts": "0.26.0"
+  },
+  "devDependencies": {
+    "matchstick-as": "^0.4.1"
+  }
+}
