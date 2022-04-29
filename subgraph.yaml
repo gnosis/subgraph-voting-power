@@ -54,12 +54,12 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/balancer/vault.ts
+      file: ./src/balancerV2/vault.ts
       entities:
         - WeightedPool
       abis:
         - name: Vault
-          file: ./abis/balancer/Vault.json
+          file: ./abis/balancerV2/Vault.json
       eventHandlers:
         - event: Swap(indexed bytes32,indexed address,indexed address,uint256,uint256)
           handler: handleSwap
@@ -78,16 +78,16 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/balancer/factory.ts
+      file: ./src/balancerV2/factory.ts
       entities:
         - WeightedPool
       abis:
         - name: Vault
-          file: ./abis/balancer/Vault.json
+          file: ./abis/balancerV2/Vault.json
         - name: WeightedPoolFactory
-          file: ./abis/balancer/WeightedPoolFactory.json
+          file: ./abis/balancerV2/WeightedPoolFactory.json
         - name: WeightedPool
-          file: ./abis/balancer/WeightedPool.json
+          file: ./abis/balancerV2/WeightedPool.json
       eventHandlers:
         - event: PoolCreated(indexed address)
           handler: handlePoolCreated
@@ -102,7 +102,7 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/balancer/factory.ts
+      file: ./src/balancerV2/factory.ts
       entities:
         - WeightedPool
       abis:
@@ -170,15 +170,15 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/balancer/pool.ts
+      file: ./src/balancerV2/pool.ts
       entities:
         - User
         - WeightedPool
         - WeightedPoolPosition
       abis:
         - name: Vault
-          file: ./abis/balancer/Vault.json
-        - name: ERC20
+          file: ./abis/balancerV2/Vault.json
+        - name: WeightedPool
           file: ./abis/ERC20.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
