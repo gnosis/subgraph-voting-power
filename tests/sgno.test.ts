@@ -1,9 +1,10 @@
 import { clearStore, test, assert } from "matchstick-as/assembly/index";
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { handleTransfer } from "../src/sgno";
-import { Transfer } from "../generated/ds-sgno/ERC20";
+import { Transfer } from "../generated-gc/ds-sgno/ERC20";
 import { newMockEvent } from "matchstick-as";
-import { ADDRESS_ZERO, ONE_GNO, USER1_ADDRESS, USER2_ADDRESS } from "./helpers";
+import { ADDRESS_ZERO, USER1_ADDRESS, USER2_ADDRESS } from "./helpers";
+import { ONE_GNO } from "../src/helpers";
 
 let value = ONE_GNO;
 let value2x = value.times(BigInt.fromI32(2));

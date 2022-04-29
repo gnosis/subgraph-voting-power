@@ -6,16 +6,20 @@ import {
   newMockEvent,
   createMockedFunction,
 } from "matchstick-as/assembly/index";
-import { User, WeightedPool, WeightedPoolPosition } from "..//generated/schema";
-import { Transfer as GnoTransfer } from "..//generated/ds-gno/ERC20";
-import { GNO_ADDRESS, ONE_GNO, ZERO_BI } from "..//src/helpers";
-import { USER1_ADDRESS, USER2_ADDRESS } from "..//tests/helpers";
+import {
+  User,
+  WeightedPool,
+  WeightedPoolPosition,
+} from "../../generated/schema";
+import { Transfer as GnoTransfer } from "../../generated/ds-gno/ERC20";
+import { GNO_ADDRESS, ONE_GNO, ZERO_BI } from "../../src/helpers";
+import { USER1_ADDRESS, USER2_ADDRESS } from "../helpers";
 import {
   handleInternalBalanceChange,
   handleSwap,
 } from "../../src/balancer/vault";
 import { InternalBalanceChanged, Swap } from "../../generated/Vault/Vault";
-import { handleTransfer } from "..//src/gno";
+import { handleTransfer } from "../../src/gno";
 
 const POOL_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000003"

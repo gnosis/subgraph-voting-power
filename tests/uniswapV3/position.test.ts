@@ -10,8 +10,8 @@ import {
   ConcentratedLiquidityPair,
   ConcentratedLiquidityPosition,
   User,
-} from "..//generated/schema";
-import { GNO_ADDRESS, ONE_BD, ONE_GNO, ZERO_BI } from "..//src/helpers";
+} from "../../generated/schema";
+import { GNO_ADDRESS, ONE_BD, ONE_GNO, ZERO_BI } from "../../src/helpers";
 import {
   DecreaseLiquidity,
   IncreaseLiquidity,

@@ -1,6 +1,6 @@
 import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { assert, test } from "matchstick-as";
-import { ConcentratedLiquidityPosition } from "..//generated/schema";
+import { ConcentratedLiquidityPosition } from "../../generated/schema";
 import {
   getToken0Balance,
   getToken1Balance,

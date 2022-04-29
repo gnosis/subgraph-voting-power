@@ -1,14 +1,14 @@
 import { clearStore, test, assert } from "matchstick-as/assembly/index";
-import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
   ConcentratedLiquidityPair,
   ConcentratedLiquidityPosition,
 } from "../../generated/schema";
 import { newMockEvent } from "matchstick-as";
 import { handleInitialize, handleSwap } from "../../src/uniswapV3/pool";
-import { ONE_GNO, ZERO_BD } from "..//src/helpers";
+import { ONE_GNO, ZERO_BD } from "../../src/helpers";
 import { Initialize, Swap } from "../../generated/templates/Pool/Pool";
-import { User } from "..//generated/schema";
+import { User } from "../../generated/schema";
 
 const PAIR_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000003"

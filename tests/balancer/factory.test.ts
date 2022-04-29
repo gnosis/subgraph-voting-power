@@ -6,7 +6,7 @@ import {
 } from "matchstick-as/assembly/index";
 import { Address, ethereum } from "@graphprotocol/graph-ts";
 import { handlePoolCreated } from "../../src/balancer/factory";
-import { USER1_ADDRESS } from "..//tests/helpers";
+import { USER1_ADDRESS } from "../helpers";
 import { PoolCreated } from "../../generated/WeightedPoolFactory/WeightedPoolFactory";
 
 const POOL_ADDRESS = Address.fromString(

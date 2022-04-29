@@ -1,17 +1,10 @@
 import { clearStore, test, assert } from "matchstick-as/assembly/index";
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { handleTransfer } from "../src/mgno";
-import { Transfer } from "../generated/ds-mgno/ERC20";
-import { log, newMockEvent } from "matchstick-as";
-import {
-  ADDRESS_ZERO,
-  ONE_GNO,
-  MGNO_PER_GNO,
-  DEPOSIT_ADDRESS,
-  USER1_ADDRESS,
-  USER2_ADDRESS,
-  data,
-} from "./helpers";
+import { DEPOSIT_ADDRESS, handleTransfer, MGNO_PER_GNO } from "../src/mgno";
+import { Transfer } from "../generated-gc/ds-mgno/ERC20";
+import { newMockEvent } from "matchstick-as";
+import { ADDRESS_ZERO, USER1_ADDRESS, USER2_ADDRESS } from "./helpers";
+import { ONE_GNO } from "../src/helpers";
 
 let value = ONE_GNO.times(MGNO_PER_GNO);
 let value2x = value.times(BigInt.fromI32(2));
@@ -64,7 +57,7 @@ test("Transfer correctly increases mGNO balance of recipient", () => {
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
     value,
-    data
+    "0x00"
   );
 
   // mint value to user 1
@@ -93,7 +86,7 @@ test("Transfer correctly decreases mGNO balance of sender", () => {
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
     value2x,
-    data
+    "0x00"
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
@@ -108,7 +101,7 @@ test("Transfer correctly decreases mGNO balance of sender", () => {
     USER1_ADDRESS.toHexString(),
     USER2_ADDRESS.toHexString(),
     value,
-    data
+    "0x00"
   );
   handleTransfer(transferEvent);
   assert.fieldEquals(
@@ -125,7 +118,7 @@ test("Transfer correctly increases vote weight of recipient", () => {
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
     value,
-    data
+    "0x00"
   );
 
   // mint value to user 1
@@ -154,7 +147,7 @@ test("Transfer correctly decreases vote weight of sender", () => {
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
     value2x,
-    data
+    "0x00"
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
@@ -169,7 +162,7 @@ test("Transfer correctly decreases vote weight of sender", () => {
     USER1_ADDRESS.toHexString(),
     USER2_ADDRESS.toHexString(),
     value,
-    data
+    "0x00"
   );
   handleTransfer(transferEvent);
   assert.fieldEquals(
@@ -187,7 +180,7 @@ test("Transfer resulting in 0 vote weight removes user from store.", () => {
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
     value,
-    data
+    "0x00"
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
@@ -202,7 +195,7 @@ test("Transfer resulting in 0 vote weight removes user from store.", () => {
     USER1_ADDRESS.toHexString(),
     USER2_ADDRESS.toHexString(),
     value,
-    data
+    "0x00"
   );
   handleTransfer(transferEvent);
   assert.notInStore("User", USER1_ADDRESS.toHexString());
@@ -215,7 +208,7 @@ test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", 
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
     value,
-    data
+    "0x00"
   );
   handleTransfer(mintEvent);
   assert.notInStore("User", ADDRESS_ZERO.toHexString());
@@ -225,7 +218,7 @@ test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", 
     USER1_ADDRESS.toHexString(),
     ADDRESS_ZERO.toHexString(),
     value,
-    data
+    "0x00"
   );
   handleTransfer(transferEvent);
   assert.notInStore("User", ADDRESS_ZERO.toHexString());
@@ -238,7 +231,7 @@ test("Transfer involving DEPOSIT_ADDRESS does not create a DEPOSIT_ADDRESS entit
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
     value,
-    data
+    "0x00"
   );
   handleTransfer(mintEvent);
   assert.notInStore("User", DEPOSIT_ADDRESS.toHexString());
@@ -248,7 +241,7 @@ test("Transfer involving DEPOSIT_ADDRESS does not create a DEPOSIT_ADDRESS entit
     USER1_ADDRESS.toHexString(),
     DEPOSIT_ADDRESS.toHexString(),
     value,
-    data
+    "0x00"
   );
   handleTransfer(transferEvent);
   assert.notInStore("User", DEPOSIT_ADDRESS.toHexString());

@@ -1,8 +1,8 @@
+import { newMockEvent } from "matchstick-as";
 import { clearStore, test, assert } from "matchstick-as/assembly/index";
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { handleTransfer } from "../src/lgno";
 import { Transfer } from "../generated/ds-lgno/ERC20";
-import { newMockEvent } from "matchstick-as";
 import { ADDRESS_ZERO, USER1_ADDRESS, value, value2x } from "./helpers";
 
 function createTransferEvent(

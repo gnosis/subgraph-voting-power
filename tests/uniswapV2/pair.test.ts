@@ -1,6 +1,6 @@
 import { clearStore, test, assert } from "matchstick-as/assembly/index";
-import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
-import { User, WeightedPool } from "../../generated/schema";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { User } from "../../generated/schema";
 import { newMockEvent } from "matchstick-as";
 import {
   ADDRESS_ZERO,
@@ -13,10 +13,11 @@ import {
 import { handleNewPair } from "../../src/uniswapV2/factory";
 import { handleTransfer as handleGnoTransfer } from "../../src/gno";
 import { createPairCreatedEvent } from "../helpers";
-import { Transfer, Swap } from "../../generated/templates/Pair/Pair";
+import { Transfer } from "../../generated-gc/templates/Pair/ERC20";
+import { Swap } from "../../generated-gc/templates/Pair/Pair";
 import { Transfer as GnoTransfer } from "../../generated/ds-gno/ERC20";
 import { handleSwap, handleTransfer } from "../../src/uniswapV2/pair";
-import { GNO_ADDRESS, ZERO_BD, ZERO_BI } from "../../src/helpers";
+import { GNO_ADDRESS, ZERO_BI } from "../../src/helpers";
 
 let transferEvent = createTransferEvent(USER1_ADDRESS, USER2_ADDRESS, value);
 let smallTransferEvent = createTransferEvent(

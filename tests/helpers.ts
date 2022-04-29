@@ -1,8 +1,8 @@
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { Transfer } from "../generated/templates/Pair/ERC20";
-import { Sync } from "../generated/templates/Pair/Pair";
-import { PairCreated } from "../generated/Factory/Factory";
+import { PairCreated } from "../generated-gc/Sushi/Factory";
+import { Transfer } from "../generated-gc/templates/Pair/ERC20";
+import { Sync } from "../generated-gc/templates/Pair/Pair";
 
 export const ADDRESS_ZERO = Address.fromString(
   "0x0000000000000000000000000000000000000000"
