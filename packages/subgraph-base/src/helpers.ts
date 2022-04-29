@@ -14,7 +14,7 @@ export const GNO_ADDRESS = Address.fromString(
     : "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
 );
 
-export const ADDRESS_ZERO = Address.fromHexString(
+export const ADDRESS_ZERO = Address.fromString(
   "0x0000000000000000000000000000000000000000"
 );
 
@@ -37,6 +37,7 @@ export function loadOrCreateUser(address: Address): User {
     user.lgno = BigInt.fromI32(0);
     user.sgno = BigInt.fromI32(0);
     user.deposit = BigInt.fromI32(0);
+    user.balancerInternalGno = BigInt.fromI32(0);
     if (id != ADDRESS_ZERO.toHexString()) {
       user.save();
       log.info("created user {}", [id]);

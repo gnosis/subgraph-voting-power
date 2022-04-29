@@ -2,7 +2,7 @@ import { Address, dataSource, log } from "@graphprotocol/graph-ts";
 import { PairCreated } from "../../generated/Factory/Factory";
 import { WeightedPool } from "../../generated/schema";
 import { Pair } from "../../generated/templates";
-import { GNO_ADDRESS } from "../helpers";
+import { GNO_ADDRESS, ZERO_BI } from "../helpers";
 
 export function handleNewPair(event: PairCreated): void {
   const isGnoTradingPair =
@@ -18,7 +18,7 @@ export function handleNewPair(event: PairCreated): void {
   }
 }
 
-export function createWeightedPool(
+function createWeightedPool(
   address: Address,
   token0: Address,
   token1: Address
@@ -28,6 +28,8 @@ export function createWeightedPool(
   log.info("instantiated WeightedPool instance: {}", [id]);
   const pool = new WeightedPool(id);
   pool.gnoIsFirst = token0.equals(GNO_ADDRESS);
+  pool.totalSupply = ZERO_BI;
+  pool.gnoBalance = ZERO_BI;
   pool.save();
   return pool;
 }
