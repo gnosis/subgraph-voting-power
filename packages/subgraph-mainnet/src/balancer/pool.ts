@@ -7,11 +7,7 @@ import {
   removeOrSaveUser,
 } from "../../../subgraph-base/src/helpers";
 
-import {
-  User,
-  WeightedPool,
-  WeightedPoolPosition,
-} from "../../generated/schema";
+import { WeightedPool, WeightedPoolPosition } from "../../generated/schema";
 
 export function handleTransfer(event: Transfer): void {
   const id = event.address.toHexString();
