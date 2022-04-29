@@ -1,17 +1,30 @@
-import { BigInt, log, store, Address, Value } from "@graphprotocol/graph-ts";
-import { Transfer, Sync, Swap } from "../../generated/templates/Pair/Pair";
+import { BigInt, log, store, Address } from "@graphprotocol/graph-ts";
+import { Transfer } from "../../generated/templates/Pair/ERC20";
+import { Sync, Swap } from "../../generated/templates/Pair/Pair";
 
-import {
-  ADDRESS_ZERO,
-  loadOrCreateUser,
-  removeOrSaveUser,
-  ZERO_BI,
-} from "../helpers";
-import {
-  User,
-  WeightedPool,
-  WeightedPoolPosition,
-} from "../../generated/schema";
+import { ADDRESS_ZERO, loadOrCreateUser, removeOrSaveUser } from "../helpers";
+import { WeightedPool, WeightedPoolPosition } from "../../generated/schema";
+
+export function handleSync(event: Sync): void {
+  const id = event.address.toHexString();
+  const pool = WeightedPool.load(id);
+  if (!pool) {
+    log.warning(
+      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
+      [
+        id,
+        event.transaction.hash.toHexString(),
+        event.transactionLogIndex.toString(),
+      ]
+    );
+    return;
+  }
+
+  pool.gnoBalance = pool.gnoIsFirst
+    ? event.params.reserve0
+    : event.params.reserve1;
+  pool.save();
+}
 
 export function handleTransfer(event: Transfer): void {
   const id = event.address.toHexString();
@@ -28,7 +41,7 @@ export function handleTransfer(event: Transfer): void {
     return;
   }
 
-  const gnoReserves = loadGnoReserves(pool.id);
+  const gnoReserves = pool.gnoBalance;
   log.info("pool loaded: {}, gno reserves: {}, total supply: {}", [
     pool.id,
     gnoReserves.toString(),
@@ -163,8 +176,8 @@ export function handleSwap(event: Swap): void {
     ? event.params.amount0Out
     : event.params.amount1Out;
 
-  // Swap() is emitted after Transfer(), so reading the pool's balance will give us the updated value
-  const gnoReserves = loadGnoReserves(pool.id);
+  // Swap() is emitted after Sync(), so the balance should be up to date
+  const gnoReserves = pool.gnoBalance;
   // to get the GNO reserves before the swap, we add the amount delta
   const gnoReservesBefore = gnoReserves.minus(gnoIn).plus(gnoOut);
 
@@ -207,13 +220,16 @@ export function handleSwap(event: Swap): void {
 }
 
 function loadOrCreateWeightedPoolPosition(
-  pairAddress: Address,
+  poolAddress: Address,
   user: Address
 ): WeightedPoolPosition {
-  const pool = WeightedPool.load(pairAddress.toHexString());
+  const pool = WeightedPool.load(poolAddress.toHexString());
   if (!pool)
-    throw new Error(`Could not find pool ${pairAddress.toHexString()}`);
-  const id = pool.id.concat("-").concat(user.toHexString());
+    throw new Error(`Could not find pool ${poolAddress.toHexString()}`);
+  const id = poolAddress
+    .toHexString()
+    .concat("-")
+    .concat(user.toHexString());
   let position = WeightedPoolPosition.load(id);
   if (!position) {
     position = new WeightedPoolPosition(id);
@@ -226,12 +242,6 @@ function loadOrCreateWeightedPoolPosition(
     log.info("created new position {} in WeightedPool {}", [id, pool.id]);
   }
   return position;
-}
-
-function loadGnoReserves(accountAddress: string): BigInt {
-  const user = User.load(accountAddress);
-  if (!user) return ZERO_BI;
-  return user.gno;
 }
 
 function arrayRemove(array: string[], elementToRemove: string): string[] {
