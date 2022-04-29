@@ -208,6 +208,31 @@ dataSources:
       eventHandlers:
         - event: PairCreated(indexed address,indexed address,address,uint256)
           handler: handleNewPair
+  - kind: ethereum/contract
+    name: SymmetricFactory
+    network: xdai
+    source:
+      address: "0x9B4214FD41cD24347A25122AC7bb6B479BED72Ac"
+      abi: Factory
+      startBlock: 13108160
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/balancerV1/factory.ts
+      entities:
+        - User
+        - WeightedPool
+      abis:
+        - name: Factory
+          file: ./abis/balancerV1/BFactory.json
+        - name: CRPFactory
+          file: ./abis/balancerV1/CRPFactory.json
+        - name: ConfigurableRightsPool
+          file: ./abis/balancerV1/ConfigurableRightsPool.json
+      eventHandlers:
+        - event: LOG_NEW_POOL(indexed address,indexed address)
+          handler: handleNewPool
 templates:
   - kind: ethereum/contract
     name: UniswapV2Pair
@@ -235,3 +260,53 @@ templates:
           handler: handleSwap
         - event: Sync(uint112,uint112)
           handler: handleSync
+  - kind: ethereum/contract
+    name: BalancerV1Pool
+    network: xdai
+    source:
+      abi: Pool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/balancerV1/pool.ts
+      entities:
+        - User
+        - WeightedPool
+      abis:
+        - name: Pool
+          file: ./abis/balancerV1/BPool.json
+        - name: CToken
+          file: ./abis/balancerV1/CToken.json
+        - name: CTokenBytes
+          file: ./abis/balancerV1/CTokenBytes32.json
+      eventHandlers:
+        - event: LOG_CALL(indexed bytes4,indexed address,bytes)
+          topic0: "0x34e1990700000000000000000000000000000000000000000000000000000000"
+          handler: handleSetSwapFee
+        # - event: LOG_CALL(indexed bytes4,indexed address,bytes)
+        #   topic0: "0x92eefe9b00000000000000000000000000000000000000000000000000000000"
+        #   handler: handleSetController
+        # - event: LOG_CALL(indexed bytes4,indexed address,bytes)
+        #   topic0: "0x49b5955200000000000000000000000000000000000000000000000000000000"
+        #   handler: handleSetPublicSwap
+        # - event: LOG_CALL(indexed bytes4,indexed address,bytes)
+        #   topic0: "0x4bb278f300000000000000000000000000000000000000000000000000000000"
+        #   handler: handleFinalize
+        # - event: LOG_CALL(indexed bytes4,indexed address,bytes)
+        #   topic0: "0x3fdddaa200000000000000000000000000000000000000000000000000000000"
+        #   handler: handleRebind
+        # - event: LOG_CALL(indexed bytes4,indexed address,bytes)
+        #   topic0: "0xe4e1e53800000000000000000000000000000000000000000000000000000000"
+        #   handler: handleRebind
+        # - event: LOG_CALL(indexed bytes4,indexed address,bytes)
+        #   topic0: "0xcf5e7bd300000000000000000000000000000000000000000000000000000000"
+        #   handler: handleUnbind
+        - event: LOG_JOIN(indexed address,indexed address,uint256)
+          handler: handleJoinPool
+        - event: LOG_EXIT(indexed address,indexed address,uint256)
+          handler: handleExitPool
+        - event: LOG_SWAP(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleSwap
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
