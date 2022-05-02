@@ -1,23 +1,26 @@
 import { Address, log } from "@graphprotocol/graph-ts";
-import { PoolCreated } from "../../generated/WeightedPoolFactory/WeightedPoolFactory";
-import { WeightedPool as WeightedPoolTemplate } from "../../generated/templates";
-import { Vault } from "../../generated/Vault/Vault";
+
 import { WeightedPool } from "../../generated/schema";
-import { WeightedPool as WeightedPoolContract } from "../../generated/WeightedPoolFactory/WeightedPool";
+import { Vault as VaultContract } from "../../generated/ds-balancer-factory/Vault";
+import { WeightedPool as WeightedPoolContract } from "../../generated/ds-balancer-factory/WeightedPool";
+import { PoolCreated as PoolCreatedEvent } from "../../generated/ds-balancer-factory/WeightedPoolFactory";
+
+import { BalancerPool as BalancerPoolTemplate } from "../../generated/templates";
+
 import { GNO_ADDRESS, ZERO_BI } from "../helpers";
 
 const VAULT_ADDRESS = Address.fromString(
   "0xBA12222222228d8Ba445958a75a0704d566BF2C8"
 );
 
-export function handlePoolCreated(event: PoolCreated): void {
+export function handlePoolCreated(event: PoolCreatedEvent): void {
   const address = event.params.pool;
   const poolContract = WeightedPoolContract.bind(address);
 
   const poolIdCall = poolContract.try_getPoolId();
   const poolId = poolIdCall.value;
 
-  const vaultContract = Vault.bind(VAULT_ADDRESS);
+  const vaultContract = VaultContract.bind(VAULT_ADDRESS);
   const tokensCall = vaultContract.try_getPoolTokens(poolId);
   if (!tokensCall.reverted) {
     const tokens = tokensCall.value.value0;
@@ -32,7 +35,7 @@ export function handlePoolCreated(event: PoolCreated): void {
         poolId.toHexString(),
       ]);
 
-      WeightedPoolTemplate.create(address);
+      BalancerPoolTemplate.create(address);
     }
   }
 }
