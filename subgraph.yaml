@@ -92,7 +92,7 @@ dataSources:
         - event: PoolCreated(indexed address)
           handler: handlePoolCreated
   - kind: ethereum/contract
-    name: ds-balancer-factory-pool-to-token
+    name: ds-balancer-factory-two-tokens
     network: mainnet
     source:
       address: "0xA5bf2ddF098bb0Ef6d120C98217dD6B141c74EE0"
