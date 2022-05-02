@@ -1,14 +1,12 @@
-import { log } from "@graphprotocol/graph-ts";
 import { Transfer as TransferEvent } from "../../generated-gc/templates/UniswapV2Pair/ERC20";
 import {
   Sync as SyncEvent,
   Swap as SwapEvent,
 } from "../../generated-gc/templates/UniswapV2Pair/Pair";
-import { WeightedPool } from "../../generated/schema";
 import { loadPool, weightedPoolSwap, weightedPoolTransfer } from "../helpers";
 
 export function handleSync(event: SyncEvent): void {
-  const pool = loadPool(event, event.address);
+  const pool = loadPool(event);
   if (!pool) return;
 
   pool.gnoBalance = pool.gnoIsFirst
@@ -23,11 +21,11 @@ export function handleTransfer(event: TransferEvent): void {
   const to = event.params.to;
   const value = event.params.value;
 
-  weightedPoolTransfer(event, id, from, to, value);
+  weightedPoolTransfer(event, from, to, value);
 }
 
 export function handleSwap(event: SwapEvent): void {
-  const pool = loadPool(event, event.address);
+  const pool = loadPool(event);
   if (!pool) return;
 
   const id = event.address.toHexString();
@@ -40,5 +38,5 @@ export function handleSwap(event: SwapEvent): void {
     ? event.params.amount0Out
     : event.params.amount1Out;
 
-  weightedPoolSwap(event, id, gnoIn, gnoOut);
+  weightedPoolSwap(event, gnoIn, gnoOut);
 }

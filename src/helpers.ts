@@ -27,11 +27,8 @@ export const ZERO_BD = BigDecimal.fromString("0");
 export const ONE_BD = BigDecimal.fromString("1");
 export const BI_18 = BigInt.fromI32(18);
 
-export function loadPool(
-  event: ethereum.Event,
-  address: Address
-): WeightedPool | null {
-  const id = address.toHexString();
+export function loadPool(event: ethereum.Event): WeightedPool | null {
+  const id = event.address.toHexString();
   const pool = WeightedPool.load(id);
   if (!pool) {
     log.warning(
@@ -79,20 +76,11 @@ export function removeOrSaveUser(user: User): void {
 
 export function weightedPoolSwap(
   event: ethereum.Event,
-  id: string,
   gnoIn: BigInt,
   gnoOut: BigInt
 ): void {
-  const pool = WeightedPool.load(id);
+  const pool = loadPool(event);
   if (!pool) {
-    log.warning(
-      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
-      [
-        id,
-        event.transaction.hash.toHexString(),
-        event.transactionLogIndex.toString(),
-      ]
-    );
     return;
   }
 
@@ -141,22 +129,12 @@ export function weightedPoolSwap(
 
 export function weightedPoolTransfer(
   event: ethereum.Event,
-  id: string,
   from: Address,
   to: Address,
   value: BigInt
 ): void {
-  //const id = event.address.toHexString();
-  const pool = WeightedPool.load(id);
+  const pool = loadPool(event);
   if (!pool) {
-    log.warning(
-      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
-      [
-        id,
-        event.transaction.hash.toHexString(),
-        event.transactionLogIndex.toString(),
-      ]
-    );
     return;
   }
 
