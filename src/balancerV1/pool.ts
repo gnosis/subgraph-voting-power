@@ -40,19 +40,15 @@ export function handleExitPool(event: LOG_EXIT): void {
  ************************************/
 
 export function handleSwap(event: LOG_SWAP): void {
-  const id = event.address.toHexString();
-  let gnoIn = ZERO_BI;
-  let gnoOut = ZERO_BI;
-
-  if (event.params.tokenIn.equals(GNO_ADDRESS)) {
-    gnoIn = event.params.tokenAmountIn;
-  }
-
-  if (event.params.tokenOut.equals(GNO_ADDRESS)) {
-    gnoOut = event.params.tokenAmountOut;
-  }
+  const gnoIn = event.params.tokenIn.equals(GNO_ADDRESS)
+    ? event.params.tokenAmountIn
+    : ZERO_BI;
+  const gnoOut = event.params.tokenOut.equals(GNO_ADDRESS)
+    ? event.params.tokenAmountOut
+    : ZERO_BI;
 
   if (gnoIn.equals(ZERO_BI) && gnoOut.equals(ZERO_BI)) {
+    // no change in GNO reserves
     return;
   }
 
@@ -62,7 +58,8 @@ export function handleSwap(event: LOG_SWAP): void {
   }
 
   pool.gnoBalance = pool.gnoBalance.plus(gnoIn).minus(gnoOut);
-  weightedPoolSwap(event, gnoIn, gnoOut);
+  pool.save();
+  weightedPoolSwap(pool, gnoIn, gnoOut);
 }
 
 /************************************

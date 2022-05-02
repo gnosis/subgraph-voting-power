@@ -28,8 +28,6 @@ export function handleSwap(event: SwapEvent): void {
   const pool = loadPool(event);
   if (!pool) return;
 
-  const id = event.address.toHexString();
-
   // swaps don't change LP token total supply, but they do change the GNO reserves and thus the ratio
   const gnoIn = pool.gnoIsFirst
     ? event.params.amount0In
@@ -38,5 +36,5 @@ export function handleSwap(event: SwapEvent): void {
     ? event.params.amount0Out
     : event.params.amount1Out;
 
-  weightedPoolSwap(event, gnoIn, gnoOut);
+  weightedPoolSwap(pool, gnoIn, gnoOut);
 }

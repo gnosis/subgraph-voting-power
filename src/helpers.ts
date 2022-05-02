@@ -75,15 +75,10 @@ export function removeOrSaveUser(user: User): void {
 }
 
 export function weightedPoolSwap(
-  event: ethereum.Event,
+  pool: WeightedPool,
   gnoIn: BigInt,
   gnoOut: BigInt
 ): void {
-  const pool = loadPool(event);
-  if (!pool) {
-    return;
-  }
-
   // Swap() is emitted after Sync(), so the balance should be up to date
   // For Balancer V1 we apply the delta to gnoBalance upfront, so we can reuse this function
   const gnoReserves = pool.gnoBalance;

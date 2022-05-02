@@ -11,6 +11,7 @@ import {
   GNO_ADDRESS,
   loadOrCreateUser,
   removeOrSaveUser,
+  weightedPoolSwap,
   ZERO_BI,
 } from "../helpers";
 
@@ -30,46 +31,9 @@ export function handleSwap(event: Swap): void {
 
   const pool = loadWeightedPool(event.params.poolId);
 
-  const gnoReservesBefore = pool.gnoBalance;
   pool.gnoBalance = pool.gnoBalance.plus(gnoIn).minus(gnoOut);
   pool.save();
-  const gnoReserves = pool.gnoBalance;
-
-  log.info("handle swap in {}, gno reserves before: {}, after: {}", [
-    pool.id,
-    gnoReservesBefore.toString(),
-    gnoReserves.toString(),
-  ]);
-
-  if (pool.positions) {
-    for (let index = 0; index < pool.positions.length; index++) {
-      const position = WeightedPoolPosition.load(pool.positions[index]);
-      if (position) {
-        const user = loadOrCreateUser(Address.fromString(position.user));
-
-        const voteWeightToSubtract = position.liquidity
-          .times(gnoReservesBefore)
-          .div(pool.totalSupply);
-        const voteWeightToAdd = position.liquidity
-          .times(gnoReserves)
-          .div(pool.totalSupply);
-        user.voteWeight = user.voteWeight
-          .plus(voteWeightToAdd)
-          .minus(voteWeightToSubtract);
-        user.save();
-
-        log.info(
-          "updated vote weight of user {} with liquidity {} (-{}, +{})",
-          [
-            user.id,
-            position.liquidity.toString(),
-            voteWeightToSubtract.toString(),
-            voteWeightToAdd.toString(),
-          ]
-        );
-      }
-    }
-  }
+  weightedPoolSwap(pool, gnoIn, gnoOut);
 }
 
 export function handleBalanceChange(event: PoolBalanceChanged): void {
