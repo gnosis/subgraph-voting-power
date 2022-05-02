@@ -215,7 +215,7 @@ dataSources:
       # symmetric's factory address, a balancer-v1 clone
       address: "0x9B4214FD41cD24347A25122AC7bb6B479BED72Ac"
       abi: Factory
-      startBlock: 13108160
+      startBlock: 16465037
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
