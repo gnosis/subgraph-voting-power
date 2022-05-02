@@ -4,4 +4,4 @@ build-gc
 generated
 generated-gc
 **/.DS_Store
-
+tests/.bin
