@@ -1,10 +1,11 @@
 import { Address, log } from "@graphprotocol/graph-ts";
-import { PairCreated } from "../../generated-gc/Sushi/Factory";
+import { PairCreated as PairCreatedEvent } from "../../generated-gc/ds-uniswap-v2-factory/Factory";
 import { WeightedPool } from "../../generated/schema";
-import { Pair } from "../../generated-gc/templates";
+import { UniswapV2Pair as UniwapV2PairTemplate } from "../../generated-gc/templates";
+
 import { GNO_ADDRESS, ZERO_BI } from "../helpers";
 
-export function handleNewPair(event: PairCreated): void {
+export function handleNewPair(event: PairCreatedEvent): void {
   const isGnoTradingPair =
     event.params.token0.equals(GNO_ADDRESS) ||
     event.params.token1.equals(GNO_ADDRESS);
@@ -23,7 +24,7 @@ function createWeightedPool(
   token0: Address,
   token1: Address
 ): WeightedPool {
-  Pair.create(address);
+  UniwapV2PairTemplate.create(address);
   const id = address.toHexString();
   log.info("instantiated WeightedPool instance: {}", [id]);
   const pool = new WeightedPool(id);
