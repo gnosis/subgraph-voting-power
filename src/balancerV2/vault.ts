@@ -3,9 +3,9 @@ import {
   InternalBalanceChanged,
   PoolBalanceChanged,
   Swap,
-} from "../../generated/ds-balancer-vault/Vault";
+} from "../../generated/ds-balancer-v2-vault/Vault";
 
-import { WeightedPool, WeightedPoolPosition } from "../../generated/schema";
+import { WeightedPool } from "../../generated/schema";
 
 import {
   GNO_ADDRESS,

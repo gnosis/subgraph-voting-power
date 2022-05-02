@@ -5,9 +5,9 @@ import {
   newMockEvent,
 } from "matchstick-as/assembly/index";
 import { Address, ethereum } from "@graphprotocol/graph-ts";
-import { handlePoolCreated } from "../../src/balancer/factory";
+import { handlePoolCreated } from "../../src/balancerV2/factory";
 import { USER1_ADDRESS } from "../helpers";
-import { PoolCreated } from "../../generated/WeightedPoolFactory/WeightedPoolFactory";
+import { PoolCreated } from "../../generated/ds-balancer-v2-factory/WeightedPoolFactory";
 
 const POOL_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000003"

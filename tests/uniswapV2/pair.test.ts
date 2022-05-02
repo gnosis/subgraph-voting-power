@@ -13,8 +13,8 @@ import {
 import { handleNewPair } from "../../src/uniswapV2/factory";
 import { handleTransfer as handleGnoTransfer } from "../../src/gno";
 import { createPairCreatedEvent } from "../helpers";
-import { Transfer } from "../../generated-gc/templates/Pair/ERC20";
-import { Swap } from "../../generated-gc/templates/Pair/Pair";
+import { Transfer } from "../../generated-gc/templates/UniswapV2Pair/ERC20";
+import { Swap } from "../../generated-gc/templates/UniswapV2Pair/Pair";
 import { Transfer as GnoTransfer } from "../../generated/ds-gno/ERC20";
 import { handleSwap, handleTransfer } from "../../src/uniswapV2/pair";
 import { GNO_ADDRESS, ZERO_BI } from "../../src/helpers";
