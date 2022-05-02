@@ -29,8 +29,7 @@ export function handleSwap(event: Swap): void {
   const pool = loadWeightedPool(event.params.poolId);
 
   const gnoReservesBefore = pool.gnoBalance;
-  pool.gnoBalance = pool.gnoBalance.plus(gnoIn);
-  pool.gnoBalance = pool.gnoBalance.minus(gnoOut);
+  pool.gnoBalance = pool.gnoBalance.plus(gnoIn).minus(gnoOut);
   pool.save();
   const gnoReserves = pool.gnoBalance;
 

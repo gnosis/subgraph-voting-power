@@ -25,7 +25,7 @@ function createWeightedPool(
 ): WeightedPool {
   Pair.create(address);
   const id = address.toHexString();
-  log.info("instantiated WeightedPool instance: {}", [id]);
+  log.info("instantiated UniswapV2 WeightedPool instance: {}", [id]);
   const pool = new WeightedPool(id);
   pool.gnoIsFirst = token0.equals(GNO_ADDRESS);
   pool.totalSupply = ZERO_BI;

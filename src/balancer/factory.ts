@@ -28,11 +28,15 @@ export function handlePoolCreated(event: PoolCreated): void {
       pool.gnoBalance = ZERO_BI;
       pool.gnoIsFirst = false;
       pool.save();
-      log.info("instantiated WeightedPool instance: {}", [
+      log.info("instantiated Balancer WeightedPool instance: {}", [
         poolId.toHexString(),
       ]);
 
       WeightedPoolTemplate.create(address);
     }
+  } else {
+    log.warning("getPoolTokens call reverted for pool ID {}", [
+      poolId.toHexString(),
+    ]);
   }
 }
