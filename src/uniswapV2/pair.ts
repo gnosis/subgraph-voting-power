@@ -1,14 +1,11 @@
-import { BigInt, log, store, Address } from "@graphprotocol/graph-ts";
+import { log } from "@graphprotocol/graph-ts";
 import { Transfer as TransferEvent } from "../../generated-gc/templates/UniswapV2Pair/ERC20";
 import {
   Sync as SyncEvent,
   Swap as SwapEvent,
 } from "../../generated-gc/templates/UniswapV2Pair/Pair";
-import { WeightedPool, WeightedPoolPosition } from "../../generated/schema";
-import {
-  updatePoolPositionsAfterSwap,
-  updatePoolPositionsAfterTransfer,
-} from "../helpers";
+import { WeightedPool } from "../../generated/schema";
+import { weightedPoolSwap, weightedPoolTransfer } from "../helpers";
 
 export function handleSync(event: SyncEvent): void {
   const id = event.address.toHexString();
@@ -37,7 +34,7 @@ export function handleTransfer(event: TransferEvent): void {
   const to = event.params.to;
   const value = event.params.value;
 
-  updatePoolPositionsAfterTransfer(event, id, from, to, value);
+  weightedPoolTransfer(event, id, from, to, value);
 }
 
 export function handleSwap(event: SwapEvent): void {
@@ -63,5 +60,5 @@ export function handleSwap(event: SwapEvent): void {
     ? event.params.amount0Out
     : event.params.amount1Out;
 
-  updatePoolPositionsAfterSwap(event, id, gnoIn, gnoOut);
+  weightedPoolSwap(event, id, gnoIn, gnoOut);
 }

@@ -1,8 +1,9 @@
 import { log } from "@graphprotocol/graph-ts";
-import { LOG_NEW_POOL } from "../../generated-gc/Symmetric/Factory";
+import { LOG_NEW_POOL } from "../../generated-gc/ds-balancer-v1-factory/Factory";
+import { Pool as PoolContract } from "../../generated-gc/templates/BalancerV1Pool/Pool";
 
 import { WeightedPool } from "../../generated/schema";
-import { Pool as PoolContract } from "../../generated-gc/templates/BalancerV1Pool/Pool";
+
 import { BalancerV1Pool as BalancerV1PoolTemplate } from "../../generated-gc/templates";
 
 import { GNO_ADDRESS, ZERO_BI } from "../helpers";

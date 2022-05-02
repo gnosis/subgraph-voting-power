@@ -103,10 +103,10 @@ dataSources:
           handler: handleTransfer
       file: ./src/sgno.ts
   - kind: ethereum/contract
-    # note this is actually the swapr factory, i.e., the biggest tvl uniswap-v2 clone on gnosis-chain
     name: ds-uniswap-v2-factory
     network: xdai
     source:
+      # note this is actually the swapr factory, i.e., the biggest tvl uniswap-v2 clone on gnosis-chain
       address: "0x5D48C95AdfFD4B40c1AAADc4e08fc44117E02179"
       abi: Factory
       startBlock: 14913783
@@ -209,9 +209,10 @@ dataSources:
         - event: PairCreated(indexed address,indexed address,address,uint256)
           handler: handleNewPair
   - kind: ethereum/contract
-    name: SymmetricFactory
+    name: ds-balancer-v1-factory
     network: xdai
     source:
+      # symmetric's factory address, a balancer-v1 clone
       address: "0x9B4214FD41cD24347A25122AC7bb6B479BED72Ac"
       abi: Factory
       startBlock: 13108160
@@ -226,10 +227,6 @@ dataSources:
       abis:
         - name: Factory
           file: ./abis/balancerV1/BFactory.json
-        - name: CRPFactory
-          file: ./abis/balancerV1/CRPFactory.json
-        - name: ConfigurableRightsPool
-          file: ./abis/balancerV1/ConfigurableRightsPool.json
       eventHandlers:
         - event: LOG_NEW_POOL(indexed address,indexed address)
           handler: handleNewPool
@@ -276,10 +273,6 @@ templates:
       abis:
         - name: Pool
           file: ./abis/balancerV1/BPool.json
-        - name: CToken
-          file: ./abis/balancerV1/CToken.json
-        - name: CTokenBytes
-          file: ./abis/balancerV1/CTokenBytes32.json
       eventHandlers:
         - event: LOG_CALL(indexed bytes4,indexed address,bytes)
           topic0: "0x34e1990700000000000000000000000000000000000000000000000000000000"

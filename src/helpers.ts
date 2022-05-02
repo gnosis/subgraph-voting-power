@@ -58,12 +58,12 @@ export function removeOrSaveUser(user: User): void {
   }
 }
 
-export function updatePoolPositionsAfterSwap(
+export function weightedPoolSwap(
   event: ethereum.Event,
   id: string,
   gnoIn: BigInt,
   gnoOut: BigInt
-) {
+): void {
   const pool = WeightedPool.load(id);
   if (!pool) {
     log.warning(
@@ -120,7 +120,7 @@ export function updatePoolPositionsAfterSwap(
   }
 }
 
-export function updatePoolPositionsAfterTransfer(
+export function weightedPoolTransfer(
   event: ethereum.Event,
   id: string,
   from: Address,
@@ -148,15 +148,9 @@ export function updatePoolPositionsAfterTransfer(
     pool.totalSupply.toString(),
   ]);
 
-  // // user stats
-  // const from = event.params.from;
-  // const to = event.params.to;
-
   const userTo = loadOrCreateUser(to);
   const userFrom = loadOrCreateUser(from);
 
-  // liquidity token amount being transferred
-  //let value = event.params.value;
   log.info("transfer from: {}, to: {}, value: {}", [
     userFrom.id,
     userTo.id,
