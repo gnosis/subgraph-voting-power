@@ -27,6 +27,25 @@ export const ZERO_BD = BigDecimal.fromString("0");
 export const ONE_BD = BigDecimal.fromString("1");
 export const BI_18 = BigInt.fromI32(18);
 
+export function loadPool(
+  event: ethereum.Event,
+  address: Address
+): WeightedPool | null {
+  const id = address.toHexString();
+  const pool = WeightedPool.load(id);
+  if (!pool) {
+    log.warning(
+      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
+      [
+        id,
+        event.transaction.hash.toHexString(),
+        event.transactionLogIndex.toString(),
+      ]
+    );
+  }
+  return pool;
+}
+
 export function loadOrCreateUser(address: Address): User {
   const id = address.toHexString();
   let user = User.load(id);

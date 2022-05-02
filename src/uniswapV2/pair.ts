@@ -5,22 +5,11 @@ import {
   Swap as SwapEvent,
 } from "../../generated-gc/templates/UniswapV2Pair/Pair";
 import { WeightedPool } from "../../generated/schema";
-import { weightedPoolSwap, weightedPoolTransfer } from "../helpers";
+import { loadPool, weightedPoolSwap, weightedPoolTransfer } from "../helpers";
 
 export function handleSync(event: SyncEvent): void {
-  const id = event.address.toHexString();
-  const pool = WeightedPool.load(id);
-  if (!pool) {
-    log.warning(
-      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
-      [
-        id,
-        event.transaction.hash.toHexString(),
-        event.transactionLogIndex.toString(),
-      ]
-    );
-    return;
-  }
+  const pool = loadPool(event, event.address);
+  if (!pool) return;
 
   pool.gnoBalance = pool.gnoIsFirst
     ? event.params.reserve0
@@ -38,20 +27,11 @@ export function handleTransfer(event: TransferEvent): void {
 }
 
 export function handleSwap(event: SwapEvent): void {
+  const pool = loadPool(event, event.address);
+  if (!pool) return;
+
   const id = event.address.toHexString();
 
-  const pool = WeightedPool.load(id);
-  if (!pool) {
-    log.warning(
-      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
-      [
-        id,
-        event.transaction.hash.toHexString(),
-        event.transactionLogIndex.toString(),
-      ]
-    );
-    return;
-  }
   // swaps don't change LP token total supply, but they do change the GNO reserves and thus the ratio
   const gnoIn = pool.gnoIsFirst
     ? event.params.amount0In

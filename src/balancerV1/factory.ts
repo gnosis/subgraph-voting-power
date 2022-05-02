@@ -24,7 +24,6 @@ export function handleNewPool(event: LOG_NEW_POOL): void {
       pool.gnoIsFirst = false;
       pool.save();
       log.info("instantiated WeightedPool instance: {}", [
-        // pool id ?
         address.toHexString(),
       ]);
 

@@ -1,4 +1,3 @@
-import { log } from "@graphprotocol/graph-ts";
 import {
   LOG_JOIN,
   LOG_EXIT,
@@ -6,10 +5,9 @@ import {
   Transfer,
 } from "../../generated-gc/templates/BalancerV1Pool/Pool";
 
-import { WeightedPool } from "../../generated/schema";
-
 import {
   GNO_ADDRESS,
+  loadPool,
   weightedPoolSwap,
   weightedPoolTransfer,
   ZERO_BI,
@@ -20,42 +18,18 @@ import {
  ************************************/
 
 export function handleJoinPool(event: LOG_JOIN): void {
-  const id = event.address.toHexString();
-  const pool = WeightedPool.load(id);
-  if (!pool) {
-    log.warning(
-      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
-      [
-        id,
-        event.transaction.hash.toHexString(),
-        event.transactionLogIndex.toString(),
-      ]
-    );
-    return;
-  }
+  const pool = loadPool(event, event.address);
 
-  if (event.params.tokenIn.equals(GNO_ADDRESS)) {
+  if (pool && event.params.tokenIn.equals(GNO_ADDRESS)) {
     pool.gnoBalance = pool.gnoBalance.plus(event.params.tokenAmountIn);
     pool.save();
   }
 }
 
 export function handleExitPool(event: LOG_EXIT): void {
-  const id = event.address.toHexString();
-  const pool = WeightedPool.load(id);
-  if (!pool) {
-    log.warning(
-      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
-      [
-        id,
-        event.transaction.hash.toHexString(),
-        event.transactionLogIndex.toString(),
-      ]
-    );
-    return;
-  }
+  const pool = loadPool(event, event.address);
 
-  if (event.params.tokenOut.equals(GNO_ADDRESS)) {
+  if (pool && event.params.tokenOut.equals(GNO_ADDRESS)) {
     pool.gnoBalance = pool.gnoBalance.minus(event.params.tokenAmountOut);
     pool.save();
   }
@@ -79,6 +53,9 @@ export function handleSwap(event: LOG_SWAP): void {
   }
 
   if (!gnoIn.equals(ZERO_BI) || !gnoOut.equals(ZERO_BI)) {
+    const pool = loadPool(event, event.address);
+    if (!pool) return;
+    pool.gnoBalance = pool.gnoBalance.plus(gnoIn).minus(gnoOut);
     weightedPoolSwap(event, id, gnoIn, gnoOut);
   }
 }
