@@ -85,6 +85,7 @@ export function weightedPoolSwap(
   }
 
   // Swap() is emitted after Sync(), so the balance should be up to date
+  // For Balancer V1 we apply the delta to gnoBalance upfront, so we can reuse this function
   const gnoReserves = pool.gnoBalance;
   // to get the GNO reserves before the swap, we add the amount delta
   const gnoReservesBefore = gnoReserves.minus(gnoIn).plus(gnoOut);
