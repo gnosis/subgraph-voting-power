@@ -1,16 +1,18 @@
 import { Address, log, Bytes } from "@graphprotocol/graph-ts";
 import {
+  InternalBalanceChanged,
+  PoolBalanceChanged,
+  Swap,
+} from "../../generated/ds-balancer-vault/Vault";
+
+import { WeightedPool, WeightedPoolPosition } from "../../generated/schema";
+
+import {
   GNO_ADDRESS,
   loadOrCreateUser,
   removeOrSaveUser,
   ZERO_BI,
 } from "../helpers";
-import { WeightedPool, WeightedPoolPosition } from "../../generated/schema";
-import {
-  InternalBalanceChanged,
-  PoolBalanceChanged,
-  Swap,
-} from "../../generated/Vault/Vault";
 
 export function handleSwap(event: Swap): void {
   // swaps don't change LP token total supply, but they might change the GNO reserves

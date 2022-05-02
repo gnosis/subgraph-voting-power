@@ -1,14 +1,15 @@
 import { Address, log } from "@graphprotocol/graph-ts";
 import { ConcentratedLiquidityPair } from "../../generated/schema";
-import { PoolCreated } from "../../generated/Factory/Factory";
-import { Pool as PoolTemplate } from "../../generated/templates";
+import { PoolCreated as PoolCreatedEvent } from "../../generated/ds-uniswap-v3-factory/Factory";
+import { UniswapV3Pool as UniswapV3PoolTemplate } from "../../generated/templates";
+
 import { ZERO_BD } from "../helpers";
 
 const GNO_ADDRESS = Address.fromString(
   "0x6810e776880c02933d47db1b9fc05908e5386b96"
 );
 
-export function handlePoolCreated(event: PoolCreated): void {
+export function handlePoolCreated(event: PoolCreatedEvent): void {
   const isGnoTradingPair =
     event.params.token0.equals(GNO_ADDRESS) ||
     event.params.token1.equals(GNO_ADDRESS);
@@ -27,7 +28,7 @@ function createConcentratedLiquidityPair(
   token0: Address,
   token1: Address
 ): ConcentratedLiquidityPair {
-  PoolTemplate.create(address);
+  UniswapV3PoolTemplate.create(address);
   const id = address.toHexString();
   log.info("instantiated ConcentratedLiquidityPair instance: {}", [id]);
   const pair = new ConcentratedLiquidityPair(id);

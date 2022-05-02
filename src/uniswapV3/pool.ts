@@ -1,13 +1,14 @@
 import { Address, BigDecimal, BigInt, log } from "@graphprotocol/graph-ts";
-import { ConcentratedLiquidityPair } from "../../generated/schema";
 import {
-  Initialize,
+  Initialize as InitializeEvent,
   Swap as SwapEvent,
-} from "../../generated/templates/Pool/Pool";
+} from "../../generated/templates/UniswapV3Pool/Pool";
+
+import { ConcentratedLiquidityPair } from "../../generated/schema";
 
 import { updateForRatioChange } from "./voteWeight";
 
-export function handleInitialize(event: Initialize): void {
+export function handleInitialize(event: InitializeEvent): void {
   // initialize pool sqrt price
   const pair = loadConcentratedLiquidityPair(event.address);
   if (!pair) return;

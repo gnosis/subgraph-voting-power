@@ -4,12 +4,14 @@ import {
   IncreaseLiquidity,
   NonfungiblePositionManager,
   Transfer,
-} from "../../generated/NonfungiblePositionManager/NonfungiblePositionManager";
+} from "../../generated/ds-uniswap-v3-position/NonfungiblePositionManager";
+import { Factory as FactoryContract } from "../../generated/ds-uniswap-v3-position/Factory";
+
 import {
   ConcentratedLiquidityPair,
   ConcentratedLiquidityPosition,
 } from "../../generated/schema";
-import { Factory } from "../../generated/Factory/Factory";
+
 import { updateForLiquidityChange } from "./voteWeight";
 import { ADDRESS_ZERO, GNO_ADDRESS, ZERO_BI } from "../helpers";
 
@@ -73,7 +75,9 @@ export function handleTransfer(event: Transfer): void {
 }
 
 export const FACTORY_ADDRESS = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
-const factoryContract = Factory.bind(Address.fromString(FACTORY_ADDRESS));
+const factoryContract = FactoryContract.bind(
+  Address.fromString(FACTORY_ADDRESS)
+);
 
 function loadOrCreateConcentratedLiquidityPosition(
   event: ethereum.Event,
