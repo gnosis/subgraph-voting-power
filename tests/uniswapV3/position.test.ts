@@ -16,7 +16,7 @@ import {
   DecreaseLiquidity,
   IncreaseLiquidity,
   Transfer,
-} from "../../generated/NonfungiblePositionManager/NonfungiblePositionManager";
+} from "../../generated/ds-uniswap-v3-position/NonfungiblePositionManager";
 import {
   handleIncreaseLiquidity,
   handleDecreaseLiquidity,
