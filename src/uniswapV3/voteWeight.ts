@@ -45,6 +45,33 @@ export function updateForLiquidityChange(
 
   if (!delta.equals(ZERO_BI)) {
     user.voteWeight = user.voteWeight.plus(delta);
+
+    if (!amountToSubtract.equals(position.balanceAccumulated)) {
+      log.warning(
+        "UFLC {} amountToSubtract {} != {} position.balanceAccumulated",
+        [
+          position.id,
+          amountToSubtract.toString(),
+          position.balanceAccumulated.toString(),
+        ]
+      );
+    }
+    position.balance = amountToAdd;
+    position.balanceAccumulated = position.balanceAccumulated.plus(delta);
+    if (!position.balance.equals(position.balanceAccumulated)) {
+      log.warning(
+        "UFLC {} position.balance {} != {} position.balanceAccumulated",
+        [
+          position.id,
+          position.balance.toString(),
+          position.balanceAccumulated.toString(),
+        ]
+      );
+    }
+
+    position.balanceDeltaLogs = position.balanceDeltaLogs.concat([delta]);
+    position.save();
+
     log.info(
       "updated voting weight of user {} (delta: {}) for liquidity change (old: {}, new: {})",
       [
@@ -97,6 +124,32 @@ export function updateForRatioChange(
 
       if (!delta.equals(ZERO_BI)) {
         user.voteWeight = user.voteWeight.plus(delta);
+
+        if (!amountToSubtract.equals(position.balanceAccumulated)) {
+          log.warning(
+            "UFRC {} amountToSubtract {} != {} position.balanceAccumulated",
+            [
+              position.id,
+              amountToSubtract.toString(),
+              position.balanceAccumulated.toString(),
+            ]
+          );
+        }
+        position.balance = amountToAdd;
+        position.balanceAccumulated = position.balanceAccumulated.plus(delta);
+        if (!amountToSubtract.equals(position.balanceAccumulated)) {
+          log.warning(
+            "UFRC {} position.balance {} != {} position.balanceAccumulated",
+            [
+              position.id,
+              position.balance.toString(),
+              position.balanceAccumulated.toString(),
+            ]
+          );
+        }
+
+        position.balanceDeltaLogs = position.balanceDeltaLogs.concat([delta]);
+        position.save();
         log.info(
           "updated voting weight of user {} (delta: {}) for ratio change (old: {}, new: {}, position: {})",
           [
