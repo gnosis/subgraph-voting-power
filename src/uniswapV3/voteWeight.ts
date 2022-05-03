@@ -10,6 +10,9 @@ export function updateForLiquidityChange(
   previousLiquidity: BigInt
 ): void {
   if (!position.user) {
+    log.warning("Tried updating vote weight of position without user: {}", [
+      position.id,
+    ]);
     return;
   }
 
@@ -137,7 +140,7 @@ export function updateForRatioChange(
         }
         position.balance = amountToAdd;
         position.balanceAccumulated = position.balanceAccumulated.plus(delta);
-        if (!amountToSubtract.equals(position.balanceAccumulated)) {
+        if (!position.balance.equals(position.balanceAccumulated)) {
           log.warning(
             "UFRC {} position.balance {} != {} position.balanceAccumulated",
             [
