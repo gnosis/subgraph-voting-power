@@ -1,9 +1,16 @@
+import { log } from "@graphprotocol/graph-ts";
 import { Transfer as TransferEvent } from "../../generated-gc/templates/UniswapV2Pair/ERC20";
 import {
   Sync as SyncEvent,
   Swap as SwapEvent,
 } from "../../generated-gc/templates/UniswapV2Pair/Pair";
-import { loadPool, weightedPoolSwap, weightedPoolTransfer } from "../helpers";
+import { User, WeightedPool } from "../../generated/schema";
+import {
+  loadPool,
+  weightedPoolSwap,
+  weightedPoolTransfer,
+  ZERO_BI,
+} from "../helpers";
 
 export function handleSync(event: SyncEvent): void {
   const pool = loadPool(event);
@@ -20,6 +27,19 @@ export function handleTransfer(event: TransferEvent): void {
   const from = event.params.from;
   const to = event.params.to;
   const value = event.params.value;
+
+  // for UniswapV2 the we have the following ordering of events:
+  // - reserve0 token transfer event
+  // - reserve1 token transfer event
+  // - LP token transfer event
+  // - Sync event
+  // As weightedPoolTransfer relies on the pools GNO balance to be up-to-date,
+  // we make sure it is.
+  const pool = WeightedPool.load(id);
+  if (!pool) throw new Error(`Expected WeightedPool with Id: ${id} to exist`);
+  const userEntryForPool = User.load(id);
+  pool.gnoBalance = userEntryForPool ? userEntryForPool.gno : ZERO_BI;
+  pool.save();
 
   weightedPoolTransfer(event, from, to, value);
 }
