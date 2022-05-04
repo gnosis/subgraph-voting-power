@@ -44,7 +44,7 @@ export function updateForLiquidityChange(
     ? getToken0Balance(position, pair.sqrtRatio)
     : getToken1Balance(position, pair.sqrtRatio);
 
-  position.balance = amountToAdd;
+  position.gnoBalance = amountToAdd;
   position.save();
 
   const delta = amountToAdd.minus(amountToSubtract);
@@ -100,7 +100,7 @@ export function updateForRatioChange(
           : getToken1Balance(position, previousSqrtRatio);
       }
 
-      position.balance = amountToAdd;
+      position.gnoBalance = amountToAdd;
       position.save();
 
       const delta = amountToAdd.minus(amountToSubtract);
