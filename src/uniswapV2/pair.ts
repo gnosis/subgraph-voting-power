@@ -1,4 +1,3 @@
-import { log } from "@graphprotocol/graph-ts";
 import { Transfer as TransferEvent } from "../../generated-gc/templates/UniswapV2Pair/ERC20";
 import {
   Sync as SyncEvent,
@@ -33,10 +32,10 @@ export function handleTransfer(event: TransferEvent): void {
   // - reserve1 token transfer event
   // - LP token transfer event
   // - Sync event
-  // As weightedPoolTransfer relies on the pools GNO balance to be up-to-date,
+  // As weightedPoolTransfer relies on the pools GNO balance being up-to-date,
   // we make sure it is.
   const pool = WeightedPool.load(id);
-  if (!pool) throw new Error(`Expected WeightedPool with Id: ${id} to exist`);
+  if (!pool) throw new Error(`Expected WeightedPool #${id} to exist`);
   const userEntryForPool = User.load(id);
   pool.gnoBalance = userEntryForPool ? userEntryForPool.gno : ZERO_BI;
   pool.save();
@@ -45,10 +44,11 @@ export function handleTransfer(event: TransferEvent): void {
 }
 
 export function handleSwap(event: SwapEvent): void {
+  // swaps don't change LP token total supply, but they do change the GNO reserves and thus the ratio
+
   const pool = loadPool(event);
   if (!pool) return;
 
-  // swaps don't change LP token total supply, but they do change the GNO reserves and thus the ratio
   const gnoIn = pool.gnoIsFirst
     ? event.params.amount0In
     : event.params.amount1In;
@@ -56,5 +56,6 @@ export function handleSwap(event: SwapEvent): void {
     ? event.params.amount0Out
     : event.params.amount1Out;
 
+  // Swap is emitted after Sync, so pool.gnoBalance has already been set to the latest state in handleSync when we arrive here.
   weightedPoolSwap(pool, gnoIn, gnoOut);
 }

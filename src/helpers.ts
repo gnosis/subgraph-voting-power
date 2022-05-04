@@ -74,13 +74,12 @@ export function removeOrSaveUser(user: User): void {
   }
 }
 
+// Before calling this function, make sure that pool.gnoBalance set to the up-to-date value AFTER the swap has been made
 export function weightedPoolSwap(
   pool: WeightedPool,
   gnoIn: BigInt,
   gnoOut: BigInt
 ): void {
-  // Swap() is emitted after Sync(), so the balance should be up to date
-  // For Balancer V1 we apply the delta to gnoBalance upfront, so we can reuse this function
   const gnoReserves = pool.gnoBalance;
   // to get the GNO reserves before the swap, we add the amount delta
   const gnoReservesBefore = gnoReserves.minus(gnoIn).plus(gnoOut);
