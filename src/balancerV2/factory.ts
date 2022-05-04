@@ -1,11 +1,12 @@
 import { Address, log } from "@graphprotocol/graph-ts";
 
-import { WeightedPool } from "../../generated/schema";
-import { Vault as VaultContract } from "../../generated/ds-balancer-factory/Vault";
-import { WeightedPool as WeightedPoolContract } from "../../generated/ds-balancer-factory/WeightedPool";
-import { PoolCreated as PoolCreatedEvent } from "../../generated/ds-balancer-factory/WeightedPoolFactory";
+import { Vault as VaultContract } from "../../generated/ds-balancer-v2-factory/Vault";
+import { WeightedPool as WeightedPoolContract } from "../../generated/ds-balancer-v2-factory/WeightedPool";
+import { PoolCreated as PoolCreatedEvent } from "../../generated/ds-balancer-v2-factory/WeightedPoolFactory";
 
-import { BalancerPool as BalancerPoolTemplate } from "../../generated/templates";
+import { WeightedPool } from "../../generated/schema";
+
+import { BalancerV2Pool as BalancerV2PoolTemplate } from "../../generated/templates";
 
 import { GNO_ADDRESS, ZERO_BI } from "../helpers";
 
@@ -35,7 +36,7 @@ export function handlePoolCreated(event: PoolCreatedEvent): void {
         poolId.toHexString(),
       ]);
 
-      BalancerPoolTemplate.create(address);
+      BalancerV2PoolTemplate.create(address);
     }
   } else {
     log.warning("getPoolTokens call reverted for pool ID {}", [

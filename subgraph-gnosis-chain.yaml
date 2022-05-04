@@ -103,10 +103,10 @@ dataSources:
           handler: handleTransfer
       file: ./src/sgno.ts
   - kind: ethereum/contract
-    # note this is actually the swapr factory, i.e., the biggest tvl uniswap-v2 clone on gnosis-chain
     name: ds-uniswap-v2-factory
     network: xdai
     source:
+      # note this is actually the swapr factory, i.e., the biggest tvl uniswap-v2 clone on gnosis-chain
       address: "0x5D48C95AdfFD4B40c1AAADc4e08fc44117E02179"
       abi: Factory
       startBlock: 14913783
@@ -208,6 +208,28 @@ dataSources:
       eventHandlers:
         - event: PairCreated(indexed address,indexed address,address,uint256)
           handler: handleNewPair
+  - kind: ethereum/contract
+    name: ds-balancer-v1-factory
+    network: xdai
+    source:
+      # symmetric's factory address, a balancer-v1 clone
+      address: "0x9B4214FD41cD24347A25122AC7bb6B479BED72Ac"
+      abi: Factory
+      startBlock: 16465037
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/balancerV1/factory.ts
+      entities:
+        - User
+        - WeightedPool
+      abis:
+        - name: Factory
+          file: ./abis/balancerV1/BFactory.json
+      eventHandlers:
+        - event: LOG_NEW_POOL(indexed address,indexed address)
+          handler: handleNewPool
 templates:
   - kind: ethereum/contract
     name: UniswapV2Pair
@@ -235,3 +257,31 @@ templates:
           handler: handleSwap
         - event: Sync(uint112,uint112)
           handler: handleSync
+  - kind: ethereum/contract
+    name: BalancerV1Pool
+    network: xdai
+    source:
+      abi: Pool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/balancerV1/pool.ts
+      entities:
+        - User
+        - WeightedPool
+      abis:
+        - name: Pool
+          file: ./abis/balancerV1/BPool.json
+      eventHandlers:
+        - event: LOG_CALL(indexed bytes4,indexed address,bytes)
+          topic0: "0x34e1990700000000000000000000000000000000000000000000000000000000"
+          handler: handleSetSwapFee
+        - event: LOG_JOIN(indexed address,indexed address,uint256)
+          handler: handleJoinPool
+        - event: LOG_EXIT(indexed address,indexed address,uint256)
+          handler: handleExitPool
+        - event: LOG_SWAP(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleSwap
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer

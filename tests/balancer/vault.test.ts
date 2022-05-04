@@ -17,8 +17,11 @@ import { USER1_ADDRESS, USER2_ADDRESS } from "../helpers";
 import {
   handleInternalBalanceChange,
   handleSwap,
-} from "../../src/balancer/vault";
-import { InternalBalanceChanged, Swap } from "../../generated/Vault/Vault";
+} from "../../src/balancerV2/vault";
+import {
+  InternalBalanceChanged,
+  Swap,
+} from "../../generated/ds-balancer-v2-vault/Vault";
 import { handleTransfer } from "../../src/gno";
 
 const POOL_ADDRESS = Address.fromString(

@@ -44,7 +44,7 @@ dataSources:
       file: ./src/lgno.ts
   # Balancer
   - kind: ethereum/contract
-    name: ds-balancer-vault
+    name: ds-balancer-v2-vault
     network: mainnet
     source:
       address: "0xBA12222222228d8Ba445958a75a0704d566BF2C8"
@@ -54,12 +54,12 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/balancer/vault.ts
+      file: ./src/balancerV2/vault.ts
       entities:
         - WeightedPool
       abis:
         - name: Vault
-          file: ./abis/balancer/Vault.json
+          file: ./abis/balancerV2/Vault.json
       eventHandlers:
         - event: Swap(indexed bytes32,indexed address,indexed address,uint256,uint256)
           handler: handleSwap
@@ -68,7 +68,7 @@ dataSources:
         - event: InternalBalanceChanged(indexed address,indexed address,int256)
           handler: handleInternalBalanceChange
   - kind: ethereum/contract
-    name: ds-balancer-factory
+    name: ds-balancer-v2-factory
     network: mainnet
     source:
       address: "0x8E9aa87E45e92bad84D5F8DD1bff34Fb92637dE9"
@@ -78,21 +78,21 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/balancer/factory.ts
+      file: ./src/balancerV2/factory.ts
       entities:
         - WeightedPool
       abis:
         - name: Vault
-          file: ./abis/balancer/Vault.json
+          file: ./abis/balancerV2/Vault.json
         - name: WeightedPoolFactory
-          file: ./abis/balancer/WeightedPoolFactory.json
+          file: ./abis/balancerV2/WeightedPoolFactory.json
         - name: WeightedPool
-          file: ./abis/balancer/WeightedPool.json
+          file: ./abis/balancerV2/WeightedPool.json
       eventHandlers:
         - event: PoolCreated(indexed address)
           handler: handlePoolCreated
   - kind: ethereum/contract
-    name: ds-balancer-factory-two-tokens
+    name: ds-balancer-v2-factory-two-tokens
     network: mainnet
     source:
       address: "0xA5bf2ddF098bb0Ef6d120C98217dD6B141c74EE0"
@@ -102,12 +102,12 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/balancer/factory.ts
+      file: ./src/balancerV2/factory.ts
       entities:
         - WeightedPool
       abis:
         - name: WeightedPoolFactory
-          file: ./abis/balancer/WeightedPoolFactory.json
+          file: ./abis/balancerV2/WeightedPoolFactory.json
       eventHandlers:
         - event: PoolCreated(indexed address)
           handler: handlePoolCreated
@@ -162,7 +162,7 @@ dataSources:
 templates:
   # Balancer
   - kind: ethereum/contract
-    name: BalancerPool
+    name: BalancerV2Pool
     network: mainnet
     source:
       abi: ERC20
@@ -170,14 +170,14 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/balancer/pool.ts
+      file: ./src/balancerV2/pool.ts
       entities:
         - User
         - WeightedPool
         - WeightedPoolPosition
       abis:
         - name: Vault
-          file: ./abis/balancer/Vault.json
+          file: ./abis/balancerV2/Vault.json
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:

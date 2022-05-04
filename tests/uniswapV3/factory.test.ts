@@ -6,7 +6,7 @@ import {
 } from "matchstick-as/assembly/index";
 import { Address, ethereum } from "@graphprotocol/graph-ts";
 import { handlePoolCreated } from "../../src/uniswapV3/factory";
-import { PoolCreated } from "../../generated/Factory/Factory";
+import { PoolCreated } from "../../generated/ds-uniswap-v3-factory/Factory";
 import { GNO_ADDRESS } from "../../src/helpers";
 import { PAIR_ADDRESS, USER1_ADDRESS } from "../helpers";
 
