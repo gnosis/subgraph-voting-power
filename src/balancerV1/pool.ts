@@ -67,8 +67,6 @@ export function handleSwap(event: LOG_SWAP): void {
  ************************************/
 
 export function handleTransfer(event: Transfer): void {
-  const id = event.address.toHex();
-
   const from = event.params.src;
   const to = event.params.dst;
   const value = event.params.amt;

@@ -274,9 +274,6 @@ templates:
         - name: Pool
           file: ./abis/balancerV1/BPool.json
       eventHandlers:
-        - event: LOG_CALL(indexed bytes4,indexed address,bytes)
-          topic0: "0x34e1990700000000000000000000000000000000000000000000000000000000"
-          handler: handleSetSwapFee
         - event: LOG_JOIN(indexed address,indexed address,uint256)
           handler: handleJoinPool
         - event: LOG_EXIT(indexed address,indexed address,uint256)

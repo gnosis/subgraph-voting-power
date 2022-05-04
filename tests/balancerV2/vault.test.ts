@@ -68,15 +68,6 @@ function resetFixtures(): void {
   position.save();
   pool.positions = pool.positions.concat([position.id]);
   pool.save();
-
-  // give 1 GNO balance to the pool
-  const poolUser = new User(POOL_ADDRESS.toHexString());
-  poolUser.voteWeight = ONE_GNO;
-  poolUser.gno = ONE_GNO;
-  poolUser.mgno = BigInt.fromI32(0);
-  poolUser.lgno = BigInt.fromI32(0);
-  poolUser.deposit = BigInt.fromI32(0);
-  poolUser.save();
 }
 
 createMockedFunction(
