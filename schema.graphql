@@ -41,7 +41,5 @@ type ConcentratedLiquidityPosition @entity {
   liquidity: BigInt!
   lowerTick: BigInt!
   upperTick: BigInt!
-  balance: BigInt!
-  balanceAccumulated: BigInt!
-  balanceDeltaLogs: [BigInt!]!
+  gnoBalance: BigInt!
 }
