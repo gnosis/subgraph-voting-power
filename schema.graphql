@@ -45,3 +45,7 @@ type ConcentratedLiquidityPosition @entity {
   balanceAccumulated: BigInt!
   balanceDeltaLogs: [BigInt!]!
 }
+
+type IrrelevantTokenId @entity {
+  id: ID!
+}

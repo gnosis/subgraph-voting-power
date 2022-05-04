@@ -16,6 +16,10 @@ export function updateForLiquidityChange(
     return;
   }
 
+  if (position.user != "0x849d52316331967b6ff1198e5e32a0eb168d039d") {
+    return;
+  }
+
   const pair = ConcentratedLiquidityPair.load(position.pair);
   if (!pair) throw new Error(`Pair with id ${position.pair} not found`);
   const gnoIsFirst = pair.gnoIsFirst;
@@ -100,7 +104,11 @@ export function updateForRatioChange(
   const positions = pair.positions;
   for (let index = 0; index < positions.length; index++) {
     const position = ConcentratedLiquidityPosition.load(positions[index]);
-    if (position && position.user) {
+    if (
+      position &&
+      position.user &&
+      position.user == "0x849d52316331967b6ff1198e5e32a0eb168d039d"
+    ) {
       const user = loadOrCreateUser(
         Address.fromString(position.user as string)
       );

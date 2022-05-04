@@ -10,6 +10,7 @@ import { Factory as FactoryContract } from "../../generated/ds-uniswap-v3-positi
 import {
   ConcentratedLiquidityPair,
   ConcentratedLiquidityPosition,
+  IrrelevantTokenId,
 } from "../../generated/schema";
 
 import { updateForLiquidityChange } from "./voteWeight";
@@ -85,59 +86,67 @@ function loadOrCreateConcentratedLiquidityPosition(
 ): ConcentratedLiquidityPosition | null {
   let position = ConcentratedLiquidityPosition.load(tokenId.toString());
 
-  if (!position) {
-    const contract = NonfungiblePositionManager.bind(event.address);
-    const positionCall = contract.try_positions(tokenId);
-
-    if (positionCall.reverted) {
-      // apparently this happens :/
-      // (see: https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/mappings/position-manager.ts#L20)
-      log.warning("positions call reverted, could not create position {}", [
-        tokenId.toString(),
-      ]);
-      return null;
-    }
-    const positionResult = positionCall.value;
-    const tokenA = positionResult.value2;
-    const tokenB = positionResult.value3;
-
-    if (!tokenA.equals(GNO_ADDRESS) && !tokenB.equals(GNO_ADDRESS)) {
-      // we don't track this pair, so we can ignore this position
-      return null;
-    }
-
-    const poolAddress = factoryContract.getPool(
-      tokenA,
-      tokenB,
-      positionResult.value4
-    );
-    const pair = ConcentratedLiquidityPair.load(poolAddress.toHexString());
-    if (!pair) {
-      throw new Error(`Could not find pair ${poolAddress.toHexString()}`);
-    }
-
-    position = new ConcentratedLiquidityPosition(tokenId.toString());
-    // The user gets correctly updated in the Transfer handler
-    position.user = ADDRESS_ZERO.toHexString();
-    position.pair = poolAddress.toHexString();
-    position.liquidity = ZERO_BI;
-    position.lowerTick = BigInt.fromI32(positionResult.value5);
-    position.upperTick = BigInt.fromI32(positionResult.value6);
-    position.save();
-
-    pair.positions = pair.positions.concat([tokenId.toString()]);
-    pair.save();
-
-    log.info(
-      "created new position {} in pair {} with lower tick: {}, upper tick: {}",
-      [
-        tokenId.toString(),
-        pair.id,
-        position.lowerTick.toString(),
-        position.upperTick.toString(),
-      ]
-    );
+  if (position) {
+    return position;
   }
+
+  if (IrrelevantTokenId.load(tokenId.toString())) {
+    return null;
+  }
+
+  const contract = NonfungiblePositionManager.bind(event.address);
+  const positionCall = contract.try_positions(tokenId);
+
+  if (positionCall.reverted) {
+    // apparently this happens :/
+    // (see: https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/mappings/position-manager.ts#L20)
+    log.warning("positions call reverted, could not create position {}", [
+      tokenId.toString(),
+    ]);
+    return null;
+  }
+  const positionResult = positionCall.value;
+  const tokenA = positionResult.value2;
+  const tokenB = positionResult.value3;
+
+  if (!tokenA.equals(GNO_ADDRESS) && !tokenB.equals(GNO_ADDRESS)) {
+    // we don't track this pair, so we can ignore this position
+    const irrelevant = new IrrelevantTokenId(tokenId.toString());
+    irrelevant.save();
+    return null;
+  }
+
+  const poolAddress = factoryContract.getPool(
+    tokenA,
+    tokenB,
+    positionResult.value4
+  );
+  const pair = ConcentratedLiquidityPair.load(poolAddress.toHexString());
+  if (!pair) {
+    throw new Error(`Could not find pair ${poolAddress.toHexString()}`);
+  }
+
+  position = new ConcentratedLiquidityPosition(tokenId.toString());
+  // The user gets correctly updated in the Transfer handler
+  position.user = ADDRESS_ZERO.toHexString();
+  position.pair = poolAddress.toHexString();
+  position.liquidity = ZERO_BI;
+  position.lowerTick = BigInt.fromI32(positionResult.value5);
+  position.upperTick = BigInt.fromI32(positionResult.value6);
+  position.save();
+
+  pair.positions = pair.positions.concat([tokenId.toString()]);
+  pair.save();
+
+  log.info(
+    "created new position {} in pair {} with lower tick: {}, upper tick: {}",
+    [
+      tokenId.toString(),
+      pair.id,
+      position.lowerTick.toString(),
+      position.upperTick.toString(),
+    ]
+  );
 
   return position;
 }
