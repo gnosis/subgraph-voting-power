@@ -13,7 +13,7 @@ import {
   IrrelevantTokenId,
 } from "../../generated/schema";
 
-import { updateForLiquidityChange } from "./voteWeight";
+import { updateForLiquidityChange as updateUserVoteWeight } from "./voteWeight";
 import { ADDRESS_ZERO, GNO_ADDRESS, ZERO_BI } from "../helpers";
 
 export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
@@ -23,11 +23,11 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   );
   if (position == null) return;
 
-  const previousLiquidity = position.liquidity;
+  const liquidityDelta = event.params.liquidity;
+  updateUserVoteWeight(position, liquidityDelta);
+
   position.liquidity = position.liquidity.plus(event.params.liquidity);
   position.save();
-
-  updateForLiquidityChange(position, previousLiquidity);
 }
 
 export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
@@ -37,10 +37,10 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
   );
   if (position == null) return;
 
-  const previousLiquidity = position.liquidity;
-  position.liquidity = position.liquidity.minus(event.params.liquidity);
+  const liquidityDelta = ZERO_BI.minus(event.params.liquidity);
+  updateUserVoteWeight(position, liquidityDelta);
 
-  updateForLiquidityChange(position, previousLiquidity);
+  position.liquidity = position.liquidity.minus(event.params.liquidity);
   removeOrSavePosition(position);
 }
 
@@ -61,18 +61,15 @@ export function handleTransfer(event: Transfer): void {
     liquidity.toString(),
   ]);
 
-  // update vote weight of sender
   if (position.user != ADDRESS_ZERO.toHexString()) {
-    // temporarily set to zero for updating vote weight
-    position.liquidity = ZERO_BI;
-    updateForLiquidityChange(position, liquidity);
-    position.liquidity = liquidity;
+    // clear the vote weight previous owner got from this position
+    updateUserVoteWeight(position, ZERO_BI.minus(position.liquidity));
   }
-
-  // update vote weight of recipient
+  // transfer the position to the recipient
   position.user = recipient;
   position.save();
-  updateForLiquidityChange(position, ZERO_BI);
+
+  updateUserVoteWeight(position, position.liquidity);
 }
 
 export const FACTORY_ADDRESS = "0x1F98431c8aD98523631AE4a59f267346ea31F984";

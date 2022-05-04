@@ -6,7 +6,7 @@ import {
 
 import { ConcentratedLiquidityPair } from "../../generated/schema";
 
-import { updateForRatioChange } from "./voteWeight";
+import { updateForRatioChange as updateUserVoteWeightForRatioChange } from "./voteWeight";
 
 export function handleInitialize(event: InitializeEvent): void {
   // initialize pool sqrt price
@@ -22,11 +22,11 @@ export function handleInitialize(event: InitializeEvent): void {
 
 export function handleSwap(event: SwapEvent): void {
   const pair = loadConcentratedLiquidityPair(event.address);
-  const previousSqrtRatio = pair.sqrtRatio;
-  pair.sqrtRatio = toX96Decimal(event.params.sqrtPriceX96);
-  pair.save();
 
-  updateForRatioChange(pair, previousSqrtRatio);
+  const nextSqrtRatio = toX96Decimal(event.params.sqrtPriceX96);
+  updateUserVoteWeightForRatioChange(pair, nextSqrtRatio);
+  pair.sqrtRatio = nextSqrtRatio;
+  pair.save();
 }
 
 function toX96Decimal(bi: BigInt): BigDecimal {

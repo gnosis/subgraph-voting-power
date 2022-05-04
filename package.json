@@ -4,11 +4,11 @@
   "author": "Cristóvão Honorato",
   "scripts": {
     "clean": "rm -rf generated && rm -rf generated-gc && rm -rf build && rm -rf build-gc",
-    "codegen": "graph codegen && graph codegen -o generated-gc subgraph-gnosis-chain.yaml",
+    "codegen": "graph codegen",
     "build": "graph build",
     "build:gc": "graph build -o build-gc subgraph-gnosis-chain.yaml",
-    "doall": "yarn clean && yarn codegen && yarn build && yarn build:gc",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ jfschwarz/gno-voting-power-eth",
+    "doall": "yarn clean && yarn codegen && yarn build",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ cristovaoth/gnosis-chain-blocks",
     "deploy:gc": "graph deploy -o build-gc --node https://api.thegraph.com/deploy/ jfschwarz/gno-voting-power-gc",
     "test": "graph test"
   },

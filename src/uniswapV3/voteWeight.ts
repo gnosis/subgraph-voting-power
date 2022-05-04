@@ -7,7 +7,7 @@ import { loadOrCreateUser, removeOrSaveUser, ZERO_BI } from "../helpers";
 
 export function updateForLiquidityChange(
   position: ConcentratedLiquidityPosition,
-  previousLiquidity: BigInt
+  deltaLiquidity: BigInt
 ): void {
   if (!position.user) {
     log.warning("Tried updating vote weight of position without user: {}", [
@@ -22,6 +22,7 @@ export function updateForLiquidityChange(
 
   const pair = ConcentratedLiquidityPair.load(position.pair);
   if (!pair) throw new Error(`Pair with id ${position.pair} not found`);
+
   const gnoIsFirst = pair.gnoIsFirst;
   const sqrtRatio = pair.sqrtRatio;
 
@@ -35,75 +36,35 @@ export function updateForLiquidityChange(
 
   const user = loadOrCreateUser(Address.fromString(position.user as string));
 
-  // temporarily set position liquidity to the previous value
-  const newLiquidity = position.liquidity;
-  position.liquidity = previousLiquidity;
-  const amountToSubtract = gnoIsFirst
-    ? getToken0Balance(position, sqrtRatio)
-    : getToken1Balance(position, sqrtRatio);
-  position.liquidity = newLiquidity;
+  const prevLiquidity = position.liquidity;
+  const nextLiquidity = position.liquidity.plus(deltaLiquidity);
 
-  // add vote weight for the new liquidity value
-  const amountToAdd = gnoIsFirst
-    ? getToken0Balance(position, pair.sqrtRatio)
-    : getToken1Balance(position, pair.sqrtRatio);
+  const prevVoteWeight = gnoIsFirst
+    ? getToken0Balance(position, prevLiquidity, sqrtRatio)
+    : getToken1Balance(position, prevLiquidity, sqrtRatio);
 
-  const delta = amountToAdd.minus(amountToSubtract);
+  const nextVoteWeight = gnoIsFirst
+    ? getToken0Balance(position, nextLiquidity, sqrtRatio)
+    : getToken1Balance(position, nextLiquidity, sqrtRatio);
 
-  if (!delta.equals(ZERO_BI)) {
-    user.voteWeight = user.voteWeight.plus(delta);
+  const deltaVoteWeight = nextVoteWeight.minus(prevVoteWeight);
 
-    if (!amountToSubtract.equals(position.balanceAccumulated)) {
-      log.warning(
-        "UFLC {} amountToSubtract {} != {} position.balanceAccumulated",
-        [
-          position.id,
-          amountToSubtract.toString(),
-          position.balanceAccumulated.toString(),
-        ]
-      );
-    }
-    position.balance = amountToAdd;
-    position.balanceAccumulated = position.balanceAccumulated.plus(delta);
-    if (!position.balance.equals(position.balanceAccumulated)) {
-      log.warning(
-        "UFLC {} position.balance {} != {} position.balanceAccumulated",
-        [
-          position.id,
-          position.balance.toString(),
-          position.balanceAccumulated.toString(),
-        ]
-      );
-    }
-
-    position.balanceDeltaLogs = position.balanceDeltaLogs.concat([delta]);
-    position.save();
-
-    log.info(
-      "updated voting weight of user {} (delta: {}) for liquidity change (old: {}, new: {})",
-      [
-        user.id,
-        delta.toString(),
-        previousLiquidity.toString(),
-        newLiquidity.toString(),
-      ]
-    );
-
+  if (!deltaVoteWeight.equals(ZERO_BI)) {
+    user.voteWeight = user.voteWeight.plus(deltaVoteWeight);
     removeOrSaveUser(user);
   }
 }
 
 export function updateForRatioChange(
   pair: ConcentratedLiquidityPair,
-  previousSqrtRatio: BigDecimal
+  nextSqrtRatio: BigDecimal
 ): void {
   const sqrtRatio = pair.sqrtRatio;
-  if (sqrtRatio.equals(previousSqrtRatio)) return;
+  if (sqrtRatio.equals(nextSqrtRatio)) return;
 
   const gnoIsFirst = pair.gnoIsFirst;
-  const positions = pair.positions;
-  for (let index = 0; index < positions.length; index++) {
-    const position = ConcentratedLiquidityPosition.load(positions[index]);
+  for (let index = 0; index < pair.positions.length; index++) {
+    const position = ConcentratedLiquidityPosition.load(pair.positions[index]);
     if (
       position &&
       position.user &&
@@ -113,65 +74,21 @@ export function updateForRatioChange(
         Address.fromString(position.user as string)
       );
 
-      log.info("gnoIsFirst: {}, pair.sqrtRatio: {}", [
-        gnoIsFirst.toString(),
-        pair.sqrtRatio.toString(),
-      ]);
-
-      // add vote weight for new ratio
-      const amountToAdd = gnoIsFirst
-        ? getToken0Balance(position, pair.sqrtRatio)
-        : getToken1Balance(position, pair.sqrtRatio);
-
-      // subtract vote weight for previous ratio
-      let amountToSubtract = ZERO_BI;
-      if (!previousSqrtRatio.equals(ZERO_BD)) {
-        amountToSubtract = gnoIsFirst
-          ? getToken0Balance(position, previousSqrtRatio)
-          : getToken1Balance(position, previousSqrtRatio);
+      let prevVoteWeight = ZERO_BI;
+      if (!pair.sqrtRatio.equals(ZERO_BD)) {
+        prevVoteWeight = gnoIsFirst
+          ? getToken0Balance(position, position.liquidity, pair.sqrtRatio)
+          : getToken1Balance(position, position.liquidity, pair.sqrtRatio);
       }
 
-      const delta = amountToAdd.minus(amountToSubtract);
+      const nextVoteWeight = gnoIsFirst
+        ? getToken0Balance(position, position.liquidity, nextSqrtRatio)
+        : getToken1Balance(position, position.liquidity, nextSqrtRatio);
 
-      if (!delta.equals(ZERO_BI)) {
-        user.voteWeight = user.voteWeight.plus(delta);
+      const deltaVoteWeight = nextVoteWeight.minus(prevVoteWeight);
 
-        if (!amountToSubtract.equals(position.balanceAccumulated)) {
-          log.warning(
-            "UFRC {} amountToSubtract {} != {} position.balanceAccumulated",
-            [
-              position.id,
-              amountToSubtract.toString(),
-              position.balanceAccumulated.toString(),
-            ]
-          );
-        }
-        position.balance = amountToAdd;
-        position.balanceAccumulated = position.balanceAccumulated.plus(delta);
-        if (!position.balance.equals(position.balanceAccumulated)) {
-          log.warning(
-            "UFRC {} position.balance {} != {} position.balanceAccumulated",
-            [
-              position.id,
-              position.balance.toString(),
-              position.balanceAccumulated.toString(),
-            ]
-          );
-        }
-
-        position.balanceDeltaLogs = position.balanceDeltaLogs.concat([delta]);
-        position.save();
-        log.info(
-          "updated voting weight of user {} (delta: {}) for ratio change (old: {}, new: {}, position: {})",
-          [
-            user.id,
-            delta.toString(),
-            previousSqrtRatio.toString(),
-            sqrtRatio.toString(),
-            position.id,
-          ]
-        );
-
+      if (!deltaVoteWeight.equals(ZERO_BI)) {
+        user.voteWeight = user.voteWeight.plus(deltaVoteWeight);
         removeOrSaveUser(user);
       }
     }
@@ -180,6 +97,7 @@ export function updateForRatioChange(
 
 export function getToken0Balance(
   position: ConcentratedLiquidityPosition,
+  liquidity: BigInt,
   sqrtRatio: BigDecimal
 ): BigInt {
   // lower and upper bounds are expressed as a tick indices (exponents to sqrt(1.0001))
@@ -197,7 +115,7 @@ export function getToken0Balance(
     // liquidity is fully in token0
     // use equation (4) from https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf
     const result = bigDecimalToBigInt(
-      position.liquidity
+      liquidity
         .toBigDecimal()
         .times(upperBound.minus(lowerBound))
         .div(lowerBound.times(upperBound))
@@ -205,7 +123,7 @@ export function getToken0Balance(
     log.info(
       "liquidity ({}) of position {} is fully in GNO at sqrtRatio {}, balance: {}",
       [
-        position.liquidity.toString(),
+        liquidity.toString(),
         position.id,
         sqrtRatio.toString(),
         result.toString(),
@@ -216,14 +134,14 @@ export function getToken0Balance(
     // liquidity is fully in token1
     log.info(
       "liquidity ({}) of position {} is fully in other token at sqrtRatio {}",
-      [position.liquidity.toString(), position.id, sqrtRatio.toString()]
+      [liquidity.toString(), position.id, sqrtRatio.toString()]
     );
     return ZERO_BI;
   } else {
     // liquidity is in token0 and token1
     // use equation (11) from https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf
     const result = bigDecimalToBigInt(
-      position.liquidity
+      liquidity
         .toBigDecimal()
         .times(upperBound.minus(sqrtRatio))
         .div(sqrtRatio.times(upperBound))
@@ -231,7 +149,7 @@ export function getToken0Balance(
     log.info(
       "liquidity ({}) of position {} is partially in GNO at sqrtRatio {}, balance: {}",
       [
-        position.liquidity.toString(),
+        liquidity.toString(),
         position.id,
         sqrtRatio.toString(),
         result.toString(),
@@ -243,6 +161,7 @@ export function getToken0Balance(
 
 export function getToken1Balance(
   position: ConcentratedLiquidityPosition,
+  liquidity: BigInt,
   sqrtRatio: BigDecimal
 ): BigInt {
   // lower and upper bounds are expressed as a tick indices (exponents to sqrt(1.0001))
@@ -260,19 +179,19 @@ export function getToken1Balance(
     // liquidity is fully in token0
     log.info(
       "liquidity ({}) of position {} is fully in other token at sqrtRatio {}",
-      [position.liquidity.toString(), position.id, sqrtRatio.toString()]
+      [liquidity.toString(), position.id, sqrtRatio.toString()]
     );
     return ZERO_BI;
   } else if (sqrtRatio > upperBound) {
     // liquidity is fully in token1
     // use equation (8) from https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf
     const result = bigDecimalToBigInt(
-      position.liquidity.toBigDecimal().times(upperBound.minus(lowerBound))
+      liquidity.toBigDecimal().times(upperBound.minus(lowerBound))
     );
     log.info(
       "liquidity ({}) of position {} is fully in GNO at sqrtRatio {}, balance: {}",
       [
-        position.liquidity.toString(),
+        liquidity.toString(),
         position.id,
         sqrtRatio.toString(),
         result.toString(),
@@ -283,12 +202,12 @@ export function getToken1Balance(
     // liquidity is in token0 and token1
     // use equation (12) from https://atiselsts.github.io/pdfs/uniswap-v3-liquidity-math.pdf
     const result = bigDecimalToBigInt(
-      position.liquidity.toBigDecimal().times(sqrtRatio.minus(lowerBound))
+      liquidity.toBigDecimal().times(sqrtRatio.minus(lowerBound))
     );
     log.info(
       "liquidity ({}) of position {} is partially in GNO at sqrtRatio {}, balance: {}",
       [
-        position.liquidity.toString(),
+        liquidity.toString(),
         position.id,
         sqrtRatio.toString(),
         result.toString(),
