@@ -110,6 +110,8 @@ dataSources:
           file: ./abis/balancerV2/WeightedPoolFactory.json
         - name: WeightedPool
           file: ./abis/balancerV2/WeightedPool.json
+        - name: Vault
+          file: ./abis/balancerV2/Vault.json
       eventHandlers:
         - event: PoolCreated(indexed address)
           handler: handlePoolCreated
