@@ -227,6 +227,8 @@ dataSources:
       abis:
         - name: Factory
           file: ./abis/balancerV1/BFactory.json
+        - name: Pool
+          file: ./abis/balancerV1/BPool.json
       eventHandlers:
         - event: LOG_NEW_POOL(indexed address,indexed address)
           handler: handleNewPool
