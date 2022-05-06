@@ -12,7 +12,7 @@ import {
 } from "../helpers";
 
 export function handleSync(event: SyncEvent): void {
-  const pool = loadPool(event);
+  const pool = loadPool(event.address);
   if (!pool) return;
 
   pool.gnoBalance = pool.gnoIsFirst
@@ -46,7 +46,7 @@ export function handleTransfer(event: TransferEvent): void {
 export function handleSwap(event: SwapEvent): void {
   // swaps don't change LP token total supply, but they do change the GNO reserves and thus the ratio
 
-  const pool = loadPool(event);
+  const pool = loadPool(event.address);
   if (!pool) return;
 
   const gnoIn = pool.gnoIsFirst

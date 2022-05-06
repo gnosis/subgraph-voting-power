@@ -27,18 +27,11 @@ export const ZERO_BD = BigDecimal.fromString("0");
 export const ONE_BD = BigDecimal.fromString("1");
 export const BI_18 = BigInt.fromI32(18);
 
-export function loadPool(event: ethereum.Event): WeightedPool | null {
-  const id = event.address.toHexString();
+export function loadPool(address: Address): WeightedPool | null {
+  const id = address.toHexString();
   const pool = WeightedPool.load(id);
   if (!pool) {
-    log.warning(
-      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
-      [
-        id,
-        event.transaction.hash.toHexString(),
-        event.transactionLogIndex.toString(),
-      ]
-    );
+    log.warning("Weighted pool with id {} could not be loaded.", [id]);
   }
   return pool;
 }
@@ -128,7 +121,7 @@ export function weightedPoolTransfer(
   to: Address,
   value: BigInt
 ): void {
-  const pool = loadPool(event);
+  const pool = loadPool(event.address);
   if (!pool) {
     return;
   }
@@ -239,7 +232,7 @@ export function weightedPoolTransfer(
   }
 }
 
-function loadOrCreateWeightedPoolPosition(
+export function loadOrCreateWeightedPoolPosition(
   poolAddress: Address,
   user: Address
 ): WeightedPoolPosition {
@@ -264,7 +257,10 @@ function loadOrCreateWeightedPoolPosition(
   return position;
 }
 
-function arrayRemove(array: string[], elementToRemove: string): string[] {
+export function arrayRemove(
+  array: string[],
+  elementToRemove: string
+): string[] {
   const index = array.indexOf(elementToRemove);
   return array.slice(0, index).concat(array.slice(index + 1));
 }

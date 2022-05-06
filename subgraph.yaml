@@ -68,6 +68,50 @@ dataSources:
         - event: InternalBalanceChanged(indexed address,indexed address,int256)
           handler: handleInternalBalanceChange
   - kind: ethereum/contract
+    name: ds-balancer-v2-gauge-cow-gno
+    network: mainnet
+    source:
+      address: "0xa6468eca7633246dcb24e5599681767d27d1f978"
+      abi: ERC20
+      startBlock: 14476099
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - WeightedPool
+        - WeightedPoolPosition
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/balancerV2/gauge.ts
+  - kind: ethereum/contract
+    name: ds-balancer-v2-gauge-gno-weth
+    network: mainnet
+    source:
+      address: "0xcb664132622f29943f67fa56ccfd1e24cc8b4995"
+      abi: ERC20
+      startBlock: 14474311
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - WeightedPool
+        - WeightedPoolPosition
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/balancerV2/gauge.ts
+  - kind: ethereum/contract
     name: ds-balancer-v2-factory
     network: mainnet
     source:
