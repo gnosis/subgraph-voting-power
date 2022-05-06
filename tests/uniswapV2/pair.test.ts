@@ -309,16 +309,16 @@ test("Adds position to pair.positions and user.positions on mint and transfer", 
   //   "[" + getPositionID(PAIR_ADDRESS, USER1_ADDRESS) + "]"
   // );
   handleTransfer(smallTransferEvent);
-  // assert.fieldEquals(
-  //   "WeightedPool",
-  //   PAIR_ADDRESS.toHexString(),
-  //   "positions",
-  //   "[" +
-  //     getPositionID(PAIR_ADDRESS, USER1_ADDRESS) +
-  //     ", " +
-  //     getPositionID(PAIR_ADDRESS, USER2_ADDRESS) +
-  //     "]"
-  // );
+  assert.fieldEquals(
+    "WeightedPool",
+    PAIR_ADDRESS.toHexString(),
+    "positions",
+    "[" +
+      getPositionID(PAIR_ADDRESS, USER1_ADDRESS) +
+      ", " +
+      getPositionID(PAIR_ADDRESS, USER2_ADDRESS) +
+      "]"
+  );
   // assert.fieldEquals(
   //   "User",
   //   USER2_ADDRESS.toHexString(),

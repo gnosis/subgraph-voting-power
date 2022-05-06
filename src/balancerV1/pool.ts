@@ -18,7 +18,7 @@ import { GNO_ADDRESS, ZERO_BI } from "../constants";
  ************************************/
 
 export function handleJoinPool(event: LOG_JOIN): void {
-  const pool = loadWeightedPool(event);
+  const pool = loadWeightedPool(event.address);
 
   if (event.params.tokenIn.equals(GNO_ADDRESS)) {
     pool.gnoBalance = pool.gnoBalance.plus(event.params.tokenAmountIn);
@@ -27,7 +27,7 @@ export function handleJoinPool(event: LOG_JOIN): void {
 }
 
 export function handleExitPool(event: LOG_EXIT): void {
-  const pool = loadWeightedPool(event);
+  const pool = loadWeightedPool(event.address);
 
   if (pool && event.params.tokenOut.equals(GNO_ADDRESS)) {
     pool.gnoBalance = pool.gnoBalance.minus(event.params.tokenAmountOut);
@@ -52,7 +52,8 @@ export function handleSwap(event: LOG_SWAP): void {
     return;
   }
 
-  const pool = loadWeightedPool(event);
+  const pool = loadWeightedPool(event.address);
+
   pool.gnoBalance = pool.gnoBalance.plus(gnoIn).minus(gnoOut);
   pool.save();
 

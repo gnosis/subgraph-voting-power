@@ -22,3 +22,11 @@ export const ONE_BI = BigInt.fromI32(1);
 export const ZERO_BD = BigDecimal.fromString("0");
 export const ONE_BD = BigDecimal.fromString("1");
 export const BI_18 = BigInt.fromI32(18);
+
+export function arrayRemove(
+  array: string[],
+  elementToRemove: string
+): string[] {
+  const index = array.indexOf(elementToRemove);
+  return array.slice(0, index).concat(array.slice(index + 1));
+}

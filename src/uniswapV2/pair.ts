@@ -14,8 +14,7 @@ import {
 import { ZERO_BI } from "../constants";
 
 export function handleSync(event: SyncEvent): void {
-  const pool = loadWeightedPool(event);
-
+  const pool = loadWeightedPool(event.address);
   pool.gnoBalance = pool.gnoIsFirst
     ? event.params.reserve0
     : event.params.reserve1;
@@ -46,7 +45,7 @@ export function handleTransfer(event: TransferEvent): void {
 
 export function handleSwap(event: SwapEvent): void {
   // swaps don't change LP token total supply, but they do change the GNO reserves and thus the ratio
-  const pool = loadWeightedPool(event);
+  const pool = loadWeightedPool(event.address);
 
   const gnoIn = pool.gnoIsFirst
     ? event.params.amount0In

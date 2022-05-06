@@ -6,26 +6,19 @@ import {
   saveOrRemove as saveOrRemoveUser,
 } from "./user";
 
-import { ADDRESS_ZERO } from "../constants";
+import { arrayRemove, ADDRESS_ZERO } from "../constants";
 
-export function loadPool(event: ethereum.Event): WeightedPool {
-  const id = event.address.toHexString();
+export function loadPool(address: Address): WeightedPool {
+  const id = address.toHexString();
   const pool = WeightedPool.load(id);
   if (!pool) {
-    log.error(
-      "Weighted pool with id {} could not be loaded. Trying to handle {}#{}",
-      [
-        id,
-        event.transaction.hash.toHexString(),
-        event.transactionLogIndex.toString(),
-      ]
-    );
+    log.error("Weighted pool with id {} could not be loaded", [id]);
     throw new Error(`WeightedPool with id ${id} not found`);
   }
   return pool;
 }
 
-function loadOrCreatePosition(
+export function loadOrCreatePosition(
   pool: WeightedPool,
   user: Address
 ): WeightedPoolPosition {
@@ -98,7 +91,7 @@ export function handleTransfer(
   to: Address,
   value: BigInt
 ): void {
-  const pool = loadPool(event);
+  const pool = loadPool(event.address);
 
   const gnoReserves = pool.gnoBalance;
   log.info("pool loaded: {}, gno reserves: {}, total supply: {}", [
@@ -204,9 +197,4 @@ export function handleTransfer(
       userTo.voteWeight.toString(),
     ]);
   }
-}
-
-function arrayRemove(array: string[], elementToRemove: string): string[] {
-  const index = array.indexOf(elementToRemove);
-  return array.slice(0, index).concat(array.slice(index + 1));
 }
