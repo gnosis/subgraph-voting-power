@@ -3,11 +3,7 @@ import { ConcentratedLiquidityPair } from "../../generated/schema";
 import { PoolCreated as PoolCreatedEvent } from "../../generated/ds-uniswap-v3-factory/Factory";
 import { UniswapV3Pool as UniswapV3PoolTemplate } from "../../generated/templates";
 
-import { ZERO_BD } from "../helpers";
-
-const GNO_ADDRESS = Address.fromString(
-  "0x6810e776880c02933d47db1b9fc05908e5386b96"
-);
+import { GNO_ADDRESS, ZERO_BD } from "../constants";
 
 export function handlePoolCreated(event: PoolCreatedEvent): void {
   const isGnoTradingPair =

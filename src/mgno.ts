@@ -1,6 +1,12 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Transfer } from "../generated-gc/ds-mgno/ERC20";
-import { loadOrCreateUser, ADDRESS_ZERO, removeOrSaveUser } from "./helpers";
+
+import {
+  loadOrCreate as loadOrCreateUser,
+  saveOrRemove as saveOrRemoveUser,
+} from "./helpers/user";
+
+import { ADDRESS_ZERO } from "./constants";
 
 export const DEPOSIT_ADDRESS = Address.fromString(
   "0x0B98057eA310F4d31F2a452B414647007d1645d9"
@@ -17,7 +23,7 @@ export function handleTransfer(event: Transfer): void {
     const userFrom = loadOrCreateUser(from);
     userFrom.mgno = userFrom.mgno.minus(value);
     userFrom.voteWeight = userFrom.voteWeight.minus(value.div(MGNO_PER_GNO));
-    removeOrSaveUser(userFrom);
+    saveOrRemoveUser(userFrom);
   }
 
   if (

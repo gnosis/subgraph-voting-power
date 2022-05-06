@@ -8,7 +8,7 @@ import { WeightedPool } from "../../generated/schema";
 
 import { BalancerV2Pool as BalancerV2PoolTemplate } from "../../generated/templates";
 
-import { GNO_ADDRESS, ZERO_BI } from "../helpers";
+import { GNO_ADDRESS, ZERO_BI } from "../constants";
 
 const VAULT_ADDRESS = Address.fromString(
   "0xBA12222222228d8Ba445958a75a0704d566BF2C8"

@@ -6,7 +6,7 @@ import {
 } from "../../generated/schema";
 import { newMockEvent } from "matchstick-as";
 import { handleInitialize, handleSwap } from "../../src/uniswapV3/pool";
-import { ONE_GNO, ZERO_BD } from "../../src/helpers";
+import { ONE_GNO, ZERO_BD } from "../../src/constants";
 import { Initialize, Swap } from "../../generated/templates/UniswapV3Pool/Pool";
 import { User } from "../../generated/schema";
 

@@ -1,13 +1,16 @@
 import { store, BigInt, log, Address } from "@graphprotocol/graph-ts";
 import { Transfer as TransferEvent } from "../../generated/templates/BalancerV2Pool/ERC20";
 import {
-  ADDRESS_ZERO,
-  arrayRemove,
-  loadOrCreateUser,
-  loadOrCreateWeightedPoolPosition,
-  loadPool,
-  removeOrSaveUser,
-} from "../helpers";
+  loadOrCreate as loadOrCreateUser,
+  saveOrRemove as saveOrRemoveUser,
+} from "../helpers/user";
+
+import {
+  loadPool as loadWeightedPool,
+  loadOrCreatePosition,
+} from "../helpers/weightedPool";
+
+import { ADDRESS_ZERO, arrayRemove } from "../constants";
 
 export const COW_GNO_POOL_ADDRESS = Address.fromString(
   "0x92762b42a06dcdddc5b7362cfb01e631c4d44b40"
@@ -42,10 +45,7 @@ export function handleTransfer(event: TransferEvent): void {
     );
   }
 
-  const pool = loadPool(poolAddress);
-  if (!pool) {
-    throw new Error(`Could not find pool with id ${poolAddress.toHexString()}`);
-  }
+  const pool = loadWeightedPool(poolAddress);
 
   const gnoReserves = pool.gnoBalance;
   log.info("pool loaded: {}, gno reserves: {}, total supply: {}", [
@@ -68,7 +68,7 @@ export function handleTransfer(event: TransferEvent): void {
     from.toHexString() != ADDRESS_ZERO.toHexString() &&
     from.toHexString() != pool.id
   ) {
-    const position = loadOrCreateWeightedPoolPosition(poolAddress, from);
+    const position = loadOrCreatePosition(pool, from);
 
     // decrease position liquidity and remove it if it gets to zero
     if (position.liquidity.minus(value) == BigInt.fromI32(0)) {
@@ -92,7 +92,7 @@ export function handleTransfer(event: TransferEvent): void {
     // decrease vote weight
     const voteWeightToSubtract = value.times(gnoReserves).div(pool.totalSupply);
     userFrom.voteWeight = userFrom.voteWeight.minus(voteWeightToSubtract);
-    removeOrSaveUser(userFrom);
+    saveOrRemoveUser(userFrom);
     log.info("subtracted {} from vote weight of {}, for a new total of {}", [
       voteWeightToSubtract.toString(),
       userFrom.id,
@@ -106,7 +106,7 @@ export function handleTransfer(event: TransferEvent): void {
     to.toHexString() != pool.id
   ) {
     // increase position liquidity
-    const position = loadOrCreateWeightedPoolPosition(poolAddress, to);
+    const position = loadOrCreatePosition(pool, to);
     position.liquidity = position.liquidity.plus(value);
     position.save();
     log.info("adjusted to position of user {}, new liquidity: {}", [
@@ -117,7 +117,7 @@ export function handleTransfer(event: TransferEvent): void {
     // increase vote weight
     const voteWeightToAdd = value.times(gnoReserves).div(pool.totalSupply);
     userTo.voteWeight = userTo.voteWeight.plus(voteWeightToAdd);
-    removeOrSaveUser(userTo);
+    saveOrRemoveUser(userTo);
     log.info("added {} to vote weight of {}, for a new total of {}", [
       voteWeightToAdd.toString(),
       userTo.id,

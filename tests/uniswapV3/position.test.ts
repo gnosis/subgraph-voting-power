@@ -11,7 +11,7 @@ import {
   ConcentratedLiquidityPosition,
   User,
 } from "../../generated/schema";
-import { GNO_ADDRESS, ONE_BD, ONE_GNO, ZERO_BI } from "../../src/helpers";
+import { GNO_ADDRESS, ONE_BD, ONE_GNO, ZERO_BI } from "../../src/constants";
 import {
   DecreaseLiquidity,
   IncreaseLiquidity,

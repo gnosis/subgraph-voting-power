@@ -4,7 +4,7 @@ import { handleTransfer } from "../src/sgno";
 import { Transfer } from "../generated-gc/ds-sgno/ERC20";
 import { newMockEvent } from "matchstick-as";
 import { ADDRESS_ZERO, USER1_ADDRESS, USER2_ADDRESS } from "./helpers";
-import { ONE_GNO } from "../src/helpers";
+import { ONE_GNO } from "../src/constants";
 
 let value = ONE_GNO;
 let value2x = value.times(BigInt.fromI32(2));

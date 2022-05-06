@@ -1,5 +1,11 @@
 import { Transfer } from "../generated/ds-lgno/ERC20";
-import { loadOrCreateUser, removeOrSaveUser, ADDRESS_ZERO } from "./helpers";
+
+import {
+  loadOrCreate as loadOrCreateUser,
+  saveOrRemove as saveOrRemoveUser,
+} from "./helpers/user";
+
+import { ADDRESS_ZERO } from "./constants";
 
 export function handleTransfer(event: Transfer): void {
   // note to and from are flipped because of an error in the contract implementation
@@ -9,7 +15,7 @@ export function handleTransfer(event: Transfer): void {
     const userFrom = loadOrCreateUser(from);
     userFrom.lgno = userFrom.lgno.minus(event.params.value);
     userFrom.voteWeight = userFrom.voteWeight.minus(event.params.value);
-    removeOrSaveUser(userFrom);
+    saveOrRemoveUser(userFrom);
   }
 
   const to = event.params.from;

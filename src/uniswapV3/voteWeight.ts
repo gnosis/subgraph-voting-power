@@ -3,7 +3,11 @@ import {
   ConcentratedLiquidityPair,
   ConcentratedLiquidityPosition,
 } from "../../generated/schema";
-import { loadOrCreateUser, removeOrSaveUser, ZERO_BI } from "../helpers";
+import {
+  loadOrCreate as loadOrCreateUser,
+  saveOrRemove as saveOrRemoveUser,
+} from "../helpers/user";
+import { ZERO_BI } from "../constants";
 
 export function updateForLiquidityChange(
   position: ConcentratedLiquidityPosition,
@@ -62,7 +66,7 @@ export function updateForLiquidityChange(
       ]
     );
 
-    removeOrSaveUser(user);
+    saveOrRemoveUser(user);
   }
 }
 
@@ -119,7 +123,7 @@ export function updateForRatioChange(
           ]
         );
 
-        removeOrSaveUser(user);
+        saveOrRemoveUser(user);
       }
     }
   }

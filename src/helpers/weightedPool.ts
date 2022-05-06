@@ -1,74 +1,44 @@
+import { log, BigInt, Address, store, ethereum } from "@graphprotocol/graph-ts";
+import { WeightedPool, WeightedPoolPosition } from "../../generated/schema";
+
 import {
-  log,
-  BigInt,
-  BigDecimal,
-  Address,
-  store,
-  dataSource,
-  ethereum,
-} from "@graphprotocol/graph-ts";
-import { User, WeightedPool, WeightedPoolPosition } from "../generated/schema";
+  loadOrCreate as loadOrCreateUser,
+  saveOrRemove as saveOrRemoveUser,
+} from "./user";
 
-export const GNO_ADDRESS = Address.fromString(
-  dataSource.network() == "mainnet"
-    ? "0x6810e776880C02933D47DB1b9fc05908e5386b96"
-    : "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb"
-);
+import { arrayRemove, ADDRESS_ZERO } from "../constants";
 
-export const ADDRESS_ZERO = Address.fromString(
-  "0x0000000000000000000000000000000000000000"
-);
-
-export const ONE_GNO = BigInt.fromString("1000000000000000000");
-
-export const ZERO_BI = BigInt.fromI32(0);
-export const ONE_BI = BigInt.fromI32(1);
-export const ZERO_BD = BigDecimal.fromString("0");
-export const ONE_BD = BigDecimal.fromString("1");
-export const BI_18 = BigInt.fromI32(18);
-
-export function loadPool(address: Address): WeightedPool | null {
+export function loadPool(address: Address): WeightedPool {
   const id = address.toHexString();
   const pool = WeightedPool.load(id);
   if (!pool) {
-    log.warning("Weighted pool with id {} could not be loaded.", [id]);
+    log.error("Weighted pool with id {} could not be loaded", [id]);
+    throw new Error(`WeightedPool with id ${id} not found`);
   }
   return pool;
 }
 
-export function loadOrCreateUser(address: Address): User {
-  const id = address.toHexString();
-  let user = User.load(id);
-  if (user == null) {
-    user = new User(id);
-    user.voteWeight = BigInt.fromI32(0);
-    user.gno = BigInt.fromI32(0);
-    user.mgno = BigInt.fromI32(0);
-    user.lgno = BigInt.fromI32(0);
-    user.sgno = BigInt.fromI32(0);
-    user.deposit = BigInt.fromI32(0);
-    user.balancerInternalGno = BigInt.fromI32(0);
-    if (id != ADDRESS_ZERO.toHexString()) {
-      user.save();
-      log.info("created user {}", [id]);
-    }
+export function loadOrCreatePosition(
+  pool: WeightedPool,
+  user: Address
+): WeightedPoolPosition {
+  const id = pool.id.concat("-").concat(user.toHexString());
+  let position = WeightedPoolPosition.load(id);
+  if (!position) {
+    position = new WeightedPoolPosition(id);
+    position.pool = pool.id;
+    position.user = user.toHexString();
+    position.liquidity = BigInt.fromI32(0);
+    position.save();
+    pool.positions = pool.positions.concat([id]);
+    pool.save();
+    log.info("created new position {} in WeightedPool {}", [id, pool.id]);
   }
-  return user;
-}
-
-export function removeOrSaveUser(user: User): void {
-  if (user) {
-    if (user.voteWeight == BigInt.fromI32(0)) {
-      store.remove("User", user.id);
-      log.info("removed user {}", [user.id]);
-    } else {
-      user.save();
-    }
-  }
+  return position;
 }
 
 // Before calling this function, make sure that pool.gnoBalance set to the up-to-date value AFTER the swap has been made
-export function weightedPoolSwap(
+export function handleSwap(
   pool: WeightedPool,
   gnoIn: BigInt,
   gnoOut: BigInt
@@ -115,16 +85,13 @@ export function weightedPoolSwap(
   }
 }
 
-export function weightedPoolTransfer(
+export function handleTransfer(
   event: ethereum.Event,
   from: Address,
   to: Address,
   value: BigInt
 ): void {
   const pool = loadPool(event.address);
-  if (!pool) {
-    return;
-  }
 
   const gnoReserves = pool.gnoBalance;
   log.info("pool loaded: {}, gno reserves: {}, total supply: {}", [
@@ -174,7 +141,7 @@ export function weightedPoolTransfer(
     from.toHexString() != ADDRESS_ZERO.toHexString() &&
     from.toHexString() != pool.id
   ) {
-    const position = loadOrCreateWeightedPoolPosition(event.address, from);
+    const position = loadOrCreatePosition(pool, from);
 
     // decrease position liquidity and remove it if it gets to zero
     if (position.liquidity.minus(value) == BigInt.fromI32(0)) {
@@ -198,7 +165,7 @@ export function weightedPoolTransfer(
     // decrease vote weight
     const voteWeightToSubtract = value.times(gnoReserves).div(pool.totalSupply);
     userFrom.voteWeight = userFrom.voteWeight.minus(voteWeightToSubtract);
-    removeOrSaveUser(userFrom);
+    saveOrRemoveUser(userFrom);
     log.info("subtracted {} from vote weight of {}, for a new total of {}", [
       voteWeightToSubtract.toString(),
       userFrom.id,
@@ -212,7 +179,7 @@ export function weightedPoolTransfer(
     to.toHexString() != pool.id
   ) {
     // increase position liquidity
-    const position = loadOrCreateWeightedPoolPosition(event.address, to);
+    const position = loadOrCreatePosition(pool, to);
     position.liquidity = position.liquidity.plus(value);
     position.save();
     log.info("adjusted to position of user {}, new liquidity: {}", [
@@ -223,44 +190,11 @@ export function weightedPoolTransfer(
     // increase vote weight
     const voteWeightToAdd = value.times(gnoReserves).div(pool.totalSupply);
     userTo.voteWeight = userTo.voteWeight.plus(voteWeightToAdd);
-    removeOrSaveUser(userTo);
+    saveOrRemoveUser(userTo);
     log.info("added {} to vote weight of {}, for a new total of {}", [
       voteWeightToAdd.toString(),
       userTo.id,
       userTo.voteWeight.toString(),
     ]);
   }
-}
-
-export function loadOrCreateWeightedPoolPosition(
-  poolAddress: Address,
-  user: Address
-): WeightedPoolPosition {
-  const pool = WeightedPool.load(poolAddress.toHexString());
-  if (!pool)
-    throw new Error(`Could not find pool ${poolAddress.toHexString()}`);
-  const id = poolAddress
-    .toHexString()
-    .concat("-")
-    .concat(user.toHexString());
-  let position = WeightedPoolPosition.load(id);
-  if (!position) {
-    position = new WeightedPoolPosition(id);
-    position.pool = pool.id;
-    position.user = user.toHexString();
-    position.liquidity = BigInt.fromI32(0);
-    position.save();
-    pool.positions = pool.positions.concat([id]);
-    pool.save();
-    log.info("created new position {} in WeightedPool {}", [id, pool.id]);
-  }
-  return position;
-}
-
-export function arrayRemove(
-  array: string[],
-  elementToRemove: string
-): string[] {
-  const index = array.indexOf(elementToRemove);
-  return array.slice(0, index).concat(array.slice(index + 1));
 }
