@@ -21,7 +21,7 @@ import {
   handleSync,
   handleTransfer,
 } from "../../src/uniswapV2/pair";
-import { GNO_ADDRESS, ZERO_BI } from "../../src/helpers";
+import { GNO_ADDRESS, ZERO_BI } from "../../src/constants";
 
 let transferEvent = createTransferEvent(USER1_ADDRESS, USER2_ADDRESS, value);
 let smallTransferEvent = createTransferEvent(

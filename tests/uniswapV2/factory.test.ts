@@ -2,7 +2,7 @@ import { clearStore, test, assert } from "matchstick-as/assembly/index";
 import { USER1_ADDRESS, value, PAIR_ADDRESS } from "../helpers";
 import { handleNewPair } from "../../src/uniswapV2/factory";
 import { createPairCreatedEvent } from "../helpers";
-import { GNO_ADDRESS } from "../../src/helpers";
+import { GNO_ADDRESS } from "../../src/constants";
 
 test("Factory spawns pair", () => {
   clearStore();

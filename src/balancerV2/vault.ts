@@ -1,4 +1,4 @@
-import { Address, log, Bytes } from "@graphprotocol/graph-ts";
+import { Address, Bytes } from "@graphprotocol/graph-ts";
 import {
   InternalBalanceChanged,
   PoolBalanceChanged,
@@ -8,12 +8,13 @@ import {
 import { WeightedPool } from "../../generated/schema";
 
 import {
-  GNO_ADDRESS,
-  loadOrCreateUser,
-  removeOrSaveUser,
-  weightedPoolSwap,
-  ZERO_BI,
-} from "../helpers";
+  loadOrCreate as loadOrCreateUser,
+  saveOrRemove as removeOrSaveUser,
+} from "../helpers/user";
+
+import { handleSwap as handleSwapForWeightedPool } from "../helpers/weightedPool";
+
+import { GNO_ADDRESS, ZERO_BI } from "../constants";
 
 export function handleSwap(event: Swap): void {
   // swaps don't change LP token total supply, but they might change the GNO reserves
@@ -33,7 +34,7 @@ export function handleSwap(event: Swap): void {
 
   pool.gnoBalance = pool.gnoBalance.plus(gnoIn).minus(gnoOut);
   pool.save();
-  weightedPoolSwap(pool, gnoIn, gnoOut);
+  handleSwapForWeightedPool(pool, gnoIn, gnoOut);
 }
 
 export function handleBalanceChange(event: PoolBalanceChanged): void {
@@ -64,8 +65,9 @@ export function handleInternalBalanceChange(
 function loadWeightedPool(poolId: Bytes): WeightedPool {
   const address = getPoolAddress(poolId);
   const pool = WeightedPool.load(address.toHexString());
-  if (!pool)
+  if (!pool) {
     throw new Error(`WeightedPool with id ${address.toHexString()} not found`);
+  }
   return pool;
 }
 

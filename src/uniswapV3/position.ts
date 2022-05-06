@@ -13,7 +13,7 @@ import {
 } from "../../generated/schema";
 
 import { updateForLiquidityChange } from "./voteWeight";
-import { ADDRESS_ZERO, GNO_ADDRESS, ZERO_BI } from "../helpers";
+import { ADDRESS_ZERO, GNO_ADDRESS, ZERO_BI } from "../constants";
 
 export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   const position = loadOrCreateConcentratedLiquidityPosition(

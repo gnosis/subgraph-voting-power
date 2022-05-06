@@ -3,7 +3,7 @@ import { PairCreated as PairCreatedEvent } from "../../generated-gc/ds-uniswap-v
 import { WeightedPool } from "../../generated/schema";
 import { UniswapV2Pair as UniwapV2PairTemplate } from "../../generated-gc/templates";
 
-import { GNO_ADDRESS, ZERO_BI } from "../helpers";
+import { GNO_ADDRESS, ZERO_BI } from "../constants";
 
 export function handleNewPair(event: PairCreatedEvent): void {
   const isGnoTradingPair =

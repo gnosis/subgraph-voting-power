@@ -4,8 +4,7 @@ import { handleDeposit } from "../src/deposit";
 import { DepositEvent } from "../generated-gc/ds-deposit/SBCDepositContract";
 import { newMockEvent } from "matchstick-as";
 import { USER1_ADDRESS } from "./helpers";
-import { ONE_GNO } from "../src/helpers";
-import { MGNO_PER_GNO } from "../src/mgno";
+import { ONE_GNO } from "../src/constants";
 
 function createDepositEvent(from: string): DepositEvent {
   let mockEvent = newMockEvent();

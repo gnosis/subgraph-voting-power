@@ -1,5 +1,6 @@
 import { DepositEvent } from "../generated-gc/ds-deposit/SBCDepositContract";
-import { loadOrCreateUser, ONE_GNO } from "./helpers";
+import { loadOrCreate as loadOrCreateUser } from "./helpers/user";
+import { ONE_GNO } from "./constants";
 
 export function handleDeposit(event: DepositEvent): void {
   const user = event.transaction.from;

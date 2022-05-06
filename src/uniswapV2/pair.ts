@@ -4,16 +4,17 @@ import {
   Swap as SwapEvent,
 } from "../../generated-gc/templates/UniswapV2Pair/Pair";
 import { User, WeightedPool } from "../../generated/schema";
+
 import {
-  loadPool,
-  weightedPoolSwap,
-  weightedPoolTransfer,
-  ZERO_BI,
-} from "../helpers";
+  loadPool as loadWeightedPool,
+  handleSwap as handleSwapForWeightedPool,
+  handleTransfer as handleTransferForWeightedPool,
+} from "../helpers/weightedPool";
+
+import { ZERO_BI } from "../constants";
 
 export function handleSync(event: SyncEvent): void {
-  const pool = loadPool(event);
-  if (!pool) return;
+  const pool = loadWeightedPool(event);
 
   pool.gnoBalance = pool.gnoIsFirst
     ? event.params.reserve0
@@ -40,14 +41,12 @@ export function handleTransfer(event: TransferEvent): void {
   pool.gnoBalance = userEntryForPool ? userEntryForPool.gno : ZERO_BI;
   pool.save();
 
-  weightedPoolTransfer(event, from, to, value);
+  handleTransferForWeightedPool(event, from, to, value);
 }
 
 export function handleSwap(event: SwapEvent): void {
   // swaps don't change LP token total supply, but they do change the GNO reserves and thus the ratio
-
-  const pool = loadPool(event);
-  if (!pool) return;
+  const pool = loadWeightedPool(event);
 
   const gnoIn = pool.gnoIsFirst
     ? event.params.amount0In
@@ -57,5 +56,5 @@ export function handleSwap(event: SwapEvent): void {
     : event.params.amount1Out;
 
   // Swap is emitted after Sync, so pool.gnoBalance has already been set to the latest state in handleSync when we arrive here.
-  weightedPoolSwap(pool, gnoIn, gnoOut);
+  handleSwapForWeightedPool(pool, gnoIn, gnoOut);
 }

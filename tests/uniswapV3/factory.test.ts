@@ -7,7 +7,7 @@ import {
 import { Address, ethereum } from "@graphprotocol/graph-ts";
 import { handlePoolCreated } from "../../src/uniswapV3/factory";
 import { PoolCreated } from "../../generated/ds-uniswap-v3-factory/Factory";
-import { GNO_ADDRESS } from "../../src/helpers";
+import { GNO_ADDRESS } from "../../src/constants";
 import { PAIR_ADDRESS, USER1_ADDRESS } from "../helpers";
 
 test("Factory spawns pair", () => {

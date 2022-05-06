@@ -6,7 +6,7 @@ import { WeightedPool } from "../../generated/schema";
 
 import { BalancerV1Pool as BalancerV1PoolTemplate } from "../../generated-gc/templates";
 
-import { GNO_ADDRESS, ZERO_BI } from "../helpers";
+import { GNO_ADDRESS, ZERO_BI } from "../constants";
 
 export function handleNewPool(event: LOG_NEW_POOL): void {
   const address = event.params.pool;

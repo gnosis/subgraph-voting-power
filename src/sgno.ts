@@ -1,5 +1,10 @@
 import { Transfer } from "../generated-gc/ds-sgno/ERC20";
-import { loadOrCreateUser, ADDRESS_ZERO, removeOrSaveUser } from "./helpers";
+import {
+  loadOrCreate as loadOrCreateUser,
+  saveOrRemove as saveOrRemoveUser,
+} from "./helpers/user";
+
+import { ADDRESS_ZERO } from "./constants";
 
 export function handleTransfer(event: Transfer): void {
   const to = event.params.to;
@@ -9,7 +14,7 @@ export function handleTransfer(event: Transfer): void {
     const userFrom = loadOrCreateUser(from);
     userFrom.sgno = userFrom.sgno.minus(event.params.value);
     userFrom.voteWeight = userFrom.voteWeight.minus(event.params.value);
-    removeOrSaveUser(userFrom);
+    saveOrRemoveUser(userFrom);
   }
 
   if (to.toHexString() != ADDRESS_ZERO.toHexString()) {
