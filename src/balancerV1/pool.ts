@@ -12,6 +12,7 @@ import {
   loadPool as loadWeightedPool,
   handleSwap as handleSwapForWeightedPool,
   handleTransfer as handleTransferForWeightedPool,
+  handleBalanceChange as handleBalanceChangeForWeightedPool,
 } from "../helpers/weightedPool";
 
 import { GNO_ADDRESS, ZERO_BI } from "../constants";
@@ -88,14 +89,18 @@ export function handleGulp(event: GulpCall): void {
   let poolContract = BPoolContract.bind(poolAddress);
   let balanceCall = poolContract.try_getBalance(event.inputs.token);
 
+  let nextGnoBalance: BigInt;
   if (balanceCall.reverted) {
     log.warning("Failed to get balance for GNO in pool {}", [
       poolAddress.toHexString(),
     ]);
-    pool.gnoBalance = ZERO_BI;
+    nextGnoBalance = ZERO_BI;
   } else {
-    pool.gnoBalance = balanceCall.value;
+    nextGnoBalance = balanceCall.value;
   }
+
+  handleBalanceChangeForWeightedPool(pool, nextGnoBalance);
+  pool.gnoBalance = nextGnoBalance;
   pool.save();
 }
 
@@ -114,9 +119,12 @@ export function handleRebind(event: LOG_CALL): void {
     return;
   }
 
-  const balance = hexToBigInt(event.params.data.toHexString().slice(74, 138));
+  const nextGnoBalance = hexToBigInt(
+    event.params.data.toHexString().slice(74, 138)
+  );
 
-  pool.gnoBalance = balance;
+  handleBalanceChangeForWeightedPool(pool, nextGnoBalance);
+  pool.gnoBalance = nextGnoBalance;
   pool.save();
 }
 

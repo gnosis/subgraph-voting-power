@@ -85,6 +85,50 @@ export function handleSwap(
   }
 }
 
+export function handleBalanceChange(
+  pool: WeightedPool,
+  nextGnoBalance: BigInt
+): void {
+  const gnoBalance = pool.gnoBalance;
+
+  log.info("handle swap in {}, gno reserves before: {}, after: {}", [
+    pool.id,
+    gnoBalance.toString(),
+    nextGnoBalance.toString(),
+  ]);
+
+  // set set previous ratio to current ratio
+  if (pool.positions) {
+    for (let index = 0; index < pool.positions.length; index++) {
+      const position = WeightedPoolPosition.load(pool.positions[index]);
+      if (position) {
+        const user = loadOrCreateUser(Address.fromString(position.user));
+
+        const voteWeightToSubtract = position.liquidity
+          .times(gnoBalance)
+          .div(pool.totalSupply);
+        const voteWeightToAdd = position.liquidity
+          .times(nextGnoBalance)
+          .div(pool.totalSupply);
+        user.voteWeight = user.voteWeight
+          .plus(voteWeightToAdd)
+          .minus(voteWeightToSubtract);
+        user.save();
+
+        log.info(
+          "updated vote weight of user {} with liquidity {} (-{}, +{})",
+          [
+            user.id,
+            position.liquidity.toString(),
+            voteWeightToSubtract.toString(),
+            voteWeightToAdd.toString(),
+          ]
+        );
+      }
+    }
+  }
+}
+
 export function handleTransfer(
   event: ethereum.Event,
   from: Address,
