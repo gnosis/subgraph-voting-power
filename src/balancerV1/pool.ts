@@ -2,7 +2,10 @@ import {
   LOG_JOIN,
   LOG_EXIT,
   LOG_SWAP,
+  LOG_CALL,
   Transfer,
+  GulpCall,
+  Pool as BPoolContract,
 } from "../../generated-gc/templates/BalancerV1Pool/Pool";
 
 import {
@@ -12,6 +15,8 @@ import {
 } from "../helpers/weightedPool";
 
 import { GNO_ADDRESS, ZERO_BI } from "../constants";
+import { Address, BigInt, log } from "@graphprotocol/graph-ts";
+import { WeightedPool } from "../../generated/schema";
 
 /************************************
  ********** JOINS & EXITS ***********
@@ -70,4 +75,49 @@ export function handleTransfer(event: Transfer): void {
   const value = event.params.amt;
 
   handleTransferForWeightedPool(event, from, to, value);
+}
+
+export function handleGulp(event: GulpCall): void {
+  if (!event.inputs.token.equals(GNO_ADDRESS)) {
+    return;
+  }
+
+  const poolAddress = event.to;
+  let pool = loadWeightedPool(poolAddress);
+
+  let poolContract = BPoolContract.bind(poolAddress);
+  let balanceCall = poolContract.try_getBalance(event.inputs.token);
+
+  if (balanceCall.reverted) {
+    log.warning("Failed to get balance for GNO in pool {}", [
+      poolAddress.toHexString(),
+    ]);
+    pool.gnoBalance = ZERO_BI;
+  } else {
+    pool.gnoBalance = balanceCall.value;
+  }
+  pool.save();
+}
+
+export function handleRebind(event: LOG_CALL): void {
+  const poolId = event.address.toHex();
+  const pool = WeightedPool.load(poolId);
+  if (!pool) {
+    return;
+  }
+
+  const tokenAddress = Address.fromString(
+    event.params.data.toHexString().slice(34, 74)
+  );
+
+  if (!tokenAddress.equals(GNO_ADDRESS)) {
+    return;
+  }
+
+  const balance = BigInt.fromString(
+    event.params.data.toHexString().slice(74, 138)
+  );
+
+  pool.gnoBalance = balance;
+  pool.save();
 }
