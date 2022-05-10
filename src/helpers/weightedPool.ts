@@ -110,10 +110,7 @@ export function handleTransfer(
   ]);
 
   // mint
-  if (
-    from.toHexString() == ADDRESS_ZERO.toHexString() &&
-    value.gt(BigInt.fromI32(0))
-  ) {
+  if (from.toHexString() == ADDRESS_ZERO.toHexString()) {
     // update total supply
     pool.totalSupply = pool.totalSupply.plus(value);
     pool.save();
@@ -124,10 +121,7 @@ export function handleTransfer(
   }
 
   // burn
-  if (
-    to.toHexString() == ADDRESS_ZERO.toHexString() &&
-    from.toHexString() == pool.id
-  ) {
+  if (to.toHexString() == ADDRESS_ZERO.toHexString()) {
     pool.totalSupply = pool.totalSupply.minus(value);
     pool.save();
     log.info("burn {}, new total supply: {}", [
