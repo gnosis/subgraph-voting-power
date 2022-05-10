@@ -15,7 +15,7 @@ import {
 } from "../helpers/weightedPool";
 
 import { GNO_ADDRESS, ZERO_BI } from "../constants";
-import { Address, BigInt, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 import { WeightedPool } from "../../generated/schema";
 
 /************************************
@@ -114,10 +114,13 @@ export function handleRebind(event: LOG_CALL): void {
     return;
   }
 
-  const balance = BigInt.fromString(
-    event.params.data.toHexString().slice(74, 138)
-  );
+  const balance = hexToBigInt(event.params.data.toHexString().slice(74, 138));
 
   pool.gnoBalance = balance;
   pool.save();
+}
+
+export function hexToBigInt(hexString: string): BigInt {
+  let bytes = Bytes.fromHexString(hexString).reverse() as Bytes;
+  return BigInt.fromUnsignedBytes(bytes);
 }
