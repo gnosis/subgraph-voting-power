@@ -2,16 +2,22 @@ import {
   LOG_JOIN,
   LOG_EXIT,
   LOG_SWAP,
+  LOG_CALL,
   Transfer,
+  GulpCall,
+  Pool as BPoolContract,
 } from "../../generated-gc/templates/BalancerV1Pool/Pool";
 
 import {
   loadPool as loadWeightedPool,
   handleSwap as handleSwapForWeightedPool,
   handleTransfer as handleTransferForWeightedPool,
+  handleBalanceChange as handleBalanceChangeForWeightedPool,
 } from "../helpers/weightedPool";
 
 import { GNO_ADDRESS, ZERO_BI } from "../constants";
+import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
+import { WeightedPool } from "../../generated/schema";
 
 /************************************
  ********** JOINS & EXITS ***********
@@ -70,4 +76,59 @@ export function handleTransfer(event: Transfer): void {
   const value = event.params.amt;
 
   handleTransferForWeightedPool(event, from, to, value);
+}
+
+export function handleGulp(event: GulpCall): void {
+  if (!event.inputs.token.equals(GNO_ADDRESS)) {
+    return;
+  }
+
+  const poolAddress = event.to;
+  let pool = loadWeightedPool(poolAddress);
+
+  let poolContract = BPoolContract.bind(poolAddress);
+  let balanceCall = poolContract.try_getBalance(event.inputs.token);
+
+  let nextGnoBalance: BigInt;
+  if (balanceCall.reverted) {
+    log.warning("Failed to get balance for GNO in pool {}", [
+      poolAddress.toHexString(),
+    ]);
+    nextGnoBalance = ZERO_BI;
+  } else {
+    nextGnoBalance = balanceCall.value;
+  }
+
+  handleBalanceChangeForWeightedPool(pool, nextGnoBalance);
+  pool.gnoBalance = nextGnoBalance;
+  pool.save();
+}
+
+export function handleRebind(event: LOG_CALL): void {
+  const poolId = event.address.toHex();
+  const pool = WeightedPool.load(poolId);
+  if (!pool) {
+    return;
+  }
+
+  const tokenAddress = Address.fromString(
+    event.params.data.toHexString().slice(34, 74)
+  );
+
+  if (!tokenAddress.equals(GNO_ADDRESS)) {
+    return;
+  }
+
+  const nextGnoBalance = hexToBigInt(
+    event.params.data.toHexString().slice(74, 138)
+  );
+
+  handleBalanceChangeForWeightedPool(pool, nextGnoBalance);
+  pool.gnoBalance = nextGnoBalance;
+  pool.save();
+}
+
+export function hexToBigInt(hexString: string): BigInt {
+  let bytes = Bytes.fromHexString(hexString).reverse() as Bytes;
+  return BigInt.fromUnsignedBytes(bytes);
 }
