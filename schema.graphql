@@ -6,6 +6,7 @@ type User @entity {
   lgno: BigInt!
   deposit: BigInt!
   sgno: BigInt!
+  stakedGnoSgno: BigInt! # this breakdown is relevant for calculating SAFE token distribution as part of GIP-64
   balancerInternalGno: BigInt!
   weightedPoolPositions: [WeightedPoolPosition!]! @derivedFrom(field: "user")
   concentratedLiquidityPositions: [ConcentratedLiquidityPosition!]!
