@@ -13,8 +13,8 @@ import {
   COW_GNO_POOL_ADDRESS,
   handleTransfer as handleStakedTokenTransfer,
 } from "../../src/balancerV2/gauge";
-import { ONE_GNO } from "../../src/helpers";
 import { Transfer } from "../../generated/templates/BalancerV2Pool/ERC20";
+import { ONE_GNO } from "../../src/constants";
 
 function resetFixtures(): void {
   clearStore();

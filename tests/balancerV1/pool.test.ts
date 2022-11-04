@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
   clearStore,
   test,
@@ -10,7 +10,6 @@ import {
   WeightedPool,
   WeightedPoolPosition,
 } from "../../generated/schema";
-import { GNO_ADDRESS, ONE_GNO } from "../../src/helpers";
 import { PAIR_ADDRESS, USER1_ADDRESS } from "../helpers";
 import {
   handleSwap,
@@ -22,6 +21,7 @@ import {
   LOG_EXIT,
   LOG_SWAP,
 } from "../../generated-gc/templates/BalancerV1Pool/Pool";
+import { GNO_ADDRESS, ONE_GNO } from "../../src/constants";
 
 const POOL_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000003"
@@ -29,8 +29,6 @@ const POOL_ADDRESS = Address.fromString(
 const OTHER_TOKEN_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000002222"
 );
-
-const POOL_ID = POOL_ADDRESS.concat(Bytes.fromHexString("0x0000123123"));
 
 const HALF_A_GNO = ONE_GNO.div(BigInt.fromI32(2));
 

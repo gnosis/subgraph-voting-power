@@ -12,7 +12,7 @@ export function handleTransfer(event: Transfer): void {
   const to = event.params.to;
   const from = event.params.from;
 
-  // gauge deposit tokens are issues in a ratio of 1:1 to the LP tokens
+  // gauge deposit tokens are issued in a ratio of 1:1 to the LP tokens
   const pool = loadSgnoGnoPool();
   const transferredGnoValue = pool.gnoBalance
     .times(event.params.value)

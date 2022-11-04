@@ -1,4 +1,4 @@
-import { Transfer } from "../../generated-gc/ds-curve-sgno-gno-gauge-deposit/ERC20";
+import { Transfer } from "../../generated-gc/ds-curve-sgno-gno/ERC20";
 
 import { ZERO_BI } from "../constants";
 import { Address, log } from "@graphprotocol/graph-ts";
