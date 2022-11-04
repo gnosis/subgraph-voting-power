@@ -121,6 +121,7 @@ function loadOrCreateConcentratedLiquidityPosition(
     position.user = ADDRESS_ZERO.toHexString();
     position.pair = poolAddress.toHexString();
     position.liquidity = ZERO_BI;
+    position.gnoBalance = ZERO_BI;
     position.lowerTick = BigInt.fromI32(positionResult.value5);
     position.upperTick = BigInt.fromI32(positionResult.value6);
     position.save();

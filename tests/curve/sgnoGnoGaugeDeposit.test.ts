@@ -38,6 +38,8 @@ function resetFixtures(): void {
   user.lgno = BigInt.fromI32(0);
   user.sgno = value;
   user.deposit = BigInt.fromI32(0);
+  user.stakedGnoSgno = BigInt.fromI32(0);
+  user.balancerInternalGno = BigInt.fromI32(0);
   user.save();
 }
 
@@ -94,7 +96,8 @@ function createTransferEvent(
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 
@@ -128,7 +131,8 @@ function createLpTokenTransferEvent(
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 
@@ -162,7 +166,8 @@ function createGnoTransferEvent(
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 
@@ -200,7 +205,8 @@ function createSgnoTransferEvent(
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 

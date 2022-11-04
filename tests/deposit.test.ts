@@ -26,7 +26,8 @@ function createDepositEvent(from: string): DepositEvent {
       mockEvent.transaction.input,
       mockEvent.transaction.nonce
     ),
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 
   return newTransferEvent;

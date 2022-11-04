@@ -120,7 +120,8 @@ export function createPairCreatedEvent(
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 
   return newPairCreatedEvent;

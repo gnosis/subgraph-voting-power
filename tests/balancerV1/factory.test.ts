@@ -51,6 +51,7 @@ export function createPoolCreatedEvent(pool: Address): LOG_NEW_POOL {
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }

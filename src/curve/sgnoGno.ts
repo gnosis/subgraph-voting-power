@@ -38,8 +38,10 @@ function loadOrCreateSgnoGnoPool(): WeightedPool {
   let pool = WeightedPool.load(id);
   if (!pool) {
     pool = new WeightedPool(id);
+    pool.positions = [];
     pool.totalSupply = ZERO_BI;
     pool.gnoBalance = ZERO_BI;
+    pool.gnoIsFirst = false;
     pool.save();
     log.info("instantiated WeightedPool instance for SGNO/GNO Curve pool: {}", [
       id,

@@ -47,7 +47,8 @@ function createTransferEvent(
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 
   return newTransferEvent;

@@ -21,6 +21,7 @@ function resetFixtures(): void {
 
   // Create 50COW-50GNO pool with total supply of 1e18
   const pool = new WeightedPool(COW_GNO_POOL_ADDRESS.toHexString());
+  pool.positions = [];
   pool.gnoIsFirst = true;
   pool.totalSupply = ONE_GNO;
   pool.gnoBalance = ONE_GNO;
@@ -32,7 +33,9 @@ function resetFixtures(): void {
   user.gno = BigInt.fromI32(0);
   user.mgno = BigInt.fromI32(0);
   user.lgno = BigInt.fromI32(0);
+  user.sgno = BigInt.fromI32(0);
   user.deposit = BigInt.fromI32(0);
+  user.stakedGnoSgno = BigInt.fromI32(0);
   user.balancerInternalGno = BigInt.fromI32(0);
   user.save();
 
@@ -96,7 +99,8 @@ function createLpTokenTransferEvent(
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 
@@ -130,7 +134,8 @@ function createStakedTokenTransferEvent(
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 

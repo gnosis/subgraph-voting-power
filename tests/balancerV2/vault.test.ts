@@ -44,8 +44,10 @@ function resetFixtures(): void {
 
   // Create pool with total supply of 1e18
   const pool = new WeightedPool(POOL_ADDRESS.toHexString());
+  pool.positions = [];
   pool.gnoIsFirst = true;
   pool.totalSupply = ONE_GNO;
+  pool.gnoBalance = BigInt.fromI32(0);
   pool.save();
 
   // create user
@@ -54,7 +56,9 @@ function resetFixtures(): void {
   user.gno = BigInt.fromI32(0);
   user.mgno = BigInt.fromI32(0);
   user.lgno = BigInt.fromI32(0);
+  user.sgno = BigInt.fromI32(0);
   user.deposit = BigInt.fromI32(0);
+  user.stakedGnoSgno = BigInt.fromI32(0);
   user.balancerInternalGno = BigInt.fromI32(0);
   user.save();
 
@@ -177,7 +181,8 @@ function createSwapEvent(gnoOut: BigInt): Swap {
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 
@@ -206,7 +211,8 @@ function createInternalBalanceChangedEvent(
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 
@@ -240,6 +246,7 @@ function createGnoTransferEvent(
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
