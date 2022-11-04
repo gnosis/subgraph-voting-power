@@ -5,10 +5,8 @@ import {
 } from "../helpers/user";
 
 import { ADDRESS_ZERO } from "../constants";
-import { Address, log } from "@graphprotocol/graph-ts";
 import { WeightedPool } from "../../generated/schema";
-
-const SGNO_GNO_POOL_ADDRESS = Address.fromString("");
+import { SGNO_GNO_POOL_ADDRESS } from "./sgnoGno";
 
 export function handleTransfer(event: Transfer): void {
   const to = event.params.to;
