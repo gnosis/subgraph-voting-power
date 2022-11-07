@@ -44,3 +44,12 @@ type ConcentratedLiquidityPosition @entity {
   upperTick: BigInt!
   gnoBalance: BigInt!
 }
+
+# Auxiliary table to track pending MGNO balances in the SBCWrapper contract to associate these with either:
+#  - transfers to the SBCTokenDeposit contract
+#  - transfers to the user's wallet
+type PendingMgnoBalance @entity {
+  id: ID! # <txhash>-<increment>
+  user: User!
+  balance: BigInt!
+}
