@@ -6,7 +6,7 @@ import {
   saveOrRemove as saveOrRemoveUser,
 } from "./helpers/user";
 
-import { ADDRESS_ZERO } from "./constants";
+import { ADDRESS_ZERO, ZERO_BI } from "./constants";
 import { PendingMgnoBalance, User } from "../generated/schema";
 
 export const WRAPPER_ADDRESS = Address.fromString(
@@ -46,39 +46,12 @@ export function handleTransfer(event: Transfer): void {
   }
 
   let userToCredit: User | null = null;
-
   if (from.toHexString() == WRAPPER_ADDRESS.toHexString()) {
-    // MGNO transfer out of SBCWrapper: we need to clear out a pending MGNO balance
-
-    if (to.toHexString() == DEPOSIT_ADDRESS.toHexString()) {
-      // `to` is deposit contract address, so we start crediting deposits to users with pending MGNO balances in this transaction
-      userToCredit = deductFromPendingMgnoBalance(
-        event.transaction.hash,
-        valueInMgno
-      );
-    } else {
-      // `to` is the user's address, we clear out that user's pending MGNO balance
-      const pendingMgnoBalance = loadPendingMgnoBalance(
-        event.transaction.hash,
-        to
-      );
-      pendingMgnoBalance.balance = pendingMgnoBalance.balance.minus(
-        valueInMgno
-      );
-      if (pendingMgnoBalance.balance.lt(BigInt.fromI32(0))) {
-        throw new Error(
-          `Negative pending MGNO balance for user ${
-            pendingMgnoBalance.user
-          } in transaction ${event.transaction.hash.toHexString()}`
-        );
-      }
-      saveOrRemovePendingMgnoBalance(pendingMgnoBalance);
-    }
-  }
-
-  if (!userToCredit) {
-    userToCredit = loadOrCreateUser(
-      to.toHexString() == DEPOSIT_ADDRESS.toHexString() ? from : to
+    // MGNO transfer out of SBCWrapper: we need to clear out the corresponding pending MGNO balance
+    userToCredit = deductFromPendingMgnoBalance(
+      event.transaction.hash,
+      to,
+      valueInMgno
     );
   }
 
@@ -86,6 +59,10 @@ export function handleTransfer(event: Transfer): void {
     to.toHexString() != ADDRESS_ZERO.toHexString() &&
     to.toHexString() != DEPOSIT_ADDRESS.toHexString()
   ) {
+    if (!userToCredit) {
+      userToCredit = loadOrCreateUser(to);
+    }
+
     // transfer to user's wallet: credit user with MGNO
     userToCredit.mgno = userToCredit.mgno.plus(valueInMgno);
     userToCredit.voteWeight = userToCredit.voteWeight.plus(valueInGno);
@@ -93,6 +70,14 @@ export function handleTransfer(event: Transfer): void {
   }
 
   if (to.toHexString() == DEPOSIT_ADDRESS.toHexString()) {
+    if (!userToCredit) {
+      log.warning(
+        "No user with pending MGNO balance found to credit for deposit, using transfer.from {}",
+        [from.toHexString()]
+      );
+      userToCredit = loadOrCreateUser(from);
+    }
+
     // transfer to SBCDeposit contract: credit user with deposit
     userToCredit.deposit = userToCredit.deposit.plus(valueInGno);
     userToCredit.voteWeight = userToCredit.voteWeight.plus(valueInGno);
@@ -103,10 +88,10 @@ export function handleTransfer(event: Transfer): void {
 function loadPendingMgnoBalance(
   txHash: Bytes,
   user: Address
-): PendingMgnoBalance {
+): PendingMgnoBalance | null {
   const userId = user.toHexString();
   let increment = -1;
-  let pendingBalance: PendingMgnoBalance | null;
+  let pendingBalance: PendingMgnoBalance | null = null;
   do {
     increment++;
     pendingBalance = PendingMgnoBalance.load(
@@ -114,36 +99,101 @@ function loadPendingMgnoBalance(
     );
   } while (!!pendingBalance && pendingBalance.user != userId);
 
-  if (!pendingBalance) {
-    throw new Error(
-      `Expected to find a pending MGNO balance for user ${userId} in transaction ${txHash.toHexString()}`
-    );
-  }
-
   return pendingBalance;
 }
 
+function deductFrom(
+  balance: PendingMgnoBalance,
+  valueToDeduct: BigInt
+): BigInt {
+  if (valueToDeduct.gt(balance.balance)) {
+    valueToDeduct = valueToDeduct.minus(balance.balance);
+    balance.balance = ZERO_BI;
+  } else {
+    balance.balance = balance.balance.minus(valueToDeduct);
+    valueToDeduct = ZERO_BI;
+  }
+  saveOrRemovePendingMgnoBalance(balance);
+  return valueToDeduct;
+}
+
 // Returns the user that should be credited with the deposit
-function deductFromPendingMgnoBalance(txHash: Bytes, value: BigInt): User {
+function deductFromPendingMgnoBalance(
+  txHash: Bytes,
+  to: Address,
+  valueToDeduct: BigInt
+): User {
+  if (to.toHexString() != DEPOSIT_ADDRESS.toHexString()) {
+    // mGNO recipient is not the deposit contract, so we try to find a pending balance for the recipient (assuming that sender = recipient in simple swap)
+    const pendingMgnoBalance = loadPendingMgnoBalance(txHash, to);
+    if (!!pendingMgnoBalance) {
+      valueToDeduct = deductFrom(pendingMgnoBalance, valueToDeduct);
+    }
+  }
+
+  if (valueToDeduct == ZERO_BI) {
+    return loadOrCreateUser(to);
+  }
+
+  // try to find a pending balance that can entirely cover the value to deduct
   let increment = -1;
-  let pendingBalance: PendingMgnoBalance | null;
+  let pendingBalance: PendingMgnoBalance | null = null;
   do {
     increment++;
     pendingBalance = PendingMgnoBalance.load(
       txHash.toHexString() + "-" + increment.toString()
     );
-  } while (!!pendingBalance && pendingBalance.balance.lt(value));
-
-  if (!pendingBalance) {
-    throw new Error(
-      `Found no pending MGNO balance to credit with a deposit of ${value.toString()} in ${txHash.toHexString()}`
+  } while (!!pendingBalance && valueToDeduct.gt(pendingBalance.balance));
+  if (!!pendingBalance) {
+    deductFrom(pendingBalance, valueToDeduct);
+    return loadOrCreateUser(
+      to.toHexString() == DEPOSIT_ADDRESS.toHexString()
+        ? Address.fromString(pendingBalance.user)
+        : to
     );
   }
 
-  pendingBalance.balance = pendingBalance.balance.minus(value);
-  saveOrRemovePendingMgnoBalance(pendingBalance);
+  // could not find a single user's balance that can entirely cover the value to deduct
+  // so we spread it out over multiple users and return the last user that was credited :S (this should never happen in practice)
+  log.warning(
+    "Could not find a single pending MGNO balance large enough to cover an outgoing transfer in {}",
+    [txHash.toHexString()]
+  );
+  increment = -1;
+  pendingBalance = null;
+  let userWithPendingBalance: string | null = null;
+  do {
+    increment++;
+    pendingBalance = PendingMgnoBalance.load(
+      txHash.toHexString() + "-" + increment.toString()
+    );
+    if (!!pendingBalance) {
+      deductFrom(pendingBalance, valueToDeduct);
+      userWithPendingBalance = pendingBalance.user;
+    }
+  } while (!!pendingBalance && valueToDeduct.gt(ZERO_BI));
+  if (valueToDeduct.gt(ZERO_BI)) {
+    throw new Error(
+      `Could not find enough pending MGNO balances to cover an outgoing transfer in ${txHash.toHexString()}`
+    );
+  }
 
-  return loadOrCreateUser(Address.fromString(pendingBalance.user));
+  const userToCredit =
+    to.toHexString() == DEPOSIT_ADDRESS.toHexString()
+      ? Address.fromString(
+          userWithPendingBalance == null
+            ? ADDRESS_ZERO.toHexString()
+            : (userWithPendingBalance as string)
+        )
+      : to;
+
+  if (userToCredit.toHexString() == ADDRESS_ZERO.toHexString()) {
+    throw new Error(
+      `Could not find a user to credit for deposit in transaction ${txHash.toHexString()}`
+    );
+  }
+
+  return loadOrCreateUser(userToCredit);
 }
 
 function saveOrRemovePendingMgnoBalance(balance: PendingMgnoBalance): void {

@@ -1,7 +1,14 @@
 import { clearStore, test, assert } from "matchstick-as/assembly/index";
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { DEPOSIT_ADDRESS, handleTransfer, MGNO_PER_GNO } from "../src/mgno";
+import {
+  DEPOSIT_ADDRESS,
+  handleTransfer,
+  MGNO_PER_GNO,
+  WRAPPER_ADDRESS,
+} from "../src/mgno";
+import { handleTransfer as handleGnoTransfer } from "../src/gno";
 import { Transfer } from "../generated-gc/ds-mgno/ERC20";
+import { Transfer as GnoTransfer } from "../generated/ds-gno/ERC20";
 import { newMockEvent } from "matchstick-as";
 import { ADDRESS_ZERO, USER1_ADDRESS, USER2_ADDRESS } from "./helpers";
 import { ONE_GNO } from "../src/constants";
@@ -13,10 +20,8 @@ function createTransferEvent(
   from: string,
   to: string,
   value: BigInt,
-  data: string
+  mockEvent: ethereum.Event = newMockEvent()
 ): Transfer {
-  let mockEvent = newMockEvent();
-
   mockEvent.parameters = new Array();
 
   mockEvent.parameters.push(
@@ -35,10 +40,51 @@ function createTransferEvent(
     new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
   );
   mockEvent.parameters.push(
-    new ethereum.EventParam("data", ethereum.Value.fromString(data))
+    new ethereum.EventParam("data", ethereum.Value.fromString("0x00"))
   );
 
   let newTransferEvent = new Transfer(
+    mockEvent.address,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    null
+  );
+
+  return newTransferEvent;
+}
+
+function createGnoTransferEvent(
+  from: string,
+  to: string,
+  value: BigInt,
+  mockEvent: ethereum.Event = newMockEvent()
+): GnoTransfer {
+  mockEvent.parameters = new Array();
+
+  mockEvent.parameters.push(
+    new ethereum.EventParam(
+      "from",
+      ethereum.Value.fromAddress(Address.fromString(from))
+    )
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam(
+      "to",
+      ethereum.Value.fromAddress(Address.fromString(to))
+    )
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("data", ethereum.Value.fromString("0x00"))
+  );
+
+  let newTransferEvent = new GnoTransfer(
     mockEvent.address,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
@@ -57,8 +103,7 @@ test("Transfer correctly increases mGNO balance of recipient", () => {
   let transferEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value,
-    "0x00"
+    value
   );
 
   // mint value to user 1
@@ -86,8 +131,7 @@ test("Transfer correctly decreases mGNO balance of sender", () => {
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value2x,
-    "0x00"
+    value2x
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
@@ -101,8 +145,7 @@ test("Transfer correctly decreases mGNO balance of sender", () => {
   let transferEvent = createTransferEvent(
     USER1_ADDRESS.toHexString(),
     USER2_ADDRESS.toHexString(),
-    value,
-    "0x00"
+    value
   );
   handleTransfer(transferEvent);
   assert.fieldEquals(
@@ -118,8 +161,7 @@ test("Transfer correctly increases vote weight of recipient", () => {
   let transferEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value,
-    "0x00"
+    value
   );
 
   // mint value to user 1
@@ -147,8 +189,7 @@ test("Transfer correctly decreases vote weight of sender", () => {
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value2x,
-    "0x00"
+    value2x
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
@@ -162,8 +203,7 @@ test("Transfer correctly decreases vote weight of sender", () => {
   let transferEvent = createTransferEvent(
     USER1_ADDRESS.toHexString(),
     USER2_ADDRESS.toHexString(),
-    value,
-    "0x00"
+    value
   );
   handleTransfer(transferEvent);
   assert.fieldEquals(
@@ -180,8 +220,7 @@ test("Transfer resulting in 0 vote weight removes user from store.", () => {
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value,
-    "0x00"
+    value
   );
   handleTransfer(mintEvent);
   assert.fieldEquals(
@@ -195,8 +234,7 @@ test("Transfer resulting in 0 vote weight removes user from store.", () => {
   let transferEvent = createTransferEvent(
     USER1_ADDRESS.toHexString(),
     USER2_ADDRESS.toHexString(),
-    value,
-    "0x00"
+    value
   );
   handleTransfer(transferEvent);
   assert.notInStore("User", USER1_ADDRESS.toHexString());
@@ -208,8 +246,7 @@ test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", 
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value,
-    "0x00"
+    value
   );
   handleTransfer(mintEvent);
   assert.notInStore("User", ADDRESS_ZERO.toHexString());
@@ -218,8 +255,7 @@ test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", 
   let transferEvent = createTransferEvent(
     USER1_ADDRESS.toHexString(),
     ADDRESS_ZERO.toHexString(),
-    value,
-    "0x00"
+    value
   );
   handleTransfer(transferEvent);
   assert.notInStore("User", ADDRESS_ZERO.toHexString());
@@ -231,8 +267,7 @@ test("Transfer involving DEPOSIT_ADDRESS does not create a DEPOSIT_ADDRESS entit
   let mintEvent = createTransferEvent(
     ADDRESS_ZERO.toHexString(),
     USER1_ADDRESS.toHexString(),
-    value,
-    "0x00"
+    value
   );
   handleTransfer(mintEvent);
   assert.notInStore("User", DEPOSIT_ADDRESS.toHexString());
@@ -241,9 +276,206 @@ test("Transfer involving DEPOSIT_ADDRESS does not create a DEPOSIT_ADDRESS entit
   let transferEvent = createTransferEvent(
     USER1_ADDRESS.toHexString(),
     DEPOSIT_ADDRESS.toHexString(),
-    value,
-    "0x00"
+    value
   );
   handleTransfer(transferEvent);
   assert.notInStore("User", DEPOSIT_ADDRESS.toHexString());
+});
+
+test("Transfer from SCBWrapper to SBCDeposit clears out the associated pending MGNO balance and credits the original sender for the deposit", () => {
+  clearStore();
+  const mockEvent: ethereum.Event = newMockEvent(); // all events must happen within the same transactions
+
+  let gnoMintEvent = createGnoTransferEvent(
+    ADDRESS_ZERO.toHexString(),
+    USER1_ADDRESS.toHexString(),
+    value,
+    mockEvent
+  );
+  handleGnoTransfer(gnoMintEvent);
+
+  // send value from USER1_ADDRESS to SCB_WRAPPER_ADDRESS
+  let gnoTransferEvent = createGnoTransferEvent(
+    USER1_ADDRESS.toHexString(),
+    WRAPPER_ADDRESS.toHexString(),
+    value,
+    mockEvent
+  );
+  handleGnoTransfer(gnoTransferEvent);
+
+  // swap will mint MGNO to SCB_WRAPPER_ADDRESS
+  let mgnoMintEvent = createTransferEvent(
+    ADDRESS_ZERO.toHexString(),
+    WRAPPER_ADDRESS.toHexString(),
+    value.times(MGNO_PER_GNO),
+    mockEvent
+  );
+  handleTransfer(mgnoMintEvent);
+
+  // send minted MGNO to deposit contract
+  let mgnoTransferEvent = createTransferEvent(
+    WRAPPER_ADDRESS.toHexString(),
+    DEPOSIT_ADDRESS.toHexString(),
+    value.times(MGNO_PER_GNO),
+    mockEvent
+  );
+  handleTransfer(mgnoTransferEvent);
+
+  assert.notInStore(
+    "PendingMgnoBalance",
+    mockEvent.transaction.hash.toHexString() + "-0"
+  );
+
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "deposit",
+    value.toString()
+  );
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    value.toString()
+  );
+});
+
+test("Transfer from SCBWrapper to an address with pending MGNO balances clears out the pending GNO balance and credits the user with MGNO", () => {
+  clearStore();
+  const mockEvent: ethereum.Event = newMockEvent(); // all events must happen within the same transactions
+
+  let gnoMintEvent = createGnoTransferEvent(
+    ADDRESS_ZERO.toHexString(),
+    USER1_ADDRESS.toHexString(),
+    value,
+    mockEvent
+  );
+  handleGnoTransfer(gnoMintEvent);
+
+  // send value from USER1_ADDRESS to SCB_WRAPPER_ADDRESS
+  let gnoTransferEvent = createGnoTransferEvent(
+    USER1_ADDRESS.toHexString(),
+    WRAPPER_ADDRESS.toHexString(),
+    value,
+    mockEvent
+  );
+  handleGnoTransfer(gnoTransferEvent);
+
+  // swap will mint MGNO to SCB_WRAPPER_ADDRESS
+  let mgnoMintEvent = createTransferEvent(
+    ADDRESS_ZERO.toHexString(),
+    WRAPPER_ADDRESS.toHexString(),
+    value.times(MGNO_PER_GNO),
+    mockEvent
+  );
+  handleTransfer(mgnoMintEvent);
+
+  // send minted MGNO back to USER1
+  let mgnoTransferEvent = createTransferEvent(
+    WRAPPER_ADDRESS.toHexString(),
+    USER1_ADDRESS.toHexString(),
+    value.times(MGNO_PER_GNO),
+    mockEvent
+  );
+  handleTransfer(mgnoTransferEvent);
+
+  assert.notInStore(
+    "PendingMgnoBalance",
+    mockEvent.transaction.hash.toHexString() + "-0"
+  );
+
+  assert.fieldEquals("User", USER1_ADDRESS.toHexString(), "gno", "0");
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "mgno",
+    value.times(MGNO_PER_GNO).toString()
+  );
+});
+
+test("Transfer from SCBWrapper to an address with no pending MGNO balance clears out any of the pending GNO balances and credits the recipient with MGNO", () => {
+  clearStore();
+  const mockEvent: ethereum.Event = newMockEvent(); // all events must happen within the same transactions
+
+  let gnoMintEvent = createGnoTransferEvent(
+    ADDRESS_ZERO.toHexString(),
+    USER1_ADDRESS.toHexString(),
+    value,
+    mockEvent
+  );
+  handleGnoTransfer(gnoMintEvent);
+
+  // send value from USER1_ADDRESS to SCB_WRAPPER_ADDRESS
+  let gnoTransferEvent = createGnoTransferEvent(
+    USER1_ADDRESS.toHexString(),
+    WRAPPER_ADDRESS.toHexString(),
+    value,
+    mockEvent
+  );
+  handleGnoTransfer(gnoTransferEvent);
+
+  // swap will mint MGNO to SCB_WRAPPER_ADDRESS
+  let mgnoMintEvent = createTransferEvent(
+    ADDRESS_ZERO.toHexString(),
+    WRAPPER_ADDRESS.toHexString(),
+    value.times(MGNO_PER_GNO),
+    mockEvent
+  );
+  handleTransfer(mgnoMintEvent);
+
+  // send minted MGNO to USER2
+  let mgnoTransferEvent = createTransferEvent(
+    WRAPPER_ADDRESS.toHexString(),
+    USER2_ADDRESS.toHexString(),
+    value.times(MGNO_PER_GNO),
+    mockEvent
+  );
+  handleTransfer(mgnoTransferEvent);
+
+  assert.notInStore(
+    "PendingMgnoBalance",
+    mockEvent.transaction.hash.toHexString() + "-0"
+  );
+
+  // USER1 with no remaining vote weight is cleared out
+  assert.notInStore("User", USER1_ADDRESS.toHexString());
+
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "mgno",
+    value.times(MGNO_PER_GNO).toString()
+  );
+});
+
+test("Transfer from another address to SBCDeposit credits that address for the deposit", () => {
+  clearStore();
+
+  const mockEvent: ethereum.Event = newMockEvent(); // all events must happen within the same transactions
+
+  // swap will mint MGNO to USER1
+  let mgnoMintEvent = createTransferEvent(
+    ADDRESS_ZERO.toHexString(),
+    USER1_ADDRESS.toHexString(),
+    ONE_GNO.times(MGNO_PER_GNO),
+    mockEvent
+  );
+  handleTransfer(mgnoMintEvent);
+
+  // send minted MGNO to SBC_DEPOSIT_ADDRESS
+  let mgnoTransferEvent = createTransferEvent(
+    USER1_ADDRESS.toHexString(),
+    DEPOSIT_ADDRESS.toHexString(),
+    ONE_GNO.times(MGNO_PER_GNO),
+    mockEvent
+  );
+  handleTransfer(mgnoTransferEvent);
+
+  assert.fieldEquals("User", USER1_ADDRESS.toHexString(), "mgno", "0");
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "deposit",
+    ONE_GNO.toString()
+  );
 });

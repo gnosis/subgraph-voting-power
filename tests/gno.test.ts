@@ -10,6 +10,7 @@ import {
   value,
   value2x,
 } from "./helpers";
+import { MGNO_PER_GNO, WRAPPER_ADDRESS } from "../src/mgno";
 
 function createTransferEvent(
   from: string,
@@ -217,6 +218,39 @@ test("Transfer involving ADDRESS_ZERO does not create an ADDRESS_ZERO entity.", 
   );
   handleTransfer(transferEvent);
   assert.notInStore("User", ADDRESS_ZERO.toHexString());
+
+  clearStore();
+});
+
+test("Transfer to SBCWrapper contract will create a pending mGNO balance for sender", () => {
+  let mintEvent = createTransferEvent(
+    ADDRESS_ZERO.toHexString(),
+    USER1_ADDRESS.toHexString(),
+    value
+  );
+  handleTransfer(mintEvent);
+
+  let transferEvent = createTransferEvent(
+    USER1_ADDRESS.toHexString(),
+    WRAPPER_ADDRESS.toHexString(),
+    value
+  );
+  handleTransfer(transferEvent);
+
+  assert.notInStore("User", WRAPPER_ADDRESS.toHexString());
+
+  assert.fieldEquals(
+    "PendingMgnoBalance",
+    transferEvent.transaction.hash.toHexString() + "-" + "0",
+    "balance",
+    value.times(MGNO_PER_GNO).toString()
+  );
+  assert.fieldEquals(
+    "PendingMgnoBalance",
+    transferEvent.transaction.hash.toHexString() + "-" + "0",
+    "user",
+    USER1_ADDRESS.toHexString()
+  );
 
   clearStore();
 });
