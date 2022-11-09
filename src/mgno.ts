@@ -197,7 +197,7 @@ function deductFromPendingMgnoBalance(
 }
 
 function saveOrRemovePendingMgnoBalance(balance: PendingMgnoBalance): void {
-  if ((balance.balance = BigInt.fromI32(0))) {
+  if (balance.balance.isZero()) {
     store.remove("PendingMgnoBalance", balance.id);
     log.info("removed PendingMgnoBalance {}", [balance.id]);
   } else {
