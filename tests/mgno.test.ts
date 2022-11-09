@@ -340,7 +340,7 @@ test("Transfer from SCBWrapper to SBCDeposit clears out the associated pending M
   );
 });
 
-test("Transfer from SCBWrapper to an address with pending MGNO balances clears out the pending GNO balance and credits the user with MGNO", () => {
+test("Transfer from SCBWrapper to an address with pending MGNO balances clears out the pending MGNO balance and credits the user with MGNO", () => {
   clearStore();
   const mockEvent: ethereum.Event = newMockEvent(); // all events must happen within the same transactions
 
@@ -369,6 +369,20 @@ test("Transfer from SCBWrapper to an address with pending MGNO balances clears o
     mockEvent
   );
   handleTransfer(mgnoMintEvent);
+
+  // make sure there is a pending MGNO balance for user 1
+  assert.fieldEquals(
+    "PendingMgnoBalance",
+    mockEvent.transaction.hash.toHexString() + "-0",
+    "balance",
+    value.times(MGNO_PER_GNO).toString()
+  );
+  assert.fieldEquals(
+    "PendingMgnoBalance",
+    mockEvent.transaction.hash.toHexString() + "-0",
+    "user",
+    USER1_ADDRESS.toHexString()
+  );
 
   // send minted MGNO back to USER1
   let mgnoTransferEvent = createTransferEvent(

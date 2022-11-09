@@ -71,10 +71,6 @@ export function handleTransfer(event: Transfer): void {
 
   if (to.toHexString() == DEPOSIT_ADDRESS.toHexString()) {
     if (!userToCredit) {
-      log.warning(
-        "No user with pending MGNO balance found to credit for deposit, using transfer.from {}",
-        [from.toHexString()]
-      );
       userToCredit = loadOrCreateUser(from);
     }
 

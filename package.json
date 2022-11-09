@@ -9,7 +9,7 @@
     "build:gc": "graph build -o build-gc subgraph-gnosis-chain.yaml",
     "doall": "yarn clean && yarn codegen && yarn build && yarn build:gc",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ jfschwarz/gno-voting-power-eth",
-    "deploy:gc": "graph deploy -o build-gc --node https://api.thegraph.com/deploy/ jfschwarz/gno-voting-power-gc subgraph-gnosis-chain.yaml",
+    "deploy:gc": "graph deploy -o build-gc --node https://api.thegraph.com/deploy/ jfschwarz/gno-voting-power-gno subgraph-gnosis-chain.yaml",
     "test": "graph test"
   },
   "dependencies": {
