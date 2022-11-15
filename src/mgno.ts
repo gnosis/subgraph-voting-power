@@ -24,9 +24,10 @@ export const MGNO_PER_GNO = BigInt.fromString("32");
 //   - the SBCDeposit contract for depositing mGNO for funding validators.
 //
 // There are these different scenarios of mGNO transfers that we need to handle:
+//   - GNO is transferred from a regular user account to the SBCWrapper and swapped to mGNO which is minted directly to the user account
 //   - mGNO is transferred between regular user accounts
 //   - mGNO is transferred from a user account to the SBCDeposit contract
-//   - GNO is transferred from a user account to SBCWrapper, swapped to mGNO which is sent from SBCWrapper to SBCDeposit
+//   - GNO is transferred from a user account to SBCWrapper, swapped to mGNO which is minted to SBCWrapper and sent from SBCWrapper to SBCDeposit
 //
 // For this third scenario, we need to keep track of the pending GNO balances that users sent to SBCWrapper and we associate these with mGNO transfers out of SBCWrapper in the same transaction.
 export function handleTransfer(event: Transfer): void {
@@ -37,8 +38,10 @@ export function handleTransfer(event: Transfer): void {
 
   if (
     from.toHexString() != ADDRESS_ZERO.toHexString() &&
-    from.toHexString() != WRAPPER_ADDRESS.toHexString()
+    from.toHexString() != WRAPPER_ADDRESS.toHexString() &&
+    from.toHexString() != DEPOSIT_ADDRESS.toHexString()
   ) {
+    // transfer from user's wallet: reduce sender's balance & vote weight
     const userFrom = loadOrCreateUser(from);
     userFrom.mgno = userFrom.mgno.minus(valueInMgno);
     userFrom.voteWeight = userFrom.voteWeight.minus(valueInGno);
@@ -46,8 +49,13 @@ export function handleTransfer(event: Transfer): void {
   }
 
   let userToCredit: User | null = null;
-  if (from.toHexString() == WRAPPER_ADDRESS.toHexString()) {
-    // MGNO transfer out of SBCWrapper: we need to clear out the corresponding pending MGNO balance
+  if (
+    (from.toHexString() == ADDRESS_ZERO.toHexString() &&
+      to.toHexString() != WRAPPER_ADDRESS.toHexString()) ||
+    from.toHexString() == WRAPPER_ADDRESS.toHexString()
+  ) {
+    // mGNO mint to user or transfer out of SBCWrapper: we need to clear out the corresponding pending mGNO balance
+    // We need to remember whose balance we've cleared so we can credit them with the deposit
     userToCredit = deductFromPendingMgnoBalance(
       event.transaction.hash,
       to,
@@ -57,24 +65,34 @@ export function handleTransfer(event: Transfer): void {
 
   if (
     to.toHexString() != ADDRESS_ZERO.toHexString() &&
-    to.toHexString() != DEPOSIT_ADDRESS.toHexString()
+    to.toHexString() != DEPOSIT_ADDRESS.toHexString() &&
+    to.toHexString() != WRAPPER_ADDRESS.toHexString()
   ) {
-    if (!userToCredit) {
-      userToCredit = loadOrCreateUser(to);
-    }
-
-    // transfer to user's wallet: credit user with MGNO
+    // transfer to user's wallet: credit recipient with mGNO
+    userToCredit = loadOrCreateUser(to);
     userToCredit.mgno = userToCredit.mgno.plus(valueInMgno);
     userToCredit.voteWeight = userToCredit.voteWeight.plus(valueInGno);
     userToCredit.save();
   }
 
   if (to.toHexString() == DEPOSIT_ADDRESS.toHexString()) {
+    // transfer to SBCDeposit contract: credit user with pending mGNO balance
+
     if (!userToCredit) {
-      userToCredit = loadOrCreateUser(from);
+      // We have not found a pending mGNO balance for this transfer. This is expected for transfers from user wallets to SBCDeposit.
+      if (from.toHexString() != WRAPPER_ADDRESS.toHexString()) {
+        userToCredit = loadOrCreateUser(from);
+      } else {
+        // If the transfer is from SBCWrapper, this is unexpected. We should have found a pending mGNO balance.
+        // As a fallback we use the sender of the transaction (will only work for EOAs)
+        userToCredit = loadOrCreateUser(event.transaction.from);
+        log.warning(
+          "No user with pending mGNO balance found to credit for deposit in tx {}",
+          [event.transaction.hash.toHexString()]
+        );
+      }
     }
 
-    // transfer to SBCDeposit contract: credit user with deposit
     userToCredit.deposit = userToCredit.deposit.plus(valueInGno);
     userToCredit.voteWeight = userToCredit.voteWeight.plus(valueInGno);
     userToCredit.save();
@@ -113,7 +131,7 @@ function deductFrom(
   return valueToDeduct;
 }
 
-// Returns the user that should be credited with the deposit
+// Returns the user that should be credited with the deposit or mGNO balance
 function deductFromPendingMgnoBalance(
   txHash: Bytes,
   to: Address,
@@ -170,7 +188,7 @@ function deductFromPendingMgnoBalance(
   } while (!!pendingBalance && valueToDeduct.gt(ZERO_BI));
   if (valueToDeduct.gt(ZERO_BI)) {
     throw new Error(
-      `Could not find enough pending MGNO balances to cover an outgoing transfer in ${txHash.toHexString()}`
+      `Could not find enough pending mGNO balances to cover an outgoing transfer in ${txHash.toHexString()}`
     );
   }
 
