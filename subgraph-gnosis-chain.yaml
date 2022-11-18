@@ -312,6 +312,3 @@ templates:
           handler: handleSwap
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
-      callHandlers:
-        - function: gulp(address)
-          handler: handleGulp
