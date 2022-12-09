@@ -5,7 +5,7 @@ import { newMockEvent } from "matchstick-as";
 import { ADDRESS_ZERO, USER1_ADDRESS, USER2_ADDRESS, value } from "../helpers";
 import { handleTransfer as handleGnoTransfer } from "../../src/gno";
 import { handleTransfer as handleSgnoTransfer } from "../../src/sgno";
-import { Transfer } from "../../generated-gc/ds-curve-sgno-gno/ERC20";
+import { Transfer } from "../../generated-gc/ds-curve-sgno-gno/CurveStableSwap";
 import { Transfer as GnoTransfer } from "../../generated/ds-gno/ERC20";
 import { Transfer as SgnoTransfer } from "../../generated-gc/ds-sgno/ERC20";
 import { handleTransfer, SGNO_GNO_POOL_ADDRESS } from "../../src/curve/sgnoGno";
@@ -58,10 +58,10 @@ function createTransferEvent(
   mockEvent.parameters = new Array();
 
   mockEvent.parameters.push(
-    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
+    new ethereum.EventParam("sender", ethereum.Value.fromAddress(from))
   );
   mockEvent.parameters.push(
-    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
+    new ethereum.EventParam("receiver", ethereum.Value.fromAddress(to))
   );
   mockEvent.parameters.push(
     new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))

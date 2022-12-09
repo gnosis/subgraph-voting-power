@@ -5,7 +5,7 @@ import { newMockEvent } from "matchstick-as";
 import { ADDRESS_ZERO, USER1_ADDRESS, USER2_ADDRESS, value } from "../helpers";
 import { handleTransfer as handleGnoTransfer } from "../../src/gno";
 import { handleTransfer as handleSgnoTransfer } from "../../src/sgno";
-import { Transfer as LpTokenTransfer } from "../../generated-gc/ds-curve-sgno-gno/ERC20";
+import { Transfer as LpTokenTransfer } from "../../generated-gc/ds-curve-sgno-gno/CurveStableSwap";
 import { Transfer } from "../../generated-gc/ds-curve-sgno-gno-gauge-deposit/ERC20";
 import { Transfer as GnoTransfer } from "../../generated/ds-gno/ERC20";
 import { Transfer as SgnoTransfer } from "../../generated-gc/ds-sgno/ERC20";
@@ -112,10 +112,10 @@ function createLpTokenTransferEvent(
   mockEvent.parameters = new Array();
 
   mockEvent.parameters.push(
-    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
+    new ethereum.EventParam("sender", ethereum.Value.fromAddress(from))
   );
   mockEvent.parameters.push(
-    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
+    new ethereum.EventParam("receiver", ethereum.Value.fromAddress(to))
   );
   mockEvent.parameters.push(
     new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))

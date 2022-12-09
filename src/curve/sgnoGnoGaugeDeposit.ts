@@ -1,8 +1,4 @@
 import { Transfer } from "../../generated-gc/ds-curve-sgno-gno-gauge-deposit/ERC20";
-import {
-  loadOrCreate as loadOrCreateUser,
-  saveOrRemove as saveOrRemoveUser,
-} from "../helpers/user";
 
 import { ADDRESS_ZERO } from "../constants";
 import { User, WeightedPool } from "../../generated/schema";
