@@ -4,8 +4,6 @@ import {
   LOG_SWAP,
   LOG_CALL,
   Transfer,
-  GulpCall,
-  Pool as BPoolContract,
 } from "../../generated-gc/templates/BalancerV1Pool/Pool";
 
 import {
