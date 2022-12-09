@@ -130,12 +130,12 @@ export function handleBalanceChange(
 }
 
 export function handleTransfer(
-  event: ethereum.Event,
+  poolAddress: Address,
   from: Address,
   to: Address,
   value: BigInt
 ): void {
-  const pool = loadPool(event.address);
+  const pool = loadPool(poolAddress);
 
   const gnoReserves = pool.gnoBalance;
   log.info("pool loaded: {}, gno reserves: {}, total supply: {}", [

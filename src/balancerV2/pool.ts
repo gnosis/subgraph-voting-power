@@ -7,5 +7,5 @@ export function handleTransfer(event: TransferEvent): void {
   const to = event.params.to;
   const value = event.params.value;
 
-  handleTransferForWeightedPool(event, from, to, value);
+  handleTransferForWeightedPool(event.address, from, to, value);
 }

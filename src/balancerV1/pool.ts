@@ -73,7 +73,7 @@ export function handleTransfer(event: Transfer): void {
   const to = event.params.dst;
   const value = event.params.amt;
 
-  handleTransferForWeightedPool(event, from, to, value);
+  handleTransferForWeightedPool(event.address, from, to, value);
 }
 
 export function handleRebind(event: LOG_CALL): void {
