@@ -219,7 +219,7 @@ dataSources:
     network: xdai
     source:
       address: "0xBdF4488Dcf7165788D438b62B4C8A333879B7078"
-      abi: ERC20
+      abi: CurveStableSwap
       startBlock: 21366595
     mapping:
       kind: ethereum/events
@@ -227,12 +227,24 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - User
+        - WeightedPool
+        - WeightedPoolPosition
       abis:
-        - name: ERC20
-          file: ./abis/ERC20.json
+        - name: CurveStableSwap
+          file: ./abis/CurveStableSwap.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+        - event: TokenExchange(indexed address,int128,uint256,int128,uint256)
+          handler: handlePoolBalanceChange
+        - event: AddLiquidity(indexed address,uint256[2],uint256[2],uint256,uint256)
+          handler: handlePoolBalanceChange
+        - event: RemoveLiquidity(indexed address,uint256[2],uint256[2],uint256)
+          handler: handlePoolBalanceChange
+        - event: RemoveLiquidityOne(indexed address,uint256,uint256,uint256)
+          handler: handlePoolBalanceChange
+        - event: RemoveLiquidityImbalance(indexed address,uint256[2],uint256[2],uint256,uint256)
+          handler: handlePoolBalanceChange
       file: ./src/curve/sgnoGno.ts
   - kind: ethereum
     name: ds-curve-sgno-gno-gauge-deposit
@@ -294,6 +306,7 @@ templates:
       entities:
         - User
         - WeightedPool
+        - WeightedPoolPosition
       abis:
         - name: Pool
           file: ./abis/balancerV1/BPool.json

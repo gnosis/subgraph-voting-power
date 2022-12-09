@@ -56,6 +56,7 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/balancerV2/vault.ts
       entities:
+        - User
         - WeightedPool
       abis:
         - name: Vault
@@ -193,6 +194,7 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/uniswapV3/position.ts
       entities:
+        - User
         - ConcentratedLiquidityPair
         - ConcentratedLiquidityPosition
       abis:
