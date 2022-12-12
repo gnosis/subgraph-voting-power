@@ -1,4 +1,4 @@
-import { log, BigInt, Address } from "@graphprotocol/graph-ts";
+import { log, BigInt, Address, ethereum } from "@graphprotocol/graph-ts";
 import { Transfer } from "../../generated-gc/ds-curve-sgno-gno/CurveStableSwap";
 
 import { ZERO_BI } from "../constants";
@@ -42,7 +42,7 @@ export function handleTransfer(event: Transfer): void {
   handleTransferForWeightedPool(SGNO_GNO_POOL_ADDRESS, from, to, value);
 }
 
-export function handlePoolBalanceChange(): void {
+export function handlePoolBalanceChange(event: ethereum.Event): void {
   // This handler is called for any event that might involve and update to the total balance of GNO and SGNO.
   // All handled events are only emmitted after any Transfer events of pool or LP tokens.
 
