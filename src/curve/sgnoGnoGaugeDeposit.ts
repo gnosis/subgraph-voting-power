@@ -10,9 +10,17 @@ export function handleTransfer(event: Transfer): void {
   const from = event.params.from;
   const value = event.params.value;
 
-  // we treat deposit token transfers just like LP token transfers, meaning the the user's WeightedPoolPositions will stay intact when staking.
+  // We treat deposit token transfers just like LP token transfers, meaning the the user's WeightedPoolPositions will stay intact when staking.
   // This is important so we can iterate over all sGNO/GNO LPs. (There's no way to iterate over all users.)
-  handleTransferForWeightedPool(SGNO_GNO_POOL_ADDRESS, from, to, value);
+  handleTransferForWeightedPool(
+    SGNO_GNO_POOL_ADDRESS,
+
+    // For deposit token burns and mints, we must update the addresses since passing ZERO addresses would affect the LP token's total supply
+    from.equals(ADDRESS_ZERO) ? event.address : from,
+    to.equals(ADDRESS_ZERO) ? event.address : to,
+
+    value
+  );
 
   const pool = loadSgnoGnoPool();
   const transferredGnoValue = value
