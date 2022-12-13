@@ -8,14 +8,21 @@ import { handleTransfer as handleSgnoTransfer } from "../../src/sgno";
 import { Transfer } from "../../generated-gc/ds-curve-sgno-gno/CurveStableSwap";
 import { Transfer as GnoTransfer } from "../../generated/ds-gno/ERC20";
 import { Transfer as SgnoTransfer } from "../../generated-gc/ds-sgno/ERC20";
-import { handleTransfer, SGNO_GNO_POOL_ADDRESS } from "../../src/curve/sgnoGno";
+import { Transfer as DepositTokenTransfer } from "../../generated-gc/ds-curve-sgno-gno-gauge-deposit/ERC20";
+import {
+  handlePoolBalanceChange,
+  handleTransfer,
+  SGNO_GNO_POOL_ADDRESS,
+} from "../../src/curve/sgnoGno";
+import { handleTransfer as handleDepositTokenTransfer } from "../../src/curve/sgnoGnoGaugeDeposit";
 import { GNO_ADDRESS } from "../../src/constants";
 
+const smallValue = value.div(BigInt.fromI32(2));
 let transferEvent = createTransferEvent(USER1_ADDRESS, USER2_ADDRESS, value);
 let smallTransferEvent = createTransferEvent(
   USER1_ADDRESS,
   USER2_ADDRESS,
-  value.div(BigInt.fromI32(2))
+  smallValue
 );
 
 function resetFixtures(): void {
@@ -161,6 +168,45 @@ function getPositionID(pair: Address, user: Address): string {
     .toHexString()
     .concat("-")
     .concat(user.toHexString());
+}
+
+const GAUGE_ADDRESS = Address.fromString(
+  "0x2686d5E477d1AaA58BF8cE598fA95d97985c7Fb1"
+);
+
+function createDepositTokenTransferEvent(
+  from: Address,
+  to: Address,
+  value: BigInt,
+  data: string = "0x00"
+): DepositTokenTransfer {
+  const mockEvent = newMockEvent();
+
+  mockEvent.parameters = new Array();
+
+  mockEvent.parameters.push(
+    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("data", ethereum.Value.fromString(data))
+  );
+
+  return new DepositTokenTransfer(
+    GAUGE_ADDRESS,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    null
+  );
 }
 
 //  TESTS
@@ -338,5 +384,91 @@ test("Removes sender if vote weight is 0", () => {
     USER2_ADDRESS.toHexString(),
     "voteWeight",
     "4000000"
+  );
+});
+
+test("Updates vote weight and stakedGnoSgno breakdown for all LPs on swap", () => {
+  resetFixtures();
+
+  // mint value to user 1
+  simulateMint();
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    "4000000"
+  );
+
+  // transfer half of the LP tokens from USER1 to USER2
+  handleTransfer(smallTransferEvent);
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    "2000000"
+  );
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "voteWeight",
+    "2000000"
+  );
+
+  // deposit USER2's LP tokens in gauge
+  handleTransfer(createTransferEvent(USER2_ADDRESS, GAUGE_ADDRESS, smallValue));
+  handleDepositTokenTransfer(
+    createDepositTokenTransferEvent(ADDRESS_ZERO, USER2_ADDRESS, smallValue)
+  );
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "voteWeight",
+    "2000000"
+  );
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "stakedGnoSgno",
+    "2000000"
+  );
+
+  // swap fees increase the pool balance
+  handleGnoTransfer(
+    createGnoTransferEvent(
+      ADDRESS_ZERO,
+      SGNO_GNO_POOL_ADDRESS,
+      BigInt.fromI32(300000)
+    )
+  ); // pool GNO+SGNO balance is now 4000000+500000=4500000
+  handleSgnoTransfer(
+    createSgnoTransferEvent(
+      ADDRESS_ZERO,
+      SGNO_GNO_POOL_ADDRESS,
+      BigInt.fromI32(200000)
+    )
+  );
+  // pool GNO+SGNO balance is now 4000000+300000+200000=4500000
+  handlePoolBalanceChange(newMockEvent());
+
+  // extra vote weight is proportionally credited to all LPs
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    "2250000"
+  );
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "voteWeight",
+    "2250000"
+  );
+
+  // it's also reflected in the stakedGnoSgno breakdown
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "stakedGnoSgno",
+    "2250000"
   );
 });
