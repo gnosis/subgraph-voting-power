@@ -50,13 +50,14 @@ export function handlePoolBalanceChange(event: ethereum.Event): void {
   if (!pool) throw new Error(`Expected WeightedPool #${ID} to exist`);
   const gnoBalance = pool.gnoBalance;
   const userEntryForPool = User.load(ID);
+
   const nextGnoBalance = userEntryForPool
     ? userEntryForPool.gno.plus(userEntryForPool.sgno)
     : ZERO_BI;
 
   if (!nextGnoBalance.equals(gnoBalance)) {
     // update vote weight of LPs
-    handleBalanceChangeForWeightedPool(pool, gnoBalance);
+    handleBalanceChangeForWeightedPool(pool, nextGnoBalance);
     // update stakedGnoSgno breakdown of LPs that stake their LP tokens
     handleBalanceChangeForStakedGnoSgno(pool, gnoBalance, nextGnoBalance);
   }
@@ -96,7 +97,7 @@ function handleBalanceChangeForStakedGnoSgno(
           .div(gnoBalance); // scale user's staked balance by the change in pool's GNO balance
         user.save();
 
-        log.info("updated staked GNO/sGNO balance of user {} (was: {})", [
+        log.info("updated staked GNO/sGNO balance of user {} to {} (was: {})", [
           user.id,
           user.stakedGnoSgno.toString(),
           previousStakedGnoSgno.toString(),

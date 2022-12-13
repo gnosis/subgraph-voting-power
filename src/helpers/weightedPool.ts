@@ -91,7 +91,7 @@ export function handleBalanceChange(
 ): void {
   const gnoBalance = pool.gnoBalance;
 
-  log.info("handle swap in {}, gno reserves before: {}, after: {}", [
+  log.info("handle balance change in {}, gno reserves before: {}, after: {}", [
     pool.id,
     gnoBalance.toString(),
     nextGnoBalance.toString(),
