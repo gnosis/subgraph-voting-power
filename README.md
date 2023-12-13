@@ -21,3 +21,4 @@ Currently, it tracks GNO balances in:
   - [x] Elk
   - [x] Baoswap
   - [x] Symmetric
+  - [x] Curve sGNO/GNO

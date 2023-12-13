@@ -40,7 +40,7 @@ export function handleTransfer(event: TransferEvent): void {
   pool.gnoBalance = userEntryForPool ? userEntryForPool.gno : ZERO_BI;
   pool.save();
 
-  handleTransferForWeightedPool(event, from, to, value);
+  handleTransferForWeightedPool(event.address, from, to, value);
 }
 
 export function handleSwap(event: SwapEvent): void {

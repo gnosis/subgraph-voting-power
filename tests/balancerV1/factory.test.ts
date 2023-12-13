@@ -9,7 +9,7 @@ import { Address, ethereum } from "@graphprotocol/graph-ts";
 import { handleNewPool } from "../../src/balancerV1/factory";
 import { OTHERTOKEN_ADDRESS, USER1_ADDRESS } from "../helpers";
 import { LOG_NEW_POOL } from "../../generated-gc/ds-balancer-v1-factory/Factory";
-import { GNO_ADDRESS } from "../../src/helpers";
+import { GNO_ADDRESS } from "../../src/constants";
 
 const POOL_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000003"
@@ -51,6 +51,7 @@ export function createPoolCreatedEvent(pool: Address): LOG_NEW_POOL {
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }

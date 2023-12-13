@@ -5,3 +5,4 @@ generated
 generated-gc
 **/.DS_Store
 tests/.bin
+tests/.latest.json

@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
   clearStore,
   test,
@@ -10,7 +10,6 @@ import {
   WeightedPool,
   WeightedPoolPosition,
 } from "../../generated/schema";
-import { GNO_ADDRESS, ONE_GNO } from "../../src/helpers";
 import { PAIR_ADDRESS, USER1_ADDRESS } from "../helpers";
 import {
   handleSwap,
@@ -22,6 +21,7 @@ import {
   LOG_EXIT,
   LOG_SWAP,
 } from "../../generated-gc/templates/BalancerV1Pool/Pool";
+import { GNO_ADDRESS, ONE_GNO } from "../../src/constants";
 
 const POOL_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000003"
@@ -30,8 +30,6 @@ const OTHER_TOKEN_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000002222"
 );
 
-const POOL_ID = POOL_ADDRESS.concat(Bytes.fromHexString("0x0000123123"));
-
 const HALF_A_GNO = ONE_GNO.div(BigInt.fromI32(2));
 
 function resetFixtures(): void {
@@ -39,6 +37,7 @@ function resetFixtures(): void {
 
   // Create pool with total supply of 1e18
   const pool = new WeightedPool(POOL_ADDRESS.toHexString());
+  pool.positions = [];
   pool.gnoIsFirst = true;
   pool.totalSupply = ONE_GNO;
   pool.gnoBalance = ONE_GNO;
@@ -50,7 +49,9 @@ function resetFixtures(): void {
   user.gno = BigInt.fromI32(0);
   user.mgno = BigInt.fromI32(0);
   user.lgno = BigInt.fromI32(0);
+  user.sgno = BigInt.fromI32(0);
   user.deposit = BigInt.fromI32(0);
+  user.stakedGnoSgno = BigInt.fromI32(0);
   user.balancerInternalGno = BigInt.fromI32(0);
   user.save();
 
@@ -128,7 +129,8 @@ function createJoinEvent(gnoIn: BigInt): LOG_JOIN {
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 
@@ -157,7 +159,8 @@ function createExitEvent(gnoOut: BigInt): LOG_EXIT {
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 
@@ -199,6 +202,7 @@ function createSwapEvent(gnoOut: BigInt): LOG_SWAP {
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }

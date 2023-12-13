@@ -2,102 +2,56 @@ import { clearStore, test, assert } from "matchstick-as/assembly/index";
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { User } from "../../generated/schema";
 import { newMockEvent } from "matchstick-as";
-import {
-  ADDRESS_ZERO,
-  USER1_ADDRESS,
-  USER2_ADDRESS,
-  PAIR_ADDRESS,
-  value,
-  OTHERTOKEN_ADDRESS,
-} from "../helpers";
-import { handleNewPair } from "../../src/uniswapV2/factory";
+import { ADDRESS_ZERO, USER1_ADDRESS, USER2_ADDRESS, value } from "../helpers";
 import { handleTransfer as handleGnoTransfer } from "../../src/gno";
-import { createPairCreatedEvent } from "../helpers";
-import { Transfer } from "../../generated-gc/templates/UniswapV2Pair/ERC20";
-import { Swap, Sync } from "../../generated-gc/templates/UniswapV2Pair/Pair";
+import { handleTransfer as handleSgnoTransfer } from "../../src/sgno";
+import { Transfer } from "../../generated-gc/ds-curve-sgno-gno/CurveStableSwap";
 import { Transfer as GnoTransfer } from "../../generated/ds-gno/ERC20";
+import { Transfer as SgnoTransfer } from "../../generated-gc/ds-sgno/ERC20";
+import { Transfer as DepositTokenTransfer } from "../../generated-gc/ds-curve-sgno-gno-gauge-deposit/ERC20";
 import {
-  handleSwap,
-  handleSync,
+  handlePoolBalanceChange,
   handleTransfer,
-} from "../../src/uniswapV2/pair";
-import { GNO_ADDRESS, ZERO_BI } from "../../src/constants";
+  SGNO_GNO_POOL_ADDRESS,
+} from "../../src/curve/sgnoGno";
+import { handleTransfer as handleDepositTokenTransfer } from "../../src/curve/sgnoGnoGaugeDeposit";
+import { GNO_ADDRESS } from "../../src/constants";
 
+const smallValue = value.div(BigInt.fromI32(2));
 let transferEvent = createTransferEvent(USER1_ADDRESS, USER2_ADDRESS, value);
 let smallTransferEvent = createTransferEvent(
   USER1_ADDRESS,
   USER2_ADDRESS,
-  value.div(BigInt.fromI32(2))
+  smallValue
 );
 
 function resetFixtures(): void {
   clearStore();
 
-  // add user with a bit of GNO
+  // add user with a bit of GNO and SGNO
   const user = new User(USER1_ADDRESS.toHexString());
-  user.voteWeight = value;
+  user.voteWeight = value.times(BigInt.fromI32(2));
   user.gno = value;
   user.mgno = BigInt.fromI32(0);
   user.lgno = BigInt.fromI32(0);
-  user.sgno = BigInt.fromI32(0);
+  user.sgno = value;
   user.deposit = BigInt.fromI32(0);
   user.stakedGnoSgno = BigInt.fromI32(0);
   user.balancerInternalGno = BigInt.fromI32(0);
   user.save();
-
-  const pairCreatedEvent = createPairCreatedEvent(
-    GNO_ADDRESS,
-    OTHERTOKEN_ADDRESS,
-    PAIR_ADDRESS,
-    value
-  );
-  handleNewPair(pairCreatedEvent);
 }
 
 function simulateMint(): void {
-  // 1) GNO transfer: user1 -> pair
-  handleGnoTransfer(createGnoTransferEvent(USER1_ADDRESS, PAIR_ADDRESS, value));
+  // 1) GNO and SGNO transfers: user1 -> pool
+  handleGnoTransfer(
+    createGnoTransferEvent(USER1_ADDRESS, SGNO_GNO_POOL_ADDRESS, value)
+  );
+  handleSgnoTransfer(
+    createSgnoTransferEvent(USER1_ADDRESS, SGNO_GNO_POOL_ADDRESS, value)
+  );
 
   // 2) LP token transfer: zero -> user1
   handleTransfer(createTransferEvent(ADDRESS_ZERO, USER1_ADDRESS, value));
-}
-
-function simulateBurn(): void {
-  // 1) LP token transfers: user1 -> pair -> zero
-  handleTransfer(createTransferEvent(USER1_ADDRESS, PAIR_ADDRESS, value));
-  handleTransfer(createTransferEvent(PAIR_ADDRESS, ADDRESS_ZERO, value));
-
-  // 2) GNO transfer: pair -> user1
-  handleGnoTransfer(createGnoTransferEvent(PAIR_ADDRESS, USER1_ADDRESS, value));
-}
-
-function simulateSwap(): void {
-  const USER9_ADDRESS = Address.fromString(
-    "0x0000000000000000000000000000000000000009"
-  );
-
-  const gnoDelta = BigInt.fromI32(105000);
-
-  // 1) transfer GNO to pool
-  handleGnoTransfer(
-    createGnoTransferEvent(USER9_ADDRESS, PAIR_ADDRESS, gnoDelta)
-  );
-
-  // 2) handle Sync event
-  const userForPool = User.load(PAIR_ADDRESS.toHexString());
-  const gnoReserve = userForPool ? userForPool.gno.plus(gnoDelta) : gnoDelta;
-  handleSync(createSyncEvent(gnoReserve));
-
-  // 3) handle Swap event
-  handleSwap(
-    createSwapEvent(
-      gnoDelta,
-      ZERO_BI,
-      ZERO_BI,
-      BigInt.fromI32(100000),
-      USER9_ADDRESS
-    )
-  );
 }
 
 function createTransferEvent(
@@ -111,10 +65,10 @@ function createTransferEvent(
   mockEvent.parameters = new Array();
 
   mockEvent.parameters.push(
-    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
+    new ethereum.EventParam("sender", ethereum.Value.fromAddress(from))
   );
   mockEvent.parameters.push(
-    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
+    new ethereum.EventParam("receiver", ethereum.Value.fromAddress(to))
   );
   mockEvent.parameters.push(
     new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
@@ -124,7 +78,7 @@ function createTransferEvent(
   );
 
   return new Transfer(
-    PAIR_ADDRESS,
+    SGNO_GNO_POOL_ADDRESS,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
     mockEvent.logType,
@@ -170,86 +124,35 @@ function createGnoTransferEvent(
   );
 }
 
-function createSwapEvent(
-  amount0In: BigInt,
-  amount1In: BigInt,
-  amount0Out: BigInt,
-  amount1Out: BigInt,
-  to: Address
-): Swap {
-  let mockEvent = newMockEvent();
+const SGNO_ADDRESS = Address.fromString(
+  "0xa4ef9da5ba71cc0d2e5e877a910a37ec43420445"
+);
+
+function createSgnoTransferEvent(
+  from: Address,
+  to: Address,
+  value: BigInt,
+  data: string = "0x00"
+): SgnoTransfer {
+  const mockEvent = newMockEvent();
 
   mockEvent.parameters = new Array();
 
   mockEvent.parameters.push(
-    new ethereum.EventParam("sender", ethereum.Value.fromAddress(to))
+    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
   );
-
-  mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "amount0In",
-      ethereum.Value.fromSignedBigInt(amount0In)
-    )
-  );
-
-  mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "amount1In",
-      ethereum.Value.fromSignedBigInt(amount1In)
-    )
-  );
-
-  mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "amount0Out",
-      ethereum.Value.fromSignedBigInt(amount0Out)
-    )
-  );
-
-  mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "amount1Out",
-      ethereum.Value.fromSignedBigInt(amount1Out)
-    )
-  );
-
   mockEvent.parameters.push(
     new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
   );
-
-  return new Swap(
-    PAIR_ADDRESS,
-    mockEvent.logIndex,
-    mockEvent.transactionLogIndex,
-    mockEvent.logType,
-    mockEvent.block,
-    mockEvent.transaction,
-    mockEvent.parameters,
-    null
-  );
-}
-
-function createSyncEvent(gnoAmount: BigInt): Sync {
-  let mockEvent = newMockEvent();
-
-  mockEvent.parameters = new Array();
-
   mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "reserve0",
-      ethereum.Value.fromSignedBigInt(gnoAmount)
-    )
+    new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
   );
-
   mockEvent.parameters.push(
-    new ethereum.EventParam(
-      "reserve1",
-      ethereum.Value.fromSignedBigInt(gnoAmount)
-    )
+    new ethereum.EventParam("data", ethereum.Value.fromString(data))
   );
 
-  return new Sync(
-    PAIR_ADDRESS,
+  return new SgnoTransfer(
+    SGNO_ADDRESS,
     mockEvent.logIndex,
     mockEvent.transactionLogIndex,
     mockEvent.logType,
@@ -267,6 +170,45 @@ function getPositionID(pair: Address, user: Address): string {
     .concat(user.toHexString());
 }
 
+const GAUGE_ADDRESS = Address.fromString(
+  "0x2686d5E477d1AaA58BF8cE598fA95d97985c7Fb1"
+);
+
+function createDepositTokenTransferEvent(
+  from: Address,
+  to: Address,
+  value: BigInt,
+  data: string = "0x00"
+): DepositTokenTransfer {
+  const mockEvent = newMockEvent();
+
+  mockEvent.parameters = new Array();
+
+  mockEvent.parameters.push(
+    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("value", ethereum.Value.fromSignedBigInt(value))
+  );
+  mockEvent.parameters.push(
+    new ethereum.EventParam("data", ethereum.Value.fromString(data))
+  );
+
+  return new DepositTokenTransfer(
+    GAUGE_ADDRESS,
+    mockEvent.logIndex,
+    mockEvent.transactionLogIndex,
+    mockEvent.logType,
+    mockEvent.block,
+    mockEvent.transaction,
+    mockEvent.parameters,
+    null
+  );
+}
+
 //  TESTS
 
 test("Creates WeightedPoolPosition on mint and transfer", () => {
@@ -275,16 +217,16 @@ test("Creates WeightedPoolPosition on mint and transfer", () => {
   simulateMint();
   assert.fieldEquals(
     "WeightedPoolPosition",
-    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
+    getPositionID(SGNO_GNO_POOL_ADDRESS, USER1_ADDRESS),
     "id",
-    getPositionID(PAIR_ADDRESS, USER1_ADDRESS)
+    getPositionID(SGNO_GNO_POOL_ADDRESS, USER1_ADDRESS)
   );
   handleTransfer(smallTransferEvent);
   assert.fieldEquals(
     "WeightedPoolPosition",
-    getPositionID(PAIR_ADDRESS, USER2_ADDRESS),
+    getPositionID(SGNO_GNO_POOL_ADDRESS, USER2_ADDRESS),
     "id",
-    getPositionID(PAIR_ADDRESS, USER2_ADDRESS)
+    getPositionID(SGNO_GNO_POOL_ADDRESS, USER2_ADDRESS)
   );
 });
 
@@ -294,43 +236,31 @@ test("Adds position to pair.positions and user.positions on mint and transfer", 
   simulateMint();
   assert.fieldEquals(
     "WeightedPool",
-    PAIR_ADDRESS.toHexString(),
+    SGNO_GNO_POOL_ADDRESS.toHexString(),
     "positions",
-    "[" + getPositionID(PAIR_ADDRESS, USER1_ADDRESS) + "]"
+    "[" + getPositionID(SGNO_GNO_POOL_ADDRESS, USER1_ADDRESS) + "]"
   );
 
   assert.fieldEquals(
     "WeightedPoolPosition",
-    PAIR_ADDRESS.toHexString()
+    SGNO_GNO_POOL_ADDRESS.toHexString()
       .concat("-")
       .concat(USER1_ADDRESS.toHexString()),
     "user",
     USER1_ADDRESS.toHexString()
   );
 
-  // assert.fieldEquals(
-  //   "User",
-  //   USER1_ADDRESS.toHexString(),
-  //   "weightedPoolPositions",
-  //   "[" + getPositionID(PAIR_ADDRESS, USER1_ADDRESS) + "]"
-  // );
   handleTransfer(smallTransferEvent);
   assert.fieldEquals(
     "WeightedPool",
-    PAIR_ADDRESS.toHexString(),
+    SGNO_GNO_POOL_ADDRESS.toHexString(),
     "positions",
     "[" +
-      getPositionID(PAIR_ADDRESS, USER1_ADDRESS) +
+      getPositionID(SGNO_GNO_POOL_ADDRESS, USER1_ADDRESS) +
       ", " +
-      getPositionID(PAIR_ADDRESS, USER2_ADDRESS) +
+      getPositionID(SGNO_GNO_POOL_ADDRESS, USER2_ADDRESS) +
       "]"
   );
-  // assert.fieldEquals(
-  //   "User",
-  //   USER2_ADDRESS.toHexString(),
-  //   "weightedPoolPositions",
-  //   "[" + getPositionID(PAIR_ADDRESS, USER2_ADDRESS) + "]"
-  // );
 });
 
 test("Removes position if liquidity is 0", () => {
@@ -339,14 +269,14 @@ test("Removes position if liquidity is 0", () => {
   simulateMint();
   assert.fieldEquals(
     "WeightedPoolPosition",
-    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
+    getPositionID(SGNO_GNO_POOL_ADDRESS, USER1_ADDRESS),
     "id",
-    getPositionID(PAIR_ADDRESS, USER1_ADDRESS)
+    getPositionID(SGNO_GNO_POOL_ADDRESS, USER1_ADDRESS)
   );
   handleTransfer(transferEvent);
   assert.notInStore(
     "WeightedPoolPosition",
-    getPositionID(PAIR_ADDRESS, USER1_ADDRESS)
+    getPositionID(SGNO_GNO_POOL_ADDRESS, USER1_ADDRESS)
   );
 });
 
@@ -357,7 +287,7 @@ test("Updates position liquidity for recipient on mint", () => {
   simulateMint();
   assert.fieldEquals(
     "WeightedPoolPosition",
-    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
+    getPositionID(SGNO_GNO_POOL_ADDRESS, USER1_ADDRESS),
     "liquidity",
     value.toString()
   );
@@ -374,13 +304,13 @@ test("Updates positions of sender and recipient on transfer", () => {
 
   assert.fieldEquals(
     "WeightedPoolPosition",
-    getPositionID(PAIR_ADDRESS, USER1_ADDRESS),
+    getPositionID(SGNO_GNO_POOL_ADDRESS, USER1_ADDRESS),
     "liquidity",
     value.div(BigInt.fromI32(2)).toString()
   );
   assert.fieldEquals(
     "WeightedPoolPosition",
-    getPositionID(PAIR_ADDRESS, USER2_ADDRESS),
+    getPositionID(SGNO_GNO_POOL_ADDRESS, USER2_ADDRESS),
     "liquidity",
     value.div(BigInt.fromI32(2)).toString()
   );
@@ -396,7 +326,7 @@ test("Updates vote weight for recipient on mint", () => {
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    value.toString()
+    value.times(BigInt.fromI32(2)).toString()
   );
 });
 
@@ -409,7 +339,7 @@ test("Updates vote weight for sender and recipient on transfer", () => {
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    "2000000"
+    "4000000"
   );
 
   // transfer value from USER1 to USER2
@@ -418,13 +348,13 @@ test("Updates vote weight for sender and recipient on transfer", () => {
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    "1000000"
+    "2000000"
   );
   assert.fieldEquals(
     "User",
     USER2_ADDRESS.toHexString(),
     "voteWeight",
-    "1000000"
+    "2000000"
   );
 });
 
@@ -437,14 +367,14 @@ test("Removes sender if vote weight is 0", () => {
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    "2000000"
+    "4000000"
   );
 
   // transfer value from USER1 to USER2
   handleTransfer(transferEvent);
   assert.notInStore(
     "WeightedPoolPosition",
-    PAIR_ADDRESS.toHexString()
+    SGNO_GNO_POOL_ADDRESS.toHexString()
       .concat("-")
       .concat(USER1_ADDRESS.toHexString())
   );
@@ -453,44 +383,92 @@ test("Removes sender if vote weight is 0", () => {
     "User",
     USER2_ADDRESS.toHexString(),
     "voteWeight",
-    "2000000"
+    "4000000"
   );
 });
 
-test("Updates vote weight for all LPs on swap", () => {
+test("Updates vote weight and stakedGnoSgno breakdown for all LPs on swap", () => {
   resetFixtures();
+
   // mint value to user 1
   simulateMint();
-  // transfer half of value from USER1 to USER2
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    "4000000"
+  );
+
+  // transfer half of the LP tokens from USER1 to USER2
   handleTransfer(smallTransferEvent);
-  // vote weights before swap:
-  // user1: 1000000
-  // user2: 1000000
   assert.fieldEquals(
     "User",
     USER1_ADDRESS.toHexString(),
     "voteWeight",
-    "1000000"
+    "2000000"
   );
   assert.fieldEquals(
     "User",
     USER2_ADDRESS.toHexString(),
     "voteWeight",
-    "1000000"
+    "2000000"
   );
 
-  simulateSwap();
-
-  assert.fieldEquals(
-    "User",
-    USER1_ADDRESS.toHexString(),
-    "voteWeight",
-    "1052500"
+  // deposit USER2's LP tokens in gauge
+  handleTransfer(createTransferEvent(USER2_ADDRESS, GAUGE_ADDRESS, smallValue));
+  handleDepositTokenTransfer(
+    createDepositTokenTransferEvent(ADDRESS_ZERO, USER2_ADDRESS, smallValue)
   );
   assert.fieldEquals(
     "User",
     USER2_ADDRESS.toHexString(),
     "voteWeight",
-    "1052500"
+    "2000000"
+  );
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "stakedGnoSgno",
+    "2000000"
+  );
+
+  // swap fees increase the pool balance
+  handleGnoTransfer(
+    createGnoTransferEvent(
+      ADDRESS_ZERO,
+      SGNO_GNO_POOL_ADDRESS,
+      BigInt.fromI32(300000)
+    )
+  ); // pool GNO+SGNO balance is now 4000000+500000=4500000
+  handleSgnoTransfer(
+    createSgnoTransferEvent(
+      ADDRESS_ZERO,
+      SGNO_GNO_POOL_ADDRESS,
+      BigInt.fromI32(200000)
+    )
+  );
+  // pool GNO+SGNO balance is now 4000000+300000+200000=4500000
+  handlePoolBalanceChange(newMockEvent());
+
+  // extra vote weight is proportionally credited to all LPs
+  assert.fieldEquals(
+    "User",
+    USER1_ADDRESS.toHexString(),
+    "voteWeight",
+    "2250000"
+  );
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "voteWeight",
+    "2250000"
+  );
+
+  // it's also reflected in the stakedGnoSgno breakdown
+  assert.fieldEquals(
+    "User",
+    USER2_ADDRESS.toHexString(),
+    "stakedGnoSgno",
+    "2250000"
   );
 });

@@ -61,6 +61,8 @@ function resetFixtures(): void {
   user.lgno = BigInt.fromI32(0);
   user.sgno = BigInt.fromI32(0);
   user.deposit = BigInt.fromI32(0);
+  user.stakedGnoSgno = BigInt.fromI32(0);
+  user.balancerInternalGno = BigInt.fromI32(0);
   user.save();
 }
 
@@ -103,6 +105,7 @@ function createTestPosition(): void {
   position.user = USER1_ADDRESS.toHexString();
   position.pair = PAIR_ADDRESS.toHexString();
   position.liquidity = ONE_GNO;
+  position.gnoBalance = ZERO_BI;
   position.lowerTick = BigInt.fromI32(MIN_TICK);
   position.upperTick = BigInt.fromI32(MAX_TICK);
   position.save();
@@ -226,7 +229,8 @@ function createIncreaseLiquidityEvent(liquidity: BigInt): IncreaseLiquidity {
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 
@@ -254,7 +258,8 @@ function createDecreaseLiquidityEvent(liquidity: BigInt): DecreaseLiquidity {
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
 
@@ -283,6 +288,7 @@ function createTransferEvent(to: Address): Transfer {
     mockEvent.logType,
     mockEvent.block,
     mockEvent.transaction,
-    mockEvent.parameters
+    mockEvent.parameters,
+    null
   );
 }
