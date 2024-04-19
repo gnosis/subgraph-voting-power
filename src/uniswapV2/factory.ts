@@ -31,6 +31,7 @@ function createWeightedPool(
   pool.gnoIsFirst = token0.equals(GNO_ADDRESS);
   pool.totalSupply = ZERO_BI;
   pool.gnoBalance = ZERO_BI;
+  pool.positions = [];
   pool.save();
   return pool;
 }
