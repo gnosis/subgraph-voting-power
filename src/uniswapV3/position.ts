@@ -123,6 +123,7 @@ function loadOrCreateConcentratedLiquidityPosition(
     position.liquidity = ZERO_BI;
     position.lowerTick = BigInt.fromI32(positionResult.value5);
     position.upperTick = BigInt.fromI32(positionResult.value6);
+    position.gnoBalance = ZERO_BI;
     position.save();
 
     pair.positions = pair.positions.concat([tokenId.toString()]);
