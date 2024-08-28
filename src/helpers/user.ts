@@ -9,11 +9,9 @@ export function loadOrCreate(address: Address): User {
     user = new User(id);
     user.voteWeight = BigInt.fromI32(0);
     user.gno = BigInt.fromI32(0);
-    user.mgno = BigInt.fromI32(0);
     user.lgno = BigInt.fromI32(0);
     user.sgno = BigInt.fromI32(0);
     user.deposit = BigInt.fromI32(0);
-    user.balancerInternalGno = BigInt.fromI32(0);
     if (id != ADDRESS_ZERO.toHexString()) {
       user.save();
       log.info("created user {}", [id]);
