@@ -5,4 +5,5 @@ type User @entity {
   lgno: BigInt!
   deposit: BigInt!
   sgno: BigInt!
+  osgno: BigInt!
 }

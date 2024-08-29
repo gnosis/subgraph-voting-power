@@ -82,3 +82,23 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
       file: ./src/sgno.ts
+  - kind: ethereum
+    name: ds-osgno
+    network: gnosis
+    source:
+      address: "0xF490c80aAE5f2616d3e3BDa2483E30C4CB21d1A0"
+      abi: ERC20
+      startBlock: 34778547
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - User
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/osgno.ts
