@@ -6,6 +6,7 @@ type User @entity {
   deposit: BigInt!
   sgno: BigInt!
   osgno: BigInt!
+  balancerInternalGno: BigInt!
 }
 
 type WeightedPool @entity {
