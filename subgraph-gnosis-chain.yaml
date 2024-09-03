@@ -196,3 +196,28 @@ dataSources:
       eventHandlers:
         - event: PoolCreated(indexed address)
           handler: handlePoolCreated
+
+templates:
+  # Balancer
+  - kind: ethereum/contract
+    name: BalancerV2Pool
+    network: gnosis
+    source:
+      abi: ERC20
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/balancerV2/pool.ts
+      entities:
+        - User
+        - WeightedPool
+        - WeightedPoolPosition
+      abis:
+        - name: Vault
+          file: ./abis/balancerV2/Vault.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
