@@ -7,3 +7,18 @@ type User @entity {
   sgno: BigInt!
   osgno: BigInt!
 }
+
+type WeightedPool @entity {
+  id: ID! # address
+  totalSupply: BigInt!
+  gnoIsFirst: Boolean! # only relevant for uni v2
+  gnoBalance: BigInt!
+  positions: [WeightedPoolPosition!]!
+}
+
+type WeightedPoolPosition @entity {
+  id: ID! # <PAIR_ADDRESS>-<USER_ADDRESS>
+  user: User!
+  pool: WeightedPool!
+  liquidity: BigInt!
+}
