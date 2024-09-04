@@ -5,8 +5,13 @@ import { Address, Bytes } from "@graphprotocol/graph-ts";
 
 export function handleDeposit(event: DepositEvent): void {
   const withdrawalCredentials = event.params.withdrawal_credentials;
-  const addressBytes = withdrawalCredentials.slice(12) as Bytes;
-  const userAddress = Address.fromBytes(addressBytes);
+
+  if (withdrawalCredentials.length != 32) {
+    return;
+  }
+
+  const addressBytes = withdrawalCredentials.subarray(12, 32);
+  const userAddress = Address.fromBytes(Bytes.fromUint8Array(addressBytes));
 
   const entry = loadOrCreateUser(userAddress);
   entry.deposit = entry.deposit.plus(ONE_GNO);
