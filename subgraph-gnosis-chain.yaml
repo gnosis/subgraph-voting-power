@@ -123,6 +123,8 @@ dataSources:
           handler: handleBurn
         - event: Mint(indexed address,indexed address,uint256,uint256)
           handler: handleMint
+        - event: StateUpdated(uint256,uint256,uint256)
+          handler: handleStateUpdated
       file: ./src/osgnoVault.ts
 
   # Balancer
