@@ -25,6 +25,7 @@ export const ZERO_BD = BigDecimal.fromString("0");
 export const ONE_BD = BigDecimal.fromString("1");
 export const BI_18 = BigInt.fromI32(18);
 export const WAD = BigInt.fromString("1000000000000000000");
+export const OSGNO_MAX_FEE_PERCENT = BigInt.fromI32(10000);
 
 export function arrayRemove(
   array: string[],

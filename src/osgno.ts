@@ -4,7 +4,7 @@ import {
   saveOrRemove as saveOrRemoveUser,
 } from "./helpers/user";
 
-import { ADDRESS_ZERO, WAD, ZERO_BI } from "./constants";
+import { ADDRESS_ZERO, OSGNO_MAX_FEE_PERCENT, WAD, ZERO_BI } from "./constants";
 import { VaultState } from "../generated/schema";
 import { BigInt } from "@graphprotocol/graph-ts";
 
@@ -27,6 +27,14 @@ export function handleTransfer(event: Transfer): void {
     userTo.voteWeight = userTo.voteWeight.plus(event.params.value);
     userTo.save();
   }
+}
+
+function totalAssets(timestamp: BigInt, _lastUpdateTimestamp: BigInt, avgRewardPerSecond: BigInt, _totalAssets: BigInt, feePercent: BigInt) {
+  let profitAccrued = _unclaimedAssets(timestamp, _lastUpdateTimestamp, avgRewardPerSecond, _totalAssets);
+  if (profitAccrued == ZERO_BI) return _totalAssets;
+
+  let treasuryAssets = profitAccrued.times(feePercent).div(OSGNO_MAX_FEE_PERCENT);
+  return _totalAssets.plus(profitAccrued).minus(treasuryAssets);
 }
 
 
