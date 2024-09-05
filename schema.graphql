@@ -23,3 +23,11 @@ type WeightedPoolPosition @entity {
   pool: WeightedPool!
   liquidity: BigInt!
 }
+
+type VaultState @entity {
+  id: ID!
+  profitAccrued: BigInt!
+  treasuryShare: BigInt!
+  treasuryAsset: BigInt!
+  rate: BigInt!
+}
