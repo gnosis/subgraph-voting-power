@@ -7,6 +7,7 @@ import {
 import { ADDRESS_ZERO, OSGNO_MAX_FEE_PERCENT, WAD, ZERO_BI } from "./constants";
 import { VaultState } from "../generated/schema";
 import { BigInt } from "@graphprotocol/graph-ts";
+import { loadOrCreateVault } from "./helpers/osgnoVault";
 
 export function handleTransfer(event: Transfer): void {
   const to = event.params.to;
@@ -27,6 +28,16 @@ export function handleTransfer(event: Transfer): void {
     userTo.voteWeight = userTo.voteWeight.plus(event.params.value);
     userTo.save();
   }
+}
+
+function convertToAssets(shares: BigInt, timestamp: BigInt) {
+  const vaultState = loadOrCreateVault();
+  const _totalShares = vaultState.treasuryShare;
+  return _convertToAssets(shares, _totalShares, totalAssets(timestamp, vaultState.lastUpdatedTimeStamp, vaultState.avgRewardPerSecond, vaultState.treasuryAsset, vaultState.feePercent));
+}
+
+function _convertToAssets(shares: BigInt, totalShares_: BigInt, totalAssets_: BigInt) {
+  return (totalShares_ == ZERO_BI) ? shares : shares.times(totalAssets_).div(totalShares_);
 }
 
 function totalAssets(timestamp: BigInt, _lastUpdateTimestamp: BigInt, avgRewardPerSecond: BigInt, _totalAssets: BigInt, feePercent: BigInt) {
