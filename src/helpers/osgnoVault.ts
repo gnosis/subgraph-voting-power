@@ -1,6 +1,5 @@
-import { log, BigInt, Address, store } from "@graphprotocol/graph-ts";
+import { BigInt, } from "@graphprotocol/graph-ts";
 import { VaultState } from "../../generated/schema";
-import { ADDRESS_ZERO } from "../constants";
 
 export function loadOrCreateVault(): VaultState {
     let vaultState = VaultState.load("VAULT_STATE");
