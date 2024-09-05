@@ -11,7 +11,8 @@ export function loadOrCreate(address: Address): User {
     user.gno = BigInt.fromI32(0);
     user.lgno = BigInt.fromI32(0);
     user.sgno = BigInt.fromI32(0);
-    user.osgno = BigInt.fromI32(0);
+    user.osgnoShare = BigInt.fromI32(0);
+    user.osgnoAsset = BigInt.fromI32(0);
     user.deposit = BigInt.fromI32(0);
     if (id != ADDRESS_ZERO.toHexString()) {
       user.save();

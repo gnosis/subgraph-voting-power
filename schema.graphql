@@ -5,7 +5,9 @@ type User @entity {
   lgno: BigInt!
   deposit: BigInt!
   sgno: BigInt!
-  osgno: BigInt!
+  osgnoShare: BigInt!
+  osgnoAsset: BigInt!
+  
 }
 
 type VaultState @entity {
@@ -13,5 +15,7 @@ type VaultState @entity {
   profitAccrued: BigInt!
   treasuryShare: BigInt!
   treasuryAsset: BigInt!
+  lastUpdatedTimeStamp: BigInt!
+  avgRewardPerSecond: BigInt!
   rate: BigInt!
 }
