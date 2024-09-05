@@ -34,17 +34,17 @@ export function handleTransfer(event: Transfer): void {
   }
 }
 
-function convertToAssets(shares: BigInt, timestamp: BigInt) {
+function convertToAssets(shares: BigInt, timestamp: BigInt): BigInt  {
   const vaultState = loadOrCreateVault();
   const _totalShares = vaultState.treasuryShare;
   return _convertToAssets(shares, _totalShares, totalAssets(timestamp, vaultState.lastUpdatedTimeStamp, vaultState.avgRewardPerSecond, vaultState.treasuryAsset, BigInt.fromI32(vaultState.feePercent)));
 }
 
-function _convertToAssets(shares: BigInt, totalShares_: BigInt, totalAssets_: BigInt) {
+function _convertToAssets(shares: BigInt, totalShares_: BigInt, totalAssets_: BigInt): BigInt  {
   return (totalShares_ == ZERO_BI) ? shares : shares.times(totalAssets_).div(totalShares_);
 }
 
-function totalAssets(timestamp: BigInt, _lastUpdateTimestamp: BigInt, avgRewardPerSecond: BigInt, _totalAssets: BigInt, feePercent: BigInt) {
+function totalAssets(timestamp: BigInt, _lastUpdateTimestamp: BigInt, avgRewardPerSecond: BigInt, _totalAssets: BigInt, feePercent: BigInt): BigInt  {
   let profitAccrued = _unclaimedAssets(timestamp, _lastUpdateTimestamp, avgRewardPerSecond, _totalAssets);
   if (profitAccrued == ZERO_BI) return _totalAssets;
 
@@ -53,7 +53,7 @@ function totalAssets(timestamp: BigInt, _lastUpdateTimestamp: BigInt, avgRewardP
 }
 
 
-function _unclaimedAssets(timestamp: BigInt, _lastUpdateTimestamp: BigInt, avgRewardPerSecond: BigInt, _totalAssets: BigInt) {
+function _unclaimedAssets(timestamp: BigInt, _lastUpdateTimestamp: BigInt, avgRewardPerSecond: BigInt, _totalAssets: BigInt): BigInt  {
   // calculate time passed since the last update
   // cannot realistically underflow
   let timeElapsed = timestamp.minus(_lastUpdateTimestamp);
