@@ -37,7 +37,7 @@ export function handleTransfer(event: Transfer): void {
 function convertToAssets(shares: BigInt, timestamp: BigInt) {
   const vaultState = loadOrCreateVault();
   const _totalShares = vaultState.treasuryShare;
-  return _convertToAssets(shares, _totalShares, totalAssets(timestamp, vaultState.lastUpdatedTimeStamp, vaultState.avgRewardPerSecond, vaultState.treasuryAsset, vaultState.feePercent));
+  return _convertToAssets(shares, _totalShares, totalAssets(timestamp, vaultState.lastUpdatedTimeStamp, vaultState.avgRewardPerSecond, vaultState.treasuryAsset, BigInt.fromI32(vaultState.feePercent)));
 }
 
 function _convertToAssets(shares: BigInt, totalShares_: BigInt, totalAssets_: BigInt) {

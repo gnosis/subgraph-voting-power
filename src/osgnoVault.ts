@@ -1,6 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
-import { Burn, Mint, StateUpdated } from "../generated-gc/ds-osgno-vault/OsTokenVaultController";
-import { VaultState } from "../generated/schema";
+import { AvgRewardPerSecondUpdated, Burn, FeePercentUpdated, Mint, StateUpdated } from "../generated-gc/ds-osgno-vault/OsTokenVaultController";
 import {
     loadOrCreate as loadOrCreateUser,
     saveOrRemove as saveOrRemoveUser,
@@ -28,6 +26,18 @@ export function handleStateUpdated(event: StateUpdated): void {
     vaultState.profitAccrued = event.params.profitAccrued;
     vaultState.treasuryShare = event.params.treasuryShares;
     vaultState.treasuryAsset = event.params.treasuryAssets;
-    vaultState.lastUpdatedTimeStamp = event.block.timestamp
+    vaultState.lastUpdatedTimeStamp = event.block.timestamp;
+    vaultState.save();
+}
+
+export function handleAvgRewardPerSecondUpdated(event: AvgRewardPerSecondUpdated): void {
+    let vaultState = loadOrCreateVault();
+    vaultState.avgRewardPerSecond = event.params.avgRewardPerSecond;
+    vaultState.save();
+}
+
+export function handleFeePercentUpdated(event: FeePercentUpdated): void {
+    let vaultState = loadOrCreateVault();
+    vaultState.feePercent = event.params.feePercent;
     vaultState.save();
 }

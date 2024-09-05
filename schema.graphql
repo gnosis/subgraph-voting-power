@@ -17,6 +17,5 @@ type VaultState @entity {
   treasuryAsset: BigInt!
   lastUpdatedTimeStamp: BigInt!
   avgRewardPerSecond: BigInt!
-  feePercent: BigInt!
-  rate: BigInt!
+  feePercent: Int!
 }

@@ -125,6 +125,10 @@ dataSources:
           handler: handleMint
         - event: StateUpdated(uint256,uint256,uint256)
           handler: handleStateUpdated
+        - event: AvgRewardPerSecondUpdated(uint256)
+          handler: handleAvgRewardPerSecondUpdated
+        - event: FeePercentUpdated(uint16)
+          handler: handleFeePercentUpdated
       file: ./src/osgnoVault.ts
 
   # Balancer

@@ -9,10 +9,9 @@ export function loadOrCreateVault(): VaultState {
         vaultState.profitAccrued = BigInt.fromI32(0);
         vaultState.treasuryShare = BigInt.fromI32(0);
         vaultState.treasuryAsset = BigInt.fromI32(0);
-        vaultState.rate = BigInt.fromI32(0);
         vaultState.lastUpdatedTimeStamp = BigInt.fromI32(0);
         vaultState.avgRewardPerSecond = BigInt.fromI32(0);
-        vaultState.feePercent = BigInt.fromI32(0);
+        vaultState.feePercent = 0;
         vaultState.save();
     }
     return vaultState;
