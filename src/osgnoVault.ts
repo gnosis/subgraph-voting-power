@@ -5,6 +5,7 @@ import {
     loadOrCreate as loadOrCreateUser,
     saveOrRemove as saveOrRemoveUser,
 } from "./helpers/user";
+import { loadOrCreateVault } from "./helpers/osgnoVault";
 
 export function handleBurn(event: Burn): void {
     const owner = loadOrCreateUser(event.params.owner);
@@ -23,17 +24,7 @@ export function handleMint(event: Mint): void {
 }
 
 export function handleStateUpdated(event: StateUpdated): void {
-    let vaultState = VaultState.load("VAULT_STATE");
-    if (vaultState == null) {
-        vaultState = new VaultState("VAULT_STATE");
-        vaultState.profitAccrued = BigInt.fromI32(0);
-        vaultState.treasuryShare = BigInt.fromI32(0);
-        vaultState.treasuryAsset = BigInt.fromI32(0);
-        vaultState.rate = BigInt.fromI32(0);
-        vaultState.lastUpdatedTimeStamp = BigInt.fromI32(0);
-        vaultState.avgRewardPerSecond = BigInt.fromI32(0);
-        vaultState.save();
-    }
+    let vaultState = loadOrCreateVault();
     vaultState.profitAccrued = event.params.profitAccrued;
     vaultState.treasuryShare = event.params.treasuryShares;
     vaultState.treasuryAsset = event.params.treasuryAssets;
