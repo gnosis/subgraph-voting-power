@@ -3,19 +3,5 @@ type User @entity {
   voteWeight: BigInt!
   gno: BigInt!
   lgno: BigInt!
-  deposit: BigInt!
   sgno: BigInt!
-  osgnoShare: BigInt!
-  osgnoAsset: BigInt!
-  
-}
-
-type VaultState @entity {
-  id: ID!
-  profitAccrued: BigInt!
-  _totalShares: BigInt!
-  _totalAssets: BigInt!
-  lastUpdatedTimeStamp: BigInt!
-  avgRewardPerSecond: BigInt!
-  feePercent: Int!
 }
