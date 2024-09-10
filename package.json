@@ -10,6 +10,8 @@
     "doall": "yarn clean && yarn codegen && yarn build && yarn build:gc",
     "deploy": "graph deploy --studio gno-vote-weight---ethereum",
     "deploy:gc": "graph deploy --studio gno-vote-weight---gc -o build-gc subgraph-gnosis-chain.yaml",
+    "deployProd": "graph deploy --studio gno-vote-weight-ethereum",
+    "deployProd:gc": "graph deploy --studio gno-vote-weight-gc -o build-gc subgraph-gnosis-chain.yaml",
     "test": "graph test"
   },
   "dependencies": {
