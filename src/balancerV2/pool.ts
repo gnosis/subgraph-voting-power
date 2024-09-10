@@ -3,9 +3,9 @@ import { Transfer as TransferEvent } from "../../generated/templates/BalancerV2P
 import { handleTransfer as handleTransferForWeightedPool } from "../helpers/weightedPool";
 
 export function handleTransfer(event: TransferEvent): void {
-  const from = event.params.from;
-  const to = event.params.to;
-  const value = event.params.value;
+    const from = event.params.from;
+    const to = event.params.to;
+    const value = event.params.value;
 
-  handleTransferForWeightedPool(event, from, to, value);
+    handleTransferForWeightedPool(event, from, to, value);
 }

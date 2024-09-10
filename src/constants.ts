@@ -15,6 +15,8 @@ export const ADDRESS_ZERO = Address.fromString(
   "0x0000000000000000000000000000000000000000"
 );
 
+export const DEPOSIT_ADDRESS = Address.fromString("0x0B98057eA310F4d31F2a452B414647007d1645d9");
+
 export const ONE_GNO = BigInt.fromString("1000000000000000000");
 
 export const ZERO_BI = BigInt.fromI32(0);

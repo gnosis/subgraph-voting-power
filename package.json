@@ -8,15 +8,19 @@
     "build": "graph build",
     "build:gc": "graph build -o build-gc subgraph-gnosis-chain.yaml",
     "doall": "yarn clean && yarn codegen && yarn build && yarn build:gc",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ jfschwarz/gno-voting-power-eth",
-    "deploy:gc": "graph deploy -o build-gc --node https://api.thegraph.com/deploy/ jfschwarz/gno-voting-power-gc subgraph-gnosis-chain.yaml",
+    "deploy": "graph deploy --studio gno-vote-weight---ethereum",
+    "deploy:gc": "graph deploy --studio gno-vote-weight---gc -o build-gc subgraph-gnosis-chain.yaml",
+    "deployProd": "graph deploy --studio gno-vote-weight-ethereum",
+    "deployProd:gc": "graph deploy --studio gno-vote-weight-gc -o build-gc subgraph-gnosis-chain.yaml",
     "test": "graph test"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.29.0",
-    "@graphprotocol/graph-ts": "0.26.0"
+    "@graphprotocol/graph-cli": "0.81.0",
+    "@graphprotocol/graph-ts": "0.35.1"
   },
   "devDependencies": {
-    "matchstick-as": "^0.4.1"
+    "matchstick-as": "^0.4.1",
+    "@types/node": "*",
+    "typescript": "^5.0.0"
   }
 }

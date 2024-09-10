@@ -2,44 +2,6 @@ type User @entity {
   id: ID! # address
   voteWeight: BigInt!
   gno: BigInt!
-  mgno: BigInt!
   lgno: BigInt!
-  deposit: BigInt!
   sgno: BigInt!
-  balancerInternalGno: BigInt!
-  weightedPoolPositions: [WeightedPoolPosition!]! @derivedFrom(field: "user")
-  concentratedLiquidityPositions: [ConcentratedLiquidityPosition!]!
-    @derivedFrom(field: "user")
-}
-
-# used for Uniswap V2 pairs and Balancer weighted pools
-type WeightedPool @entity {
-  id: ID! # address
-  totalSupply: BigInt!
-  gnoIsFirst: Boolean! # only relevant for uni v2
-  gnoBalance: BigInt!
-  positions: [WeightedPoolPosition!]!
-}
-type WeightedPoolPosition @entity {
-  id: ID! # <PAIR_ADDRESS>-<USER_ADDRESS>
-  user: User!
-  pool: WeightedPool!
-  liquidity: BigInt!
-}
-
-# used for Uniswap V3 pairs
-type ConcentratedLiquidityPair @entity {
-  id: ID! # address
-  sqrtRatio: BigDecimal!
-  gnoIsFirst: Boolean!
-  positions: [ConcentratedLiquidityPosition!]!
-}
-type ConcentratedLiquidityPosition @entity {
-  id: ID! # UniV3 NFT tokenId
-  user: User
-  pair: ConcentratedLiquidityPair!
-  liquidity: BigInt!
-  lowerTick: BigInt!
-  upperTick: BigInt!
-  gnoBalance: BigInt!
 }
