@@ -23,13 +23,16 @@ export function handleTransfer(event: Transfer): void {
     const userTo = loadOrCreateUser(to);
 
     if (userTo.deposit > ZERO_BI) {
+      // To avoid a negative result that could throw an error
       if (userTo.deposit <= event.params.value) {
         userTo.voteWeight = userTo.voteWeight.minus(userTo.deposit);
+        userTo.voteWeight = userTo.voteWeight.plus(event.params.value);
         userTo.deposit = ZERO_BI;
       } else {
         userTo.voteWeight = userTo.voteWeight.minus(event.params.value);
         userTo.deposit = userTo.deposit.minus(event.params.value);
       }
+      userTo.gno = userTo.gno.plus(event.params.value);
       saveOrRemoveUser(userTo);
     }
   }

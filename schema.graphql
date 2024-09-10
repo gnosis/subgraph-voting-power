@@ -13,8 +13,8 @@ type User @entity {
 type VaultState @entity {
   id: ID!
   profitAccrued: BigInt!
-  treasuryShare: BigInt!
-  treasuryAsset: BigInt!
+  _totalShares: BigInt!
+  _totalAssets: BigInt!
   lastUpdatedTimeStamp: BigInt!
   avgRewardPerSecond: BigInt!
   feePercent: Int!

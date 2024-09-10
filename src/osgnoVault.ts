@@ -23,12 +23,21 @@ export function handleMint(event: Mint): void {
 
 export function handleStateUpdated(event: StateUpdated): void {
     let vaultState = loadOrCreateVault();
-    vaultState.profitAccrued = event.params.profitAccrued;
-    vaultState.treasuryShare = event.params.treasuryShares;
-    vaultState.treasuryAsset = event.params.treasuryAssets;
+  
+    const profitAccrued = event.params.profitAccrued;
+    const treasuryShares = event.params.treasuryShares;
+    const treasuryAssets = event.params.treasuryAssets;
+  
+    const newTotalAssets = vaultState._totalAssets.plus(profitAccrued);
+  
+    vaultState.profitAccrued = profitAccrued;
+    vaultState._totalAssets = newTotalAssets;
+    vaultState._totalShares = vaultState._totalShares.plus(treasuryShares);
     vaultState.lastUpdatedTimeStamp = event.block.timestamp;
+  
     vaultState.save();
-}
+  }
+  
 
 export function handleAvgRewardPerSecondUpdated(event: AvgRewardPerSecondUpdated): void {
     let vaultState = loadOrCreateVault();
