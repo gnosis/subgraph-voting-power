@@ -11,28 +11,28 @@ import { loadOrCreateVault } from "./helpers/osgnoVault";
 
 // HANDLE FOR OSGNO, NEED FURTHER TESTS
 export function handleTransfer(event: Transfer): void {
-  // const to = event.params.to;
-  // const from = event.params.from;
+  const to = event.params.to;
+  const from = event.params.from;
 
-  // if (from.toHexString() != ADDRESS_ZERO.toHexString()) {
-  //   const userFrom = loadOrCreateUser(from);
-  //   userFrom.osgnoShare = userFrom.osgnoShare.minus(event.params.value);
-  //   const newAsset = convertToAssets(userFrom.osgnoShare, event.block.timestamp);
-  //   userFrom.voteWeight = userFrom.voteWeight.plus(userFrom.osgnoAsset);
-  //   userFrom.osgnoAsset = newAsset;
-  //   userFrom.voteWeight = userFrom.voteWeight.minus(userFrom.osgnoAsset);
-  //   saveOrRemoveUser(userFrom);
-  // }
+  if (from.toHexString() != ADDRESS_ZERO.toHexString()) {
+    const userFrom = loadOrCreateUser(from);
+    userFrom.osgnoShare = userFrom.osgnoShare.minus(event.params.value);
+    const newAsset = convertToAssets(userFrom.osgnoShare, event.block.timestamp);
+    userFrom.voteWeight = userFrom.voteWeight.plus(userFrom.osgnoAsset);
+    userFrom.osgnoAsset = newAsset;
+    userFrom.voteWeight = userFrom.voteWeight.minus(userFrom.osgnoAsset);
+    saveOrRemoveUser(userFrom);
+  }
 
-  // if (to.toHexString() != ADDRESS_ZERO.toHexString()) {
-  //   const userTo = loadOrCreateUser(to);
-  //   userTo.osgnoShare = userTo.osgnoShare.plus(event.params.value);
-  //   const newAsset = convertToAssets(userTo.osgnoShare, event.block.timestamp);
-  //   userTo.voteWeight = userTo.voteWeight.minus(userTo.osgnoAsset);
-  //   userTo.osgnoAsset = newAsset;
-  //   userTo.voteWeight = userTo.voteWeight.plus(userTo.osgnoAsset);
-  //   userTo.save();
-  // }
+  if (to.toHexString() != ADDRESS_ZERO.toHexString()) {
+    const userTo = loadOrCreateUser(to);
+    userTo.osgnoShare = userTo.osgnoShare.plus(event.params.value);
+    const newAsset = convertToAssets(userTo.osgnoShare, event.block.timestamp);
+    userTo.voteWeight = userTo.voteWeight.minus(userTo.osgnoAsset);
+    userTo.osgnoAsset = newAsset;
+    userTo.voteWeight = userTo.voteWeight.plus(userTo.osgnoAsset);
+    userTo.save();
+  }
 }
 
 function convertToAssets(shares: BigInt, timestamp: BigInt): BigInt  {
