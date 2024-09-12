@@ -1,0 +1,61 @@
+name: Manual Deployment to Dev
+
+on:
+    workflow_dispatch:
+      inputs:
+        branch:
+          description: "{Branch's name + counter} version to deploy"
+          required: true
+          type: string
+        network:
+            description: "Network for Subgraph deployment - (GC or ETH)"
+            required: true
+            options:
+                - ETH
+                - GC
+            type: choice
+    
+  
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_PUBLIC_WC_PROJECT_ID: ${{ secrets.DEV_WC_PROJECT_ID }}
+
+jobs:
+  deploy:
+    name: Deployment
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+            node-version-file: '.nvmrc'
+
+      - name: Install graph-cli & dependencies
+        run: |
+          yarn run clean
+          yarn global add @graphprotocol/graph-cli
+          yarn install
+          
+      - name: Build App for ETH mainnet
+        if: ${{ inputs.network == 'ETH' }}
+        run: yarn codegen && yarn build
+
+      - name: Build App for Gnosis Chain
+        if: ${{ inputs.network == 'GC' }}
+        run: yarn codegen && yarn build:gc
+
+      - name: Authenticate to Subgraph Studio
+        run: graph auth --studio ${{ secrets.DEPLOY_KEY }}
+
+      # Script to deploy to development environment
