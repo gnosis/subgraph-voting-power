@@ -62,15 +62,15 @@ jobs:
         run: graph auth --studio ${{ secrets.DEPLOY_KEY }}
 
       # Script to deploy to development environment
-    #   - name: Deploy Subgraph for ETH mainnet
-    #     if: ${{ inputs.network == 'Ethereum' }}
-    #     run: yarn deploy
+      - name: Deploy Subgraph for ETH mainnet
+        if: ${{ inputs.network == 'Ethereum' }}
+        run: yarn deploy -l "${{ inputs.version }}"
 
-    #   - name: Deploy Subgraph for Gnosis Chain
-    #     if: ${{ inputs.network == 'Gnosis Chain' }}
-    #     run: yarn deploy:gc < <(echo "${{ inputs.version }}")
+      - name: Deploy Subgraph for Gnosis Chain
+        if: ${{ inputs.network == 'Gnosis Chain' }}
+        run: yarn deploy:gc -l "${{ inputs.version }}"
     
-    #   - name: Deploy Subgraph for both Netwroks
-    #     if: ${{ inputs.network == 'ALL' }}
-    #     run: yarn deploy < <(echo "${{ inputs.version }}") && yarn deploy:gc < <(echo "${{ inputs.version }}")
+      - name: Deploy Subgraph for both Netwroks
+        if: ${{ inputs.network == 'ALL' }}
+        run: yarn deploy -l ${{ inputs.version }}") && yarn deploy:gc -l ${{ inputs.version }}"
     
