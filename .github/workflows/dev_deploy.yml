@@ -3,16 +3,17 @@ name: Manual Deployment to Dev
 on:
     workflow_dispatch:
       inputs:
-        branch:
+        version:
           description: "{Branch's name + counter} version to deploy"
           required: true
           type: string
         network:
-            description: "Network for Subgraph deployment - (GC or ETH)"
+            description: "Network for Subgraph deployment - (Gnosis Chain or Ethereum)"
             required: true
             options:
-                - ETH
-                - GC
+                - Ethereum
+                - Gnosis Chain
+                - ALL
             type: choice
     
   
@@ -20,8 +21,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  NEXT_PUBLIC_WC_PROJECT_ID: ${{ secrets.DEV_WC_PROJECT_ID }}
 
 jobs:
   deploy:
@@ -47,15 +46,31 @@ jobs:
           yarn global add @graphprotocol/graph-cli
           yarn install
           
-      - name: Build App for ETH mainnet
-        if: ${{ inputs.network == 'ETH' }}
+      - name: Build Subgraph for ETH mainnet
+        if: ${{ inputs.network == 'Ethereum' }}
         run: yarn codegen && yarn build
 
-      - name: Build App for Gnosis Chain
-        if: ${{ inputs.network == 'GC' }}
+      - name: Build Subgraph for Gnosis Chain
+        if: ${{ inputs.network == 'Gnosis Chain' }}
         run: yarn codegen && yarn build:gc
+    
+      - name: Build Subgraph for both Netwroks
+        if: ${{ inputs.network == 'ALL' }}
+        run: yarn doall 
 
       - name: Authenticate to Subgraph Studio
         run: graph auth --studio ${{ secrets.DEPLOY_KEY }}
 
       # Script to deploy to development environment
+    #   - name: Deploy Subgraph for ETH mainnet
+    #     if: ${{ inputs.network == 'Ethereum' }}
+    #     run: yarn deploy
+
+    #   - name: Deploy Subgraph for Gnosis Chain
+    #     if: ${{ inputs.network == 'Gnosis Chain' }}
+    #     run: yarn deploy:gc < <(echo "${{ inputs.version }}")
+    
+    #   - name: Deploy Subgraph for both Netwroks
+    #     if: ${{ inputs.network == 'ALL' }}
+    #     run: yarn deploy < <(echo "${{ inputs.version }}") && yarn deploy:gc < <(echo "${{ inputs.version }}")
+    
