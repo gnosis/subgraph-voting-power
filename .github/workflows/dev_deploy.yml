@@ -1,0 +1,76 @@
+name: Manual Deployment to Dev
+
+on:
+    workflow_dispatch:
+      inputs:
+        version:
+          description: "{Branch's name + counter} version to deploy"
+          required: true
+          type: string
+        network:
+            description: "Network for Subgraph deployment - (Gnosis Chain or Ethereum)"
+            required: true
+            options:
+                - Ethereum
+                - Gnosis Chain
+                - ALL
+            type: choice
+    
+  
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  deploy:
+    name: Deployment
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+            node-version-file: '.nvmrc'
+
+      - name: Install graph-cli & dependencies
+        run: |
+          yarn run clean
+          yarn global add @graphprotocol/graph-cli
+          yarn install
+          
+      - name: Build Subgraph for ETH mainnet
+        if: ${{ inputs.network == 'Ethereum' }}
+        run: yarn codegen && yarn build
+
+      - name: Build Subgraph for Gnosis Chain
+        if: ${{ inputs.network == 'Gnosis Chain' }}
+        run: yarn codegen && yarn build:gc
+    
+      - name: Build Subgraph for both Netwroks
+        if: ${{ inputs.network == 'ALL' }}
+        run: yarn doall 
+
+      - name: Authenticate to Subgraph Studio
+        run: graph auth --studio ${{ secrets.DEPLOY_KEY }}
+
+      # Script to deploy to development environment
+      - name: Deploy Subgraph for ETH mainnet
+        if: ${{ inputs.network == 'Ethereum' }}
+        run: yarn deploy -l "${{ inputs.version }}"
+
+      - name: Deploy Subgraph for Gnosis Chain
+        if: ${{ inputs.network == 'Gnosis Chain' }}
+        run: yarn deploy:gc -l "${{ inputs.version }}"
+    
+      - name: Deploy Subgraph for both Netwroks
+        if: ${{ inputs.network == 'ALL' }}
+        run: yarn deploy -l ${{ inputs.version }}") && yarn deploy:gc -l ${{ inputs.version }}"
+    

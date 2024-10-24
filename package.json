@@ -1,7 +1,6 @@
 {
   "name": "subgraph-voting-power",
   "license": "UNLICENSED",
-  "author": "Cristóvão Honorato",
   "scripts": {
     "clean": "rm -rf generated && rm -rf generated-gc && rm -rf build && rm -rf build-gc",
     "codegen": "graph codegen && graph codegen -o generated-gc subgraph-gnosis-chain.yaml",
