@@ -3,5 +3,6 @@ type User @entity {
   voteWeight: BigInt!
   gno: BigInt!
   lgno: BigInt!
+  deposit: BigInt!
   sgno: BigInt!
 }

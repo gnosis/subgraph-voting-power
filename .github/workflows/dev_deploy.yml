@@ -33,7 +33,7 @@ jobs:
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Check for excluded branches
-        if: github.ref == 'refs/heads/main'
+        if: startsWith(github.ref, 'refs/heads/main')
         run: |
           echo "This branch is excluded from workflow dispatch."
           exit 1

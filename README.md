@@ -11,6 +11,7 @@ Currently, it tracks GNO balances in:
   - [x] GNO
   - [x] sGNO
   - [x] LGNO
+  - [x] Deposit GNO
 
 These subgraphs allow the calculation of voting power associated with these balances for various dApps and protocols.
 
