@@ -72,15 +72,15 @@ jobs:
       # Script to deploy to development environment
       - name: Deploy Subgraph for ETH mainnet
         if: ${{ inputs.network == 'Ethereum' }}
-        run: yarn deploy -l "${{ github.event.inputs.branch }}-${{ steps.random_id.outputs }}"
+        run: yarn deploy -l "${{ github.ref_name }}-${{ steps.random_id.outputs.random_id }}"
 
       - name: Deploy Subgraph for Gnosis Chain
         if: ${{ inputs.network == 'Gnosis Chain' }}
-        run: yarn deploy:gc -l "${{ github.event.inputs.branch }}-${{ steps.random_id.outputs.random_id }}"
+        run: yarn deploy:gc -l "${{ github.ref_name }}-${{ steps.random_id.outputs.random_id }}"
     
       - name: Deploy Subgraph for both Netwroks
         if: ${{ inputs.network == 'ALL' }}
-        run: yarn deploy -l "${{ github.event.inputs.branch }}-${{ steps.random_id.outputs.random_id }}" && yarn deploy:gc -l "${{ github.event.inputs.branch }}-${{ steps.random_id.outputs.random_id }}"
+        run: yarn deploy -l "${{ github.ref_name }}-${{ steps.random_id.outputs.random_id }}" && yarn deploy:gc -l "${{ github.ref_name }}-${{ steps.random_id.outputs.random_id }}"
 
   notify:
     uses: ./.github/workflows/slack_release_notification.yml
@@ -92,5 +92,5 @@ jobs:
       environment: Development
       service: GC Voting Snapshot SubGraph
       success: ${{ contains(join(needs.*.result, ','), 'success') }}
-      message: "deploy service `GC Voting Snapshot SubGraph` version `${{ github.event.inputs.branch }}-${{ needs.deploy.outputs.random_id }}`. Triggered by `${{ github.actor }}`."
+      message: "deploy service `GC Voting Snapshot SubGraph` version `${{ github.ref_name }}-${{ needs.deploy.outputs.random_id }}`. Triggered by `${{ github.actor }}`."
     
