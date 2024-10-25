@@ -41,8 +41,7 @@ jobs:
       - name: Generate Random ID
         id: random_id
         run: |
-          RANDOM_ID=$(openssl rand -hex 8)
-          echo "::set-output name=random_id::$RANDOM_ID"
+          echo "random_id=$(openssl rand -hex 8)" >> $GITHUB_OUTPUT
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -90,7 +89,7 @@ jobs:
     secrets: 
       RELEASES_SLACK_WEBHOOK_URL: ${{ secrets.RELEASES_SLACK_WEBHOOK_URL }}
     with:
-      environment: Production
+      environment: Development
       service: GC Voting Snapshot SubGraph
       success: ${{ contains(join(needs.*.result, ','), 'success') }}
       message: "deploy service `GC Voting Snapshot SubGraph` version `${{ github.event.inputs.branch }}-${{ needs.deploy.outputs.random_id }}`. Triggered by `${{ github.actor }}`."
