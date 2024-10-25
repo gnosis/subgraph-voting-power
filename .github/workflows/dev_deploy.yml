@@ -82,7 +82,7 @@ jobs:
       RELEASES_SLACK_WEBHOOK_URL: ${{ secrets.RELEASES_SLACK_WEBHOOK_URL }}
     with:
       environment: Production
-      service: GC Shutter UI
+      service: GC Voting Snapshot SubGraph
       success: ${{ contains(join(needs.*.result, ','), 'success') }}
-      message: "deploy service `GC Shutter UI` version `${{ inputs.tag }}`. Triggered by `${{ github.actor }}`."
+      message: "deploy service `GC Voting Snapshot SubGraph` version `${{ inputs.tag }}`. Triggered by `${{ github.actor }}`."
     
