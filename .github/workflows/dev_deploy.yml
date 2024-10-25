@@ -72,7 +72,7 @@ jobs:
       # Script to deploy to development environment
       - name: Deploy Subgraph for ETH mainnet
         if: ${{ inputs.network == 'Ethereum' }}
-        run: yarn deploy -l "${{ github.event.inputs.branch }}-${{ steps.random_id.outputs }}"
+        run: yarn deploy -l "${{ github.event.inputs.branch }}-${{ steps.random_id.outputs.random_id }}"
 
       - name: Deploy Subgraph for Gnosis Chain
         if: ${{ inputs.network == 'Gnosis Chain' }}
