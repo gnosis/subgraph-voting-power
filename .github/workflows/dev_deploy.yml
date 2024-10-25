@@ -72,7 +72,7 @@ jobs:
     
       - name: Deploy Subgraph for both Netwroks
         if: ${{ inputs.network == 'ALL' }}
-        run: yarn deploy -l "${{ inputs.version }}") && yarn deploy:gc -l "${{ inputs.version }}"
+        run: yarn deploy -l "${{ inputs.version }}" && yarn deploy:gc -l "${{ inputs.version }}"
 
   notify:
     uses: ./.github/workflows/slack_release_notification.yml
