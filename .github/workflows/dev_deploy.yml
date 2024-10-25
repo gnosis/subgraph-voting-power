@@ -33,11 +33,10 @@ jobs:
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Check for excluded branches
+        if: startsWith(github.ref, 'refs/heads/main')
         run: |
-          if [[ "github.event.inputs.branch" == 'main' ]]; then
-            echo "This branch is excluded from workflow dispatch."
-            exit 1
-          fi
+          echo "This branch is excluded from workflow dispatch."
+          exit 1
 
       - name: Generate Random ID
         id: random_id
