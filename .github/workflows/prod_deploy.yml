@@ -3,6 +3,10 @@ name: Manual Deployment to Dev
 on:
     workflow_dispatch:
       inputs:
+        version:
+          description: "Release version to deploy"
+          required: true
+          type: string
         network:
             description: "Network for Subgraph deployment - (Gnosis Chain or Ethereum)"
             required: true
@@ -22,8 +26,7 @@ jobs:
   deploy:
     name: Deployment
     runs-on: ubuntu-latest
-    outputs:
-      random_id: ${{ steps.random_id.outputs.random_id }}
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
@@ -32,16 +35,17 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      - name: Check for excluded branches
-        if: startsWith(github.ref, 'refs/heads/main')
+      - name: Check version tag exists
         run: |
-          echo "This branch is excluded from workflow dispatch."
-          exit 1
+          TAG_EXISTS=$(git tag -l "${{ inputs.version }}")
+          if [ -z "$TAG_EXISTS" ]; then
+            echo "Version ${{ inputs.version }} does not exist."
+            exit 1
+          fi
 
-      - name: Generate Random ID
-        id: random_id
-        run: |
-          echo "random_id=$(openssl rand -hex 4)" >> $GITHUB_OUTPUT
+      - name: Get version Release Tag
+        id: release_tag
+        run: echo "tag=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -72,15 +76,15 @@ jobs:
       # Script to deploy to development environment
       - name: Deploy Subgraph for ETH mainnet
         if: ${{ inputs.network == 'Ethereum' }}
-        run: yarn deploy -l "${{ github.ref_name }}-${{ steps.random_id.outputs.random_id }}"
+        run: yarn deploy -l "${{ steps.release_tag.outputs.tag }}"
 
       - name: Deploy Subgraph for Gnosis Chain
         if: ${{ inputs.network == 'Gnosis Chain' }}
-        run: yarn deploy:gc -l "${{ github.ref_name }}-${{ steps.random_id.outputs.random_id }}"
+        run: yarn deploy:gc -l "${{ steps.release_tag.outputs.tag }}"
     
       - name: Deploy Subgraph for both Netwroks
         if: ${{ inputs.network == 'ALL' }}
-        run: yarn deploy -l "${{ github.ref_name }}-${{ steps.random_id.outputs.random_id }}" && yarn deploy:gc -l "${{ github.ref_name }}-${{ steps.random_id.outputs.random_id }}"
+        run: yarn deploy -l "${{ steps.release_tag.outputs.tag }}" && yarn deploy:gc -l "${{ steps.release_tag.outputs.tag }}"
 
   notify:
     uses: ./.github/workflows/slack_release_notification.yml
@@ -89,8 +93,8 @@ jobs:
     secrets: 
       RELEASES_SLACK_WEBHOOK_URL: ${{ secrets.RELEASES_SLACK_WEBHOOK_URL }}
     with:
-      environment: Development
+      environment: Production
       service: GC Voting Snapshot SubGraph
       success: ${{ contains(join(needs.*.result, ','), 'success') }}
-      message: "deploy service `GC Voting Snapshot SubGraph` version `${{ github.ref_name }}-${{ needs.deploy.outputs.random_id }}`. Triggered by `${{ github.actor }}`."
+      message: "deploy service `GC Voting Snapshot SubGraph` version `${{ inputs.tag }}`. Triggered by `${{ github.actor }}`."
     
