@@ -75,18 +75,23 @@ jobs:
       - name: Authenticate to Subgraph Studio
         run: graph auth --studio ${{ secrets.DEPLOY_KEY }}
 
-      # Script to deploy to development environment
+      # Script to deploy to production environment
+      - name: Generate Random ID for buildcode
+        id: random_id
+        run: |
+          echo "random_id=$(openssl rand -hex 4)" >> $GITHUB_OUTPUT
+
       - name: Deploy Subgraph for ETH mainnet
         if: ${{ inputs.network == 'Ethereum' }}
-        run: yarn deploy -l "${{ steps.release_tag.outputs.tag }}"
+        run: yarn deploy -l "${{ steps.release_tag.outputs.tag }}-${{ steps.random_id.outputs.random_id }}"
 
       - name: Deploy Subgraph for Gnosis Chain
         if: ${{ inputs.network == 'Gnosis Chain' }}
-        run: yarn deploy:gc -l "${{ steps.release_tag.outputs.tag }}"
+        run: yarn deploy:gc -l "${{ steps.release_tag.outputs.tag }}-${{ steps.random_id.outputs.random_id }}"
     
       - name: Deploy Subgraph for both Netwroks
         if: ${{ inputs.network == 'ALL' }}
-        run: yarn deploy -l "${{ steps.release_tag.outputs.tag }}" && yarn deploy:gc -l "${{ steps.release_tag.outputs.tag }}"
+        run: yarn deploy -l "${{ steps.release_tag.outputs.tag }}-${{ steps.random_id.outputs.random_id }}" && yarn deploy:gc -l "${{ steps.release_tag.outputs.tag }}-${{ steps.random_id.outputs.random_id }}"
 
   notify:
     uses: ./.github/workflows/slack_release_notification.yml
