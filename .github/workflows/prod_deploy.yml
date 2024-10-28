@@ -38,16 +38,15 @@ jobs:
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Check version tag exists
+        id: release_tag
         run: |
           TAG_EXISTS=$(git tag -l "${{ inputs.version }}")
           if [ -z "$TAG_EXISTS" ]; then
             echo "Version ${{ inputs.version }} does not exist."
             exit 1
+          else
+             echo "tag=$TAG_EXISTS" >> $GITHUB_OUTPUT
           fi
-
-      - name: Get version Release Tag
-        id: release_tag
-        run: echo "tag=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
